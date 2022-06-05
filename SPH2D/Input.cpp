@@ -5,6 +5,35 @@
 #include "DirectFind.h"
 #include "VirtualParticles.h"
 
+static void initConsts() {
+	constexpr double L = 5.2915; // 2.f * sqrt(7);
+	constexpr double d = 0.7f;
+	constexpr double ratio = L / d;
+	constexpr double length = 6 * L;
+	constexpr double height = 2 * d;
+	constexpr int particlesPer_d = 25;
+	constexpr int particlesPer_L = particlesPer_d * ratio;
+	constexpr int particlesX = particlesPer_L * length / L;
+	constexpr int particlesY = particlesPer_d * height / d / 2;
+	constexpr int particles = particlesX * particlesY;
+	constexpr double h = d / particlesPer_d;
+
+	constexpr double delta = h;
+
+	Params::x_maxgeom = length + delta;
+	Params::x_mingeom = -delta;
+	Params::y_maxgeom = height + delta;
+	Params::y_mingeom = -delta;
+
+	Params::dx = h;
+	Params::dy = h;
+	Params::hsml = h;
+	Params::length = length;
+	Params::height = height;
+	Params::L = L;
+	Params::d = d;
+}
+
 // loading or generating initial particle information
 void input(
 	heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
@@ -19,19 +48,6 @@ void input(
 { 
 	ntotal = 0;
 
-	double x0{ Params::x_mingeom };
-	double xN{ Params::x_maxgeom };
-	double y0{ Params::y_mingeom };
-	double yN{ Params::y_maxgeom };
-
-	double dx{ Params::dx };
-	double rho0 = 1000;
-	double mass0 = dx * dx * rho0;
-	double p0 = 0;
-	double u0 = 357.1;
-	int itype0 = 2; // water
-	  
-
 	size_t nvirt;
 	generateParticles(x, vx, mass, rho, p, u, itype, nfluid);
 	virt_part(nfluid, nvirt, mass, x, vx, rho, u, p, itype);
@@ -40,7 +56,7 @@ void input(
 
 // generate data for the 2d shear driven cavity problem with Re=1
 void generateParticles(
-	heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
+	heap_array_md<double, Params::dim, Params::maxn>& r,	// coordinates of all particles
 	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
 	heap_array<double, Params::maxn>& mass,// particle masses
 	heap_array<double, Params::maxn>& rho, // particle densities
@@ -49,18 +65,30 @@ void generateParticles(
 	heap_array<int, Params::maxn>& itype,	 // particle material type
 	size_t& ntotal) // total particle number
 {  
-	static constexpr size_t mp{ 100 }, np{ 100 };
-	ntotal = mp * np;
-	static constexpr double xl{ 1.e-3 }, yl{1.e-3 };
-	static constexpr double dx{ xl / mp }, dy{ yl / np };
-	  
-	for (size_t i{}; i < mp; i++) {
-		for (size_t j{}; j < np; j++) {
-				size_t k{ j + i * np };
-				x(0, k) = i * dx;
-				x(1, k) = j * dy;
+	initConsts();
+	auto L = Params::L;
+	auto d = Params::d;
+	auto h = Params::hsml;
+	auto length = Params::length;
+	auto beachX = length - 3 * L;
+	ntotal = 0;
+
+	for (double x = 0; x < length; x += h) {
+		for (double y = 0; y < d; y += h) {
+
+			r(0, ntotal) = x;
+			
+			if (x >= beachX) {
+				auto yBeach = (x - beachX) / 6.0;
+				if (yBeach > y) {
+					continue;
+				}
+			}
+			r(1, ntotal) = y;
+			ntotal++;
 		}
 	}
+
 
 	for (size_t i{}; i < ntotal; i++) {
 		vx(0, i) = 0;
@@ -68,7 +96,7 @@ void generateParticles(
 
 
 		rho(i) = 1000;
-		mass(i) = dx * dy * rho(i);
+		mass(i) = h * h * rho(i);
 		u(i) = 357.1;
 		itype(i) = 2; // water
 
@@ -76,15 +104,5 @@ void generateParticles(
 		p_art_water(rho(i), u(i), p(i), c);
 	}
 
-	double delta = dx;
-
-	Params::x_maxgeom = 2.e-3 + delta;
-	Params::x_mingeom = 0.e-3 - delta;
-	Params::y_mingeom = 0.e-3 - 2 * delta;
-	Params::y_maxgeom = 1.e-3 + delta;
-
-	Params::dx = dx * 0.8;
-	Params::dy = dy * 0.8;
-	Params::hsml = dx * 0.8;
 
 }

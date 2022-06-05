@@ -32,7 +32,7 @@ void sph() {
 	
 	Params::maxtimestep = 10000;
 
-	double dt = 5e-6;
+	double dt = 1e-3;
 	input(x, vx, mass, rho, p, u, itype, ntotal, nfluid);
 
 	try {

@@ -3,13 +3,18 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 15'000 }; // maximum number of particles
+	constexpr int maxn{ 70'000 }; // maximum number of particles
 	constexpr int max_interaction{ 100 * maxn }; // maximum number of interaction pairs
 	  
 	inline double x_maxgeom;
 	inline double x_mingeom;
 	inline double y_maxgeom;
 	inline double y_mingeom;
+
+	inline double L;
+	inline double d;
+	inline double length;
+	inline double height;
 	  
 	// SPH algorithm for particle approximation
 	// pa_sph = 1 : (p[i] + p[i])/(rho[i]*rho[j])

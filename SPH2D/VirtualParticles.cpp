@@ -1,6 +1,27 @@
 #include "CommonIncl.h"
 #include "EOS.h"
 
+
+static double dx;
+static double dy;
+
+void leftWall(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r);
+void rightWall(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r);
+void ground(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r);
+void beach(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r);
+
 // determine the information of virtual particles
 // here only the Monaghan type virtual particles for the 2d shear
 // cavity driven probles generated
@@ -17,42 +38,14 @@ void virt_part(
 {
 	nvirt = 0;
 
-	double dx{ Params::dx * 0.125 };
-	double dy{ Params::dy * 0.125 };
 
-	double y0 = -5 * dy; 
+	dx = Params::dx * 0.25;
+	dy = Params::dy * 0.25;
 
-	// left border
-	for (double y{ y0 }; y <= Params::y_maxgeom; y += dy) {
-		size_t i{ ntotal + nvirt };
-		nvirt++;
-		x(0, i) = Params::x_mingeom + dx;
-		x(1, i) = y;
-	}
-
-	// right border
-	for (double y{ y0 }; y < Params::y_maxgeom; y += dy) {
-		size_t i{ ntotal + nvirt };
-		nvirt++;
-		x(0, i) = Params::x_maxgeom - dx;
-		x(1, i) = y;
-	} 
-
-	// right border0
-	for (double y{ y0 + 0.2e-3 }; y < Params::y_maxgeom; y += dy) {
-		size_t i{ ntotal + nvirt };
-		nvirt++;
-		x(0, i) = (Params::x_maxgeom + Params::x_mingeom) * 0.5 + dx;
-		x(1, i) = y;
-	} 
-
-	// bottom border first
-	for (double b{ Params::x_mingeom }; b < Params::x_maxgeom; b += dx) {
-		size_t i{ ntotal + nvirt };
-		nvirt ++;
-		x(0, i) = b;
-		x(1, i) = y0; 
-	}
+	leftWall(ntotal, nvirt, x);
+	rightWall(ntotal, nvirt, x);
+	ground(ntotal, nvirt, x);
+	beach(ntotal, nvirt, x);
 
 	// init all virtual particles
 	for (size_t k{}; k < nvirt; k++) {
@@ -69,5 +62,77 @@ void virt_part(
 
 		double c = 0;
 		p_art_water(rho(i), u(i), p(i), c);
+	}
+}
+
+void leftWall(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r) 
+{
+	auto x = Params::x_mingeom;
+	auto ymin = Params::y_mingeom;
+	auto ymax = Params::y_maxgeom;
+
+	for (auto y = ymax; y >= ymin; y -= dy) {
+		size_t i = ntotal + nvirt;
+		r(0, i) = x;
+		r(1, i) = y;
+		nvirt++;
+	}
+}
+
+void rightWall(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r) 
+{
+	auto x = Params::x_maxgeom;
+	auto ymin = Params::y_mingeom;
+	auto ymax = Params::y_maxgeom;
+
+	for (auto y = ymax; y >= ymin; y -= dy) {
+		size_t i = ntotal + nvirt;
+		r(0, i) = x;
+		r(1, i) = y;
+		nvirt++;
+	}
+}
+
+void ground(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r)
+{
+	auto L = Params::L;
+	auto y = Params::y_mingeom;
+	auto xmin = Params::x_mingeom;
+	auto xmax = Params::x_maxgeom - 3 * L;
+
+	for (auto x = xmax; x >= xmin; x -= dx) {
+		size_t i = ntotal + nvirt;
+		r(0, i) = x;
+		r(1, i) = y;
+		nvirt++;
+	}
+}
+
+void beach(
+	const size_t ntotal,
+	size_t& nvirt,
+	heap_array_md<double, Params::dim, Params::maxn>& r)
+{
+	auto L = Params::L;
+	auto y = Params::y_mingeom;
+	auto xmin = Params::x_maxgeom - L * 3;
+	auto xmax = Params::x_maxgeom;
+
+	for (auto x = xmin; x <= xmax; x += dx) {
+		size_t i = ntotal + nvirt;
+		r(0, i) = x;
+		r(1, i) = y;
+
+		y += dx / 6.0;
+		nvirt++;
 	}
 }
