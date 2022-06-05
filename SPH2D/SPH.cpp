@@ -20,7 +20,7 @@ double pow(double value, unsigned power) {
 void sph() {
 	heap_array<double, Params::maxn> mass; // particle masses
 	size_t ntotal; // number of particles
-	double dt; // timestep
+	size_t nfluid;
 	heap_array<int, Params::maxn> itype;// material type of particles
 	heap_array_md<double, Params::dim, Params::maxn> x;	// coordinates of all particles
 	heap_array_md<double, Params::dim, Params::maxn> vx;// velocities of all particles
@@ -30,18 +30,13 @@ void sph() {
 	heap_array<double, Params::maxn> c;	// sound velocity 
 	heap_array<double, Params::maxn> e;	// total energy of particles
 	
-	Params::maxtimestep = 2500;
-	if (Params::shocktube) {
-		dt = 0.005;
-	}
-	if (Params::shearcavity) {
-		dt = 4e-6;
-	}
+	Params::maxtimestep = 10000;
 
-	input(x, vx, mass, rho, p, u, itype, ntotal);
+	double dt = 5e-6;
+	input(x, vx, mass, rho, p, u, itype, ntotal, nfluid);
 
 	try {
-		time_integration(x, vx, mass, rho, p, u, c, e, itype, ntotal, Params::maxtimestep, dt);
+		time_integration(x, vx, mass, rho, p, u, c, e, itype, ntotal, nfluid, Params::maxtimestep, dt);
 	}
 	catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;

@@ -13,31 +13,26 @@ void time_integration(
 	heap_array<double, Params::maxn>& c,	// sound velocity 
 	heap_array<double, Params::maxn>& e,	// total energy of particles 
 	heap_array<int, Params::maxn>& itype, // material type: 1 - ideal gas, 2 - water, 3 - tnt   
-	const size_t start_ntotal, // total particle number at t = 0
+	const size_t ntotal, // total particle number at t = 0
+	const size_t nfluid, // fluid particles 
 	const size_t maxtimestep, // maximum timesteps
 	const double dt // timestep
 ) 
-{ 
+{
 	heap_array_md<double, Params::dim, Params::maxn> x_min, v_min, dx, dvx, av;
 	heap_array<double, Params::maxn> u_min, rho_min, du, drho, tdsdt;
 	double time{};
-	size_t ntotal{ start_ntotal };
 
 	// print borders
-	//size_t nvirt;
-	//virt_part(0, ntotal, nvirt, mass, x, vx, rho, u, p, itype);
-	//printBorders(x, itype, ntotal + nvirt, 0);
 
 	for (size_t itimestep{}; itimestep < maxtimestep; itimestep++) {
 		if (itimestep % Params::save_step == 0) {
-			size_t nvirt;
-			virt_part(itimestep, ntotal, nvirt, mass, x, vx, rho, u, p, itype);
-			output(x, vx, mass, rho, p, u, c, itype, ntotal + nvirt, itimestep);
+			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep);
 		}
 
 		// it not first time step, then update thermal energy, density and velocity half a time step
 		if (itimestep != 0) {
-			for (size_t i{}; i < ntotal; i++) {
+			for (size_t i{}; i < nfluid; i++) {
 				u_min(i) = u(i);
 				u(i) += (dt * 0.5) * du(i);
 				if (u(i) < 0) {
@@ -53,13 +48,13 @@ void time_integration(
 		}
 
 		// definition of variables out of the function vector:
-		single_step(itimestep, dt, ntotal, mass, x, vx, u, rho, p, 
+		single_step(dt, nfluid, ntotal, mass, x, vx, u, rho, p, 
 			tdsdt, dx, dvx, du, drho, itype, av);
 
 		
 
 		if (itimestep == 0) {
-			for (size_t i{}; i < ntotal; i++) {
+			for (size_t i{}; i < nfluid; i++) {
 				u(i) += (dt * 0.5) * du(i); 
 				if (u(i) < 0) {
 					u(i) = 0;
@@ -72,7 +67,7 @@ void time_integration(
 			} 
 		}
 		else {
-			for (size_t i{}; i < ntotal; i++) {
+			for (size_t i{}; i < nfluid; i++) {
 				u(i) = u_min(i) + dt * du(i);
 				if (u(i) < 0) {
 					u(i) = 0;

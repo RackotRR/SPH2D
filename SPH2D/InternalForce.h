@@ -7,7 +7,6 @@
 *	and the change of internal energy per mass, de/dt, are calculated
 */
 void int_force(
-	const size_t itimestep, // current timestep number
 	const double dt, // time step
 	const size_t ntotal, // number of particles, 
 	const heap_array<double, Params::maxn>& mass,// particle masses

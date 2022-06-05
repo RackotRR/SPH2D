@@ -6,7 +6,6 @@
 // here only the Monaghan type virtual particles for the 2d shear
 // cavity driven probles generated
 void virt_part(
-	const size_t itimestep, // current time step
 	const size_t ntotal, // number of particles
 	size_t& nvirt, // out, number of virtual particles 
 	heap_array<double, Params::maxn>& mass,// out, particle masses

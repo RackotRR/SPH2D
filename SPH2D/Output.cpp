@@ -134,7 +134,7 @@ void output(
 {
 	static std::jthread t;
 
-	std::cout << itimestep << " / " << Params::maxtimestep << std::endl;
+	std::cout << itimestep << " / " << Params::maxtimestep << " \t (" << ntotal << ")" << std::endl;
 	//saveForSPH2D_Drawer(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep);
 
 	if (t.joinable()) {

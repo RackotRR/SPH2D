@@ -3,17 +3,13 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 120'000 }; // maximum number of particles
+	constexpr int maxn{ 15'000 }; // maximum number of particles
 	constexpr int max_interaction{ 100 * maxn }; // maximum number of interaction pairs
 	  
-	//constexpr double x_maxgeom{ 0.002 }; // upper limit of allowed x-regime
-	//constexpr double x_mingeom{ -0.000125 }; // lower limit of allowed x-regime
-	//constexpr double y_maxgeom{ 0.001 }; // upper limit of allowed y-regime
-	//constexpr double y_mingeom{ -0.000125 }; // lower limit of allowed y-regime  
-	inline double x_maxgeom{ 2.e-3 };//1.e-3 / 38 }; // upper limit of allowed x-regime
-	inline double x_mingeom{ -1.e-3 / 38 }; // lower limit of allowed x-regime
-	inline double y_maxgeom{ 0.0025 }; // upper limit of allowed y-regime
-	inline double y_mingeom{ -0.3e-3 - 1.e-3 / 38 }; // lower limit of allowed y-regime 
+	inline double x_maxgeom;
+	inline double x_mingeom;
+	inline double y_maxgeom;
+	inline double y_mingeom;
 	  
 	// SPH algorithm for particle approximation
 	// pa_sph = 1 : (p[i] + p[i])/(rho[i]*rho[j])
@@ -34,11 +30,11 @@ namespace Params {
 	 
 
 	// const smoothing length
-	inline double hsml{ 1.e-3 / 40.0 };
+	inline double hsml;
 
 	// initial distance between particles
-	inline double dx{ 1.e-3 / 40.0 };
-	inline double dy{ 1.e-3 / 40.0 };
+	inline double dx;
+	inline double dy;
 
 	/// Switches for diferent scenarios;
 	
@@ -101,9 +97,4 @@ namespace Params {
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
 
 	constexpr double pi{ 3.14159265358979323846 };
-
-	/// simulation cases
-
-	constexpr bool shocktube{ false }; // true : shock tube simulation
-	constexpr bool shearcavity{ true }; // true : shear cavity simulation
 };
