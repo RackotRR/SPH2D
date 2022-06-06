@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "CommonIncl.h"
 #include "Input.h"
@@ -45,6 +46,9 @@ void sph() {
  
 
 int main() {  
+	std::cout << "File to write: ";
+	std::getline(std::cin, Params::fileToWrite);
+
 	sph(); 
 	system("pause");
 	return 0;

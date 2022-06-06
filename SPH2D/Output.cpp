@@ -48,7 +48,7 @@ namespace {
 
 		static bool isFirstStart = true;
 		if (isFirstStart) {
-			stream.open("params", std::ofstream::out);
+			stream.open(Params::fileToWrite, std::ofstream::out);
 			// save params:
 			stream << Params::x_mingeom << std::endl; // origin.X
 			stream << Params::y_mingeom << std::endl; // origin.Y
@@ -58,7 +58,7 @@ namespace {
 			stream << Params::dy << std::endl; // dy
 			isFirstStart = false;
 		}
-		stream.open("params", std::ofstream::app);
+		stream.open(Params::fileToWrite, std::ofstream::app);
 
 		stream << ntotal << std::endl;
 		for (size_t i{}; i < ntotal; i++) {
@@ -77,7 +77,7 @@ namespace {
 
 		static bool isFirstStart = true;
 		if (isFirstStart) {
-			stream.open("params", std::ofstream::out);
+			stream.open(Params::fileToWrite, std::ofstream::out);
 			// save params:
 			stream << Params::x_mingeom << std::endl; // origin.X
 			stream << Params::y_mingeom << std::endl; // origin.Y
@@ -87,7 +87,7 @@ namespace {
 			stream << Params::dy << std::endl; // dy
 			isFirstStart = false;
 		}
-		stream.open("params", std::ofstream::app);
+		stream.open(Params::fileToWrite, std::ofstream::app);
 
 		stream << ntotal << std::endl;
 		for (size_t i{}; i < ntotal; i++) {

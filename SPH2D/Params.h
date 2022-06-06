@@ -1,4 +1,5 @@
 #pragma once 
+#include <string>
 namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
@@ -33,6 +34,10 @@ namespace Params {
 	//		 3 : Quintic kernel (Morris 1997)
 	constexpr int skf{ 3 };
 	 
+	// numerical waves maker
+	// nmw = 1 : relaxation zone method
+	//		 2 : dynamic boundaries method
+	constexpr int nwm{ 1 };
 
 	// const smoothing length
 	inline double hsml;
@@ -90,4 +95,6 @@ namespace Params {
 
 	constexpr double pi{ 3.14159265358979323846 };
 	constexpr double g{ 9.81 };
+
+	inline std::string fileToWrite;
 };
