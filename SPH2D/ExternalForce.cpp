@@ -21,7 +21,7 @@ void ext_force(
 	// consider self-gravity or not?
 	if (Params::self_gravity) {
 		for (size_t k{}; k < ntotal; k++) {
-			dvxdt(Params::dim - 1, k) = -9.8;
+			dvxdt(Params::dim - 1, k) = -Params::g;
 		}
 	} 
 
@@ -30,7 +30,7 @@ void ext_force(
 	heap_array<double, Params::dim> dx;
 
 	const double rr0{ Params::hsml * 0.5 };//{ 1.25e-5 };
-	constexpr double dd{ 1.e-4 }; 
+	double dd{ 5 * Params::g * Params::d };
 	constexpr unsigned p1{ 12 };
 	constexpr unsigned p2{ 4 };
 

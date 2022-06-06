@@ -3,7 +3,7 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 70'000 }; // maximum number of particles
+	constexpr int maxn{ 71'000 }; // maximum number of particles
 	constexpr int max_interaction{ 100 * maxn }; // maximum number of interaction pairs
 	  
 	inline double x_maxgeom;
@@ -51,10 +51,6 @@ namespace Params {
 	// false : no average treatment
 	constexpr bool average_velocity{ true }; // Liu G.R. (eq 4.92)
 
-	// true : load initial configuration data
-	// false : generate initial configuration
-	constexpr bool config_input{ false };
-
 	// true : use virtual particle
 	// false : no use of virtual particle
 	constexpr bool virtual_part{ true };
@@ -82,24 +78,16 @@ namespace Params {
 	// false : no normalization
 	constexpr bool nor_density{ false };
 
-
-	// symmetry of the problem
-	// nsym = 0 : no symmetry
-	//		  1 : axis symmetry
-	//		  2 : center symmetry
-	constexpr int nsym{ 0 };
-
-
-
 	/// control parameters for output
 
 	// true : print statistics about SPH particle interactions including virtual particle information
 	constexpr bool int_stat{ true };
 
-	inline size_t maxtimestep{ 4000 }; // time step to finish
+	inline size_t maxtimestep; // time step to finish
 	constexpr int print_step{ 100 }; // print timestep (on screen)
 	constexpr int save_step{ 25 }; // save timestep (on disk)
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
 
 	constexpr double pi{ 3.14159265358979323846 };
+	constexpr double g{ 9.81 };
 };

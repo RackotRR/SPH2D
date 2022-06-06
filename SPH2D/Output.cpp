@@ -130,11 +130,12 @@ void output(
 	const heap_array<double, Params::maxn>& c,	// sound velocity
 	const heap_array<int, Params::maxn>& itype,	// material type
 	const size_t ntotal,	// number of particles
-	const size_t itimestep) // current time step
+	const size_t itimestep,// current time step
+	const long long timeEstimates) 
 {
 	static std::jthread t;
 
-	std::cout << itimestep << " / " << Params::maxtimestep << " \t (" << ntotal << ")" << std::endl;
+	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")" << "{est." << timeEstimates << "}" << std::endl;
 	//saveForSPH2D_Drawer(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep);
 
 	if (t.joinable()) {

@@ -19,12 +19,12 @@ void p_art_water(
 
 	// Lennard-Jones EOS
 	constexpr double rho0{ 1000 };
-	constexpr double H{ 1.e-3 };
-	constexpr double g{ 9.8 };
-	constexpr double cSqr{ 200 * g * H };
-	constexpr double alpha{ 3 };
-	constexpr double beta{ 2 };
-	constexpr double K{ (rho0 * cSqr) / (alpha + beta) };
+	double H{ Params::d };
+	double g{ Params::g };
+	double cSqr{ 200 * g * H };
+	double alpha{ 3 };
+	double beta{ 2 };
+	double K{ (rho0 * cSqr) / (alpha + beta) };
 
 	p = K;
 	if (rho >= 2 * rho0) {

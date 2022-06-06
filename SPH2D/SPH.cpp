@@ -30,9 +30,9 @@ void sph() {
 	heap_array<double, Params::maxn> c;	// sound velocity 
 	heap_array<double, Params::maxn> e;	// total energy of particles
 	
-	Params::maxtimestep = 10000;
+	Params::maxtimestep = 20000;
 
-	double dt = 1e-3;
+	double dt = 1e-4;
 	input(x, vx, mass, rho, p, u, itype, ntotal, nfluid);
 
 	try {

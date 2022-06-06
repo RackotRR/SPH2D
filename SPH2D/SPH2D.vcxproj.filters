@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DoMTh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EOS.h">
       <Filter>Header Files</Filter>
     </ClInclude>

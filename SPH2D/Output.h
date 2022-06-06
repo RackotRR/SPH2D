@@ -12,7 +12,8 @@ void output(
 	const heap_array<double, Params::maxn>& c,	// sound velocity
 	const heap_array<int, Params::maxn>& itype,	// material type 
 	const size_t ntotal,	// number of particles
-	const size_t itimestep); // current time step
+	const size_t itimestep,// current time step
+	const long long timeEstimates);
 
 void printBorders(
 	const heap_array_md<double, Params::dim, Params::maxn>& x,

@@ -39,8 +39,8 @@ void virt_part(
 	nvirt = 0;
 
 
-	dx = Params::dx * 0.25;
-	dy = Params::dy * 0.25;
+	dx = Params::dx * 0.5;
+	dy = Params::dy * 0.5;
 
 	leftWall(ntotal, nvirt, x);
 	rightWall(ntotal, nvirt, x);

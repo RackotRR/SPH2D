@@ -9,9 +9,9 @@ static void initConsts() {
 	constexpr double L = 5.2915; // 2.f * sqrt(7);
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 6 * L;
+	constexpr double length = 4.25 * L;
 	constexpr double height = 2 * d;
-	constexpr int particlesPer_d = 25;
+	constexpr int particlesPer_d = 50;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
 	constexpr int particlesX = particlesPer_L * length / L;
 	constexpr int particlesY = particlesPer_d * height / d / 2;
