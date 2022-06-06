@@ -97,10 +97,14 @@ void time_integration(
 					}
 
 				}
-				// rzm
-				RZM_generator(x, vx, nfluid, time);
-				RZM_absorber(x, vx, dvx, nfluid, time);
 
+
+				// rzm
+				if (Params::nwm == 1)
+				{
+					RZM_generator(x, vx, nfluid, time);
+					RZM_absorber(x, vx, dvx, nfluid, time);
+				}
 			}
 
 
