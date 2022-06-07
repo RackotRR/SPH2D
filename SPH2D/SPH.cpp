@@ -31,9 +31,15 @@ void sph() {
 	heap_array<double, Params::maxn> c;	// sound velocity 
 	heap_array<double, Params::maxn> e;	// total energy of particles
 	
-	Params::maxtimestep = 20000;
+	double simulationTime = 20;
+	double dt = 5e-4;
+	if (simulationTime / dt < 0) {
+		std::cerr << "maxtimestep error" << std::endl;
+		return;
+	}
 
-	double dt = 1e-4;
+	Params::maxtimestep = static_cast<size_t>(simulationTime / dt);
+
 	input(x, vx, mass, rho, p, u, itype, ntotal, nfluid);
 
 	try {
@@ -46,9 +52,6 @@ void sph() {
  
 
 int main() {  
-	std::cout << "File to write: ";
-	std::getline(std::cin, Params::fileToWrite);
-
 	sph(); 
 	system("pause");
 	return 0;

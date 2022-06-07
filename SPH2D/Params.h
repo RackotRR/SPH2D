@@ -4,8 +4,9 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 71'000 }; // maximum number of particles
-	constexpr int max_interaction{ 100 * maxn }; // maximum number of interaction pairs
+	constexpr int maxn{ 37'000 }; // maximum number of particles
+	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
+	constexpr int stepsBeforeWaves{ 50 };
 	  
 	inline double x_maxgeom;
 	inline double x_mingeom;
@@ -16,7 +17,16 @@ namespace Params {
 	inline double d;
 	inline double length;
 	inline double height;
-	  
+	inline double freq;
+	inline double A;
+	inline double beachX;
+	 
+
+	// form of eos
+	// eos = 1 : Lennard-Jones
+	//		 2 : Monaghan 1994
+	constexpr int eos{ 2 };
+
 	// SPH algorithm for particle approximation
 	// pa_sph = 1 : (p[i] + p[i])/(rho[i]*rho[j])
 	//		    2 : p[i]/sqr(rho[i]) + p[j]/sqr(rho[j]
@@ -32,12 +42,12 @@ namespace Params {
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
-	constexpr int skf{ 3 };
+	constexpr int skf{ 2 };
 	 
 	// numerical waves maker
 	// nmw = 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
-	constexpr int nwm{ 1 };
+	constexpr int nwm{ 2 };
 
 	// const smoothing length
 	inline double hsml;
@@ -90,7 +100,7 @@ namespace Params {
 
 	inline size_t maxtimestep; // time step to finish
 	constexpr int print_step{ 100 }; // print timestep (on screen)
-	constexpr int save_step{ 25 }; // save timestep (on disk)
+	inline int save_step; // save timestep (on disk)
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
 
 	constexpr double pi{ 3.14159265358979323846 };

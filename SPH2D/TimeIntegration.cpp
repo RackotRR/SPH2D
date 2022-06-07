@@ -3,6 +3,7 @@
 #include "SingleStep.h"
 #include "VirtualParticles.h"
 #include <RRTimeCounter/TimeCounter.h>
+#include <iostream>
 
 void RZM_generator(
 	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
@@ -94,16 +95,24 @@ void time_integration(
 					for (size_t d{}; d < Params::dim; d++) {
 						vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
 						x(d, i) += dt * vx(d, i);
+						//if (x(d, i) > Params::x_maxgeom * 2) {
+						//	std::cerr << "X > MAXGEOM!" << std::endl;
+						//}
 					}
 
 				}
 
 
-				// rzm
-				if (Params::nwm == 1)
-				{
-					RZM_generator(x, vx, nfluid, time);
-					RZM_absorber(x, vx, dvx, nfluid, time);
+				// NWM
+				if (itimestep > Params::stepsBeforeWaves) {
+					if (Params::nwm == 1)
+					{
+						RZM_generator(x, vx, nfluid, time);
+						RZM_absorber(x, vx, dvx, nfluid, time);
+					}
+					else {
+						dynamicBoundaries(x, vx, dt, time);
+					}
 				}
 			}
 
@@ -132,8 +141,8 @@ void RZM_generator(
 			x_ <= rzmg_xn) {
 			double xc = (x_ - rzmg_center) / rzmg_length;
 			double C = cos(Params::pi * xc);
-			static constexpr double A = 0.16;
-			static constexpr double O = Params::pi;
+			static double A = Params::A;
+			static double O = Params::freq;
 			static double H = Params::d;
 			static double k = O / sqrt(Params::g * H);
 			double v_xt = A * O * cosh(k * z + k * H) / sinh(k * H) * cos(k * x_ - O * time);
@@ -162,8 +171,8 @@ void RZM_absorber(
 			x_ <= rzma_xn) {
 			double xc = (x_ - rzma_center) / rzma_length;
 			double C = sin(Params::pi * xc * 0.5);
-			static constexpr double A = 0.16;
-			static constexpr double O = Params::pi;
+			static double A = Params::A;
+			static double O = Params::freq;
 			static double H = Params::d;
 			static double k = O / sqrt(Params::g * H);
 			double dv_xt = A * O * O * cosh(k * z + k * H) / sinh(k * H) * sin(k * x_ - O * time);

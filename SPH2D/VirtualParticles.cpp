@@ -5,6 +5,9 @@
 static double dx;
 static double dy;
 
+static size_t leftWallStart;
+static size_t leftWallEnd;
+
 void leftWall(
 	const size_t ntotal,
 	size_t& nvirt,
@@ -70,16 +73,18 @@ void leftWall(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r) 
 {
-	auto x = Params::x_mingeom;
+	auto x = 0.;
 	auto ymin = Params::y_mingeom;
 	auto ymax = Params::y_maxgeom;
 
+	leftWallStart = ntotal + nvirt;
 	for (auto y = ymax; y >= ymin; y -= dy) {
 		size_t i = ntotal + nvirt;
 		r(0, i) = x;
 		r(1, i) = y;
 		nvirt++;
 	}
+	leftWallEnd = ntotal + nvirt;
 }
 
 void rightWall(
@@ -107,7 +112,7 @@ void ground(
 	auto L = Params::L;
 	auto y = Params::y_mingeom;
 	auto xmin = Params::x_mingeom;
-	auto xmax = Params::x_maxgeom - 3 * L;
+	auto xmax = Params::beachX;
 
 	for (auto x = xmax; x >= xmin; x -= dx) {
 		size_t i = ntotal + nvirt;
@@ -124,7 +129,7 @@ void beach(
 {
 	auto L = Params::L;
 	auto y = Params::y_mingeom;
-	auto xmin = Params::x_maxgeom - L * 3;
+	auto xmin = Params::beachX;
 	auto xmax = Params::x_maxgeom;
 
 	for (auto x = xmin; x <= xmax; x += dx) {
@@ -134,5 +139,22 @@ void beach(
 
 		y += dx / 6.0;
 		nvirt++;
+	}
+}
+
+
+void dynamicBoundaries(
+	heap_array_md<double, Params::dim, Params::maxn>& x,	// out, coordinates of all particles
+	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
+	const double dt,
+	const double time)
+{
+	
+	double phase = 0;
+
+	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
+	for (size_t i = leftWallStart; i < leftWallEnd; i++) {
+		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * dt;
+		vx(0, i) =  v;
 	}
 }

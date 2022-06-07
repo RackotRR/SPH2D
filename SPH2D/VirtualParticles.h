@@ -15,3 +15,9 @@ void virt_part(
 	heap_array<double, Params::maxn>& u,	// out, specific internal energy
 	heap_array<double, Params::maxn>& p,	// out, pressure
 	heap_array<int, Params::maxn>& itype); // out, material type: 1 - ideal gas, 2 - water, 3 - tnt
+
+void dynamicBoundaries(
+	heap_array_md<double, Params::dim, Params::maxn>& x,	// out, coordinates of all particles
+	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
+	const double dt,
+	const double time);

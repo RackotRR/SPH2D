@@ -5,11 +5,14 @@
 #include "DirectFind.h"
 #include "VirtualParticles.h"
 
+#include <iostream>
+
 static void initConsts() {
-	constexpr double L = 5.2915; // 2.f * sqrt(7);
+	constexpr double H = 0.16;
+	constexpr double L = 4.6; 
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 4.25 * L;
+	constexpr double length = 3.25 * L;
 	constexpr double height = 2 * d;
 	constexpr int particlesPer_d = 50;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
@@ -21,7 +24,7 @@ static void initConsts() {
 	constexpr double delta = h;
 
 	Params::x_maxgeom = length + delta;
-	Params::x_mingeom = -delta;
+	Params::x_mingeom = -delta * 2 - H;
 	Params::y_maxgeom = height + delta;
 	Params::y_mingeom = -delta;
 
@@ -32,6 +35,13 @@ static void initConsts() {
 	Params::height = height;
 	Params::L = L;
 	Params::d = d;
+	Params::freq = Params::pi;
+
+	constexpr double k = 2 * Params::pi / L;
+	constexpr double v = k * d;
+	Params::A = H * 0.5 / sqr(sinh(v)) * (sinh(v) * cosh(v) + v);
+	Params::save_step = 100;
+	Params::beachX = L;
 }
 
 // loading or generating initial particle information
@@ -52,6 +62,9 @@ void input(
 	generateParticles(x, vx, mass, rho, p, u, itype, nfluid);
 	virt_part(nfluid, nvirt, mass, x, vx, rho, u, p, itype);
 	ntotal = nfluid + nvirt;
+
+	std::cout << "File to write: ";
+	std::getline(std::cin, Params::fileToWrite);
 }
 
 // generate data for the 2d shear driven cavity problem with Re=1
@@ -70,7 +83,7 @@ void generateParticles(
 	auto d = Params::d;
 	auto h = Params::hsml;
 	auto length = Params::length;
-	auto beachX = length - 3 * L;
+	auto beachX = Params::beachX;
 	ntotal = 0;
 
 	for (double x = 0; x < length; x += h) {

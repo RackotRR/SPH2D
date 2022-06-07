@@ -22,7 +22,7 @@ void kernel(
 	if (Params::skf == 1) { // Cubic spline  
 		factor = 15.0 / (7.0 * Params::pi * sqr(hsml)); 
 
-		if (q >= 0 && q <= 1) { 
+		if (q <= 1) { 
 			w = factor * (2.0 / 3.0 - q * q + q * q * q * 0.5);
 			for (size_t d{}; d < Params::dim; d++) {
 				dwdx(d) = factor * (-2.0 + 3.0 / 2.0 * q) / sqr(hsml) * dx(d);
@@ -44,7 +44,7 @@ void kernel(
 	else if (Params::skf == 2) { // Gauss kernel
 		factor = 1.0 / (pow(hsml, Params::dim) * pow(Params::pi, Params::dim / 2.0));
 
-		if (q >= 0 && q <= 3) {
+		if (q <= 3) {
 			w = factor * exp(-q * q);
 			for (size_t d{}; d < Params::dim; d++) {
 				dwdx(d) = w * (-2.0) * dx(d) / sqr(hsml);
@@ -60,7 +60,7 @@ void kernel(
 	else if (Params::skf == 3) { // Quintic spline 
 		factor = 7.0 / (478.0 * Params::pi * sqr(hsml)); 
 
-		if (q >= 0 && q <= 1) {
+		if (q <= 1) {
 			w = factor * (pow(3.0 - q, 5) - 6.0 * pow(2 - q, 5) + 15 * pow(1 - q, 5));
 			for (size_t d{}; d < Params::dim; d++) {
 				dwdx(d) = factor * ((-120.0 + 120 * q - 50 * q * q) / sqr(hsml) * dx(d));

@@ -29,7 +29,7 @@ void ext_force(
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
 	heap_array<double, Params::dim> dx;
 
-	const double rr0{ Params::hsml * 0.5 };//{ 1.25e-5 };
+	const double rr0{ Params::hsml };//{ 1.25e-5 };
 	double dd{ 5 * Params::g * Params::d };
 	constexpr unsigned p1{ 12 };
 	constexpr unsigned p2{ 4 };
