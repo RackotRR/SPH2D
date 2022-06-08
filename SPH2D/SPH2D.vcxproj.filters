@@ -72,6 +72,9 @@
     <ClInclude Include="DirectFind.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WaveMaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Input.cpp">
@@ -123,6 +126,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GridFind.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WaveMaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

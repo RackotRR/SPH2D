@@ -18,4 +18,5 @@ void single_step(
 	heap_array<double, Params::maxn>& du,	// out, du = d(u)/dt
 	heap_array<double, Params::maxn>& drho,	// out, drho = d(rho)/dt
 	heap_array<int, Params::maxn>& itype,	// material type of particles
-	heap_array_md<double, Params::dim, Params::maxn>& av); // out, Monaghan average velocity
+	heap_array_md<double, Params::dim, Params::maxn>& av, // out, Monaghan average velocity
+	const double time);

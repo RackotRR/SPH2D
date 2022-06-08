@@ -5,17 +5,7 @@
 #include <RRTimeCounter/TimeCounter.h>
 #include <iostream>
 
-void RZM_generator(
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	const size_t nfluid,
-	const double time); 
-void RZM_absorber(
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	const heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& dvx,
-	const size_t nfluid,
-	const double time); 
+
 
 
 void time_integration(
@@ -68,7 +58,7 @@ void time_integration(
 
 			// definition of variables out of the function vector:
 			single_step(dt, nfluid, ntotal, mass, x, vx, u, rho, p,
-				tdsdt, dvx, du, drho, itype, av);
+				tdsdt, dvx, du, drho, itype, av, time);
 
 
 
@@ -95,25 +85,11 @@ void time_integration(
 					for (size_t d{}; d < Params::dim; d++) {
 						vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
 						x(d, i) += dt * vx(d, i);
-						//if (x(d, i) > Params::x_maxgeom * 2) {
-						//	std::cerr << "X > MAXGEOM!" << std::endl;
-						//}
 					}
 
 				}
 
 
-				// NWM
-				if (itimestep > Params::stepsBeforeWaves) {
-					if (Params::nwm == 1)
-					{
-						RZM_generator(x, vx, nfluid, time);
-						RZM_absorber(x, vx, dvx, nfluid, time);
-					}
-					else {
-						dynamicBoundaries(x, vx, dt, time);
-					}
-				}
 			}
 
 
@@ -121,66 +97,5 @@ void time_integration(
 		};
 
 		counter.Count(func);
-	}
-}
-
-void RZM_generator(
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	const size_t nfluid,
-	const double time)
-{
-	for (size_t i = 0; i < nfluid; i++) {
-		double x_ = x(0, i);
-		double z = x(1, i);
-		static double rzmg_x0 = 0.75 * Params::L;
-		static double rzmg_xn = Params::L;//10 * Params::hsml;
-		static double rzmg_length = rzmg_xn - rzmg_x0;
-		static double rzmg_center = (rzmg_x0 + rzmg_xn) * 0.5;
-		if (x_ >= rzmg_x0 &&
-			x_ <= rzmg_xn) {
-			double xc = (x_ - rzmg_center) / rzmg_length;
-			double C = cos(Params::pi * xc);
-			static double A = Params::A;
-			static double O = Params::freq;
-			static double H = Params::d;
-			static double k = O / sqrt(Params::g * H);
-			double v_xt = A * O * cosh(k * z + k * H) / sinh(k * H) * cos(k * x_ - O * time);
-			double v_zt = A * O * sinh(k * z + k * H) / sinh(k * H) * sin(k * x_ - O * time);
-			vx(0, i) = C * v_xt + (1 - C) * vx(0, i);
-			vx(1, i) = C * v_zt + (1 - C) * vx(1, i);
-		}
-	}
-}
-
-void RZM_absorber(
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	const heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& dvx,
-	const size_t nfluid,
-	const double time)
-{
-	for (size_t i = 0; i < nfluid; i++) {
-		double x_ = x(0, i);
-		double z = x(1, i);
-		static double rzma_x0 = 0;
-		static double rzma_xn = Params::L * 0.75;
-		static double rzma_length = rzma_xn - rzma_x0;
-		static double rzma_center = (rzma_x0 + rzma_xn) * 0.5;
-		if (x_ >= rzma_x0 &&
-			x_ <= rzma_xn) {
-			double xc = (x_ - rzma_center) / rzma_length;
-			double C = sin(Params::pi * xc * 0.5);
-			static double A = Params::A;
-			static double O = Params::freq;
-			static double H = Params::d;
-			static double k = O / sqrt(Params::g * H);
-			double dv_xt = A * O * O * cosh(k * z + k * H) / sinh(k * H) * sin(k * x_ - O * time);
-			double dv_zt = -A * O * O * sinh(k * z + k * H) / sinh(k * H) * cos(k * x_ - O * time);
-
-			double au = dvx(0, i) * vx(0, i);
-			dvx(0, i) = au > 0 ? C * dv_xt : dv_xt;
-			dvx(1, i) = au > 0 ? C * dv_zt : dv_zt;
-		}
 	}
 }

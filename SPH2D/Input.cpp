@@ -9,10 +9,10 @@
 
 static void initConsts() {
 	constexpr double H = 0.16;
-	constexpr double L = 4.6; 
+	constexpr double L = 4.62; 
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 3.25 * L;
+	constexpr double length = 2 * L;
 	constexpr double height = 2 * d;
 	constexpr int particlesPer_d = 50;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
@@ -40,7 +40,9 @@ static void initConsts() {
 	constexpr double k = 2 * Params::pi / L;
 	constexpr double v = k * d;
 	Params::A = H * 0.5 / sqr(sinh(v)) * (sinh(v) * cosh(v) + v);
-	Params::save_step = 100;
+	Params::H = H;
+	Params::k = k;
+	Params::save_step = 25;
 	Params::beachX = L;
 }
 

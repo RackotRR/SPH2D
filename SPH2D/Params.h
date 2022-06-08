@@ -4,9 +4,8 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 37'000 }; // maximum number of particles
+	constexpr int maxn{ 51'000 }; // maximum number of particles
 	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
-	constexpr int stepsBeforeWaves{ 50 };
 	  
 	inline double x_maxgeom;
 	inline double x_mingeom;
@@ -19,6 +18,8 @@ namespace Params {
 	inline double height;
 	inline double freq;
 	inline double A;
+	inline double H;
+	inline double k;
 	inline double beachX;
 	 
 
@@ -45,7 +46,8 @@ namespace Params {
 	constexpr int skf{ 2 };
 	 
 	// numerical waves maker
-	// nmw = 1 : relaxation zone method
+	// nmw = 0 : no waves
+	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	constexpr int nwm{ 2 };
 
@@ -96,7 +98,7 @@ namespace Params {
 	/// control parameters for output
 
 	// true : print statistics about SPH particle interactions including virtual particle information
-	constexpr bool int_stat{ true };
+	constexpr bool full_stat{ true };
 
 	inline size_t maxtimestep; // time step to finish
 	constexpr int print_step{ 100 }; // print timestep (on screen)

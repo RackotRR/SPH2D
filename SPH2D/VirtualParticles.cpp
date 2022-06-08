@@ -109,7 +109,6 @@ void ground(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r)
 {
-	auto L = Params::L;
 	auto y = Params::y_mingeom;
 	auto xmin = Params::x_mingeom;
 	auto xmax = Params::beachX;
@@ -127,7 +126,6 @@ void beach(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r)
 {
-	auto L = Params::L;
 	auto y = Params::y_mingeom;
 	auto xmin = Params::beachX;
 	auto xmax = Params::x_maxgeom;
@@ -149,7 +147,6 @@ void dynamicBoundaries(
 	const double dt,
 	const double time)
 {
-	
 	double phase = 0;
 
 	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
