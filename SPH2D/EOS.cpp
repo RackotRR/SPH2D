@@ -16,8 +16,8 @@ void p_art_water(
     if (Params::eos == 1) {
 
         // Lennard-Jones EOS
-        double alpha{ 3 };
-        double beta{ 2 };
+        int alpha{ 3 };
+        int beta{ 2 };
         double K{ (rho0 * cSqr) / (alpha + beta) };
 
         p = K;

@@ -10,10 +10,13 @@ double sqr(double value) {
 	return value * value;
 }
 
-double pow(double value, unsigned power) {
+double pow(double value, int power) {
 	double result{ 1 };
-	for (unsigned i{}; i < power; i++) {
+	for (int i{ power }; i > 0; i--) {
 		result *= value;
+	}
+	for (int i{ power }; i < 0; i++) {
+		result /= value;
 	}
 	return result;
 }  

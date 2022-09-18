@@ -2,7 +2,7 @@
 #include "Output.h"
 #include "SingleStep.h"
 #include "VirtualParticles.h"
-#include <RRTimeCounter/TimeCounter.h>
+#include <RRTime/Timer.h>
 #include <iostream>
 
 
@@ -29,73 +29,72 @@ void time_integration(
 	double time{};
 
 	// print borders
-	TimeCounter<std::chrono::milliseconds> counter;
+	RR::Timer timer;
 
 	for (size_t itimestep{}; itimestep < maxtimestep; itimestep++) {
-		auto func = [&] {
-			time = itimestep * dt;
-			if (itimestep % Params::save_step == 0) {
-				long long timeEstimate = counter.Avg() * (maxtimestep - itimestep) / 1000. / 60.;
-				output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timeEstimate);
+		timer.start();
+
+		time = itimestep * dt;
+		if (itimestep % Params::save_step == 0) {
+			long long timeEstimate = timer.average() * (maxtimestep - itimestep) / 1000. / 60.;
+			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timeEstimate);
+		}
+
+		// it not first time step, then update thermal energy, density and velocity half a time step
+		if (itimestep != 0) {
+			for (size_t i{}; i < nfluid; i++) {
+				u_min(i) = u(i);
+				u(i) += (dt * 0.5) * du(i);
+				if (u(i) < 0) {
+					u(i) = 0;
+				}
+
+				for (size_t d{}; d < Params::dim; d++) {
+					v_min(d, i) = vx(d, i);
+					vx(d, i) += (dt * 0.5) * dvx(d, i);
+				}
 			}
 
-			// it not first time step, then update thermal energy, density and velocity half a time step
-			if (itimestep != 0) {
-				for (size_t i{}; i < nfluid; i++) {
-					u_min(i) = u(i);
-					u(i) += (dt * 0.5) * du(i);
-					if (u(i) < 0) {
-						u(i) = 0;
-					}
+		}
 
-					for (size_t d{}; d < Params::dim; d++) {
-						v_min(d, i) = vx(d, i);
-						vx(d, i) += (dt * 0.5) * dvx(d, i);
-					}
+		// definition of variables out of the function vector:
+		single_step(dt, nfluid, ntotal, mass, x, vx, u, rho, p,
+			tdsdt, dvx, du, drho, itype, av, time);
+
+
+
+		if (itimestep == 0) {
+			for (size_t i{}; i < nfluid; i++) {
+				u(i) += (dt * 0.5) * du(i);
+				if (u(i) < 0) {
+					u(i) = 0;
+				}
+
+				for (size_t d{}; d < Params::dim; d++) {
+					vx(d, i) += (dt * 0.5) * dvx(d, i) + av(d, i);
+					x(d, i) += dt * vx(d, i);
+				}
+			}
+		}
+		else {
+			for (size_t i{}; i < nfluid; i++) {
+				u(i) = u_min(i) + dt * du(i);
+				if (u(i) < 0) {
+					u(i) = 0;
+				}
+
+				for (size_t d{}; d < Params::dim; d++) {
+					vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
+					x(d, i) += dt * vx(d, i);
 				}
 
 			}
 
-			// definition of variables out of the function vector:
-			single_step(dt, nfluid, ntotal, mass, x, vx, u, rho, p,
-				tdsdt, dvx, du, drho, itype, av, time);
+
+		}
 
 
-
-			if (itimestep == 0) {
-				for (size_t i{}; i < nfluid; i++) {
-					u(i) += (dt * 0.5) * du(i);
-					if (u(i) < 0) {
-						u(i) = 0;
-					}
-
-					for (size_t d{}; d < Params::dim; d++) {
-						vx(d, i) += (dt * 0.5) * dvx(d, i) + av(d, i);
-						x(d, i) += dt * vx(d, i);
-					}
-				}
-			}
-			else {
-				for (size_t i{}; i < nfluid; i++) {
-					u(i) = u_min(i) + dt * du(i);
-					if (u(i) < 0) {
-						u(i) = 0;
-					}
-
-					for (size_t d{}; d < Params::dim; d++) {
-						vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
-						x(d, i) += dt * vx(d, i);
-					}
-
-				}
-
-
-			}
-
-
-			time += dt;
-		};
-
-		counter.Count(func);
+		time += dt;
+		timer.finish();
 	}
 }

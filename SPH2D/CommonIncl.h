@@ -10,4 +10,4 @@
 // value squared
 double sqr(double value);
 
-double pow(double value, unsigned power);
+double pow(double value, int power);
