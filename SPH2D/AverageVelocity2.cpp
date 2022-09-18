@@ -13,18 +13,14 @@ void av_vel(
 	heap_array_md<double, Params::dim, Params::maxn>& av) // average velocity of each particle
 {
 	heap_array<double, Params::dim> dvx;
-	size_t i, j; 
+	size_t i, j;
 
 	// epsilon for 1 dimensional shock tube problem
 	static constexpr double epsilon = 0.3;
 
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int k = 0; k < ntotal; k++) {
-			for (int d = 0; d < Params::dim; d++) {
-				av(d, k) = 0;
-			}
+	for (int k = 0; k < ntotal; k++) {
+		for (int d = 0; d < Params::dim; d++) {
+			av(d, k) = 0;
 		}
 	}
 
@@ -38,13 +34,9 @@ void av_vel(
 		}
 	}
 
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int k = 0; k < ntotal; k++) {
-			for (int d = 0; d < Params::dim; d++) {
-				av(d, k) *= epsilon;
-			}
+	for (int k = 0; k < ntotal; k++) {
+		for (int d = 0; d < Params::dim; d++) {
+			av(d, k) *= epsilon;
 		}
 	}
 }

@@ -52,13 +52,9 @@ namespace {
 		}
 
 		void Clear() {
-#pragma omp parallel
-			{
-#pragma omp for
-				for (int row = 0; row < sizeY; row++) {
-					for (int column = 0; column < sizeX; column++) {
-						grid[column][row].clear();
-					}
+			for (int row = 0; row < sizeY; row++) {
+				for (int column = 0; column < sizeX; column++) {
+					grid[column][row].clear();
 				}
 			}
 		}

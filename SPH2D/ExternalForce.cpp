@@ -11,27 +11,19 @@ void ext_force(
 	const heap_array<size_t, Params::max_interaction>& pair_j,  // list of second partner of interaction pair
 	const heap_array<int, Params::maxn>& itype,	// type of particles  
 	heap_array_md<double, Params::dim, Params::maxn>& dvxdt) // out, acceleration with respect to x, y, z
-{ 
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int k = 0; k < ntotal; k++) {
-			for (int d = 0; d < Params::dim; d++) {
-				dvxdt(d, k) = 0;
-			}
+{
+	for (int k = 0; k < ntotal; k++) {
+		for (int d = 0; d < Params::dim; d++) {
+			dvxdt(d, k) = 0;
 		}
 	}
 
 	// consider self-gravity or not?
 	if (Params::self_gravity) {
-#pragma omp parallel
-		{
-#pragma omp for
-			for (int k = 0; k < ntotal; k++) {
-				dvxdt(Params::dim - 1, k) = -Params::g;
-			}
+		for (int k = 0; k < ntotal; k++) {
+			dvxdt(Params::dim - 1, k) = -Params::g;
 		}
-	} 
+	}
 
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
@@ -42,33 +34,29 @@ void ext_force(
 	constexpr int p1 = 12;
 	constexpr int p2 = 4;
 
-#pragma omp parallel private(dx) 
-	{
-#pragma omp for
-		for (int k = 0; k < niac; k++) {
-			size_t i = pair_i(k);
-			size_t j = pair_j(k);
+	for (int k = 0; k < niac; k++) {
+		size_t i = pair_i(k);
+		size_t j = pair_j(k);
 
-			// type > 0 --- material particle
-			// type < 0 --- virtual particle   
-			if (itype(i) > 0 && itype(j) < 0) {
+		// type > 0 --- material particle
+		// type < 0 --- virtual particle   
+		if (itype(i) > 0 && itype(j) < 0) {
 
-				// rr --- distance between particles
-				double rr = 0;
-				for (int d = 0; d < Params::dim; d++) {
-					dx(d) = x(d, i) - x(d, j);
-					rr += sqr(dx(d));
-				}
-				rr = sqrt(rr);
+			// rr --- distance between particles
+			double rr = 0;
+			for (int d = 0; d < Params::dim; d++) {
+				dx(d) = x(d, i) - x(d, j);
+				rr += sqr(dx(d));
+			}
+			rr = sqrt(rr);
 
-				if (rr < rr0) {
-					// calculating force
-					double f = (pow(rr0 / rr, p1) - pow(rr0 / rr, p2)) / sqr(rr);
+			if (rr < rr0) {
+				// calculating force
+				double f = (pow(rr0 / rr, p1) - pow(rr0 / rr, p2)) / sqr(rr);
 
-					// applying force to material particle
-					for (size_t d{}; d < Params::dim; d++) {
-						dvxdt(d, i) += dd * dx(d) * f;
-					}
+				// applying force to material particle
+				for (size_t d{}; d < Params::dim; d++) {
+					dvxdt(d, i) += dd * dx(d) * f;
 				}
 			}
 		}

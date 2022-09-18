@@ -22,7 +22,7 @@ void time_integration(
 	const size_t nfluid, // fluid particles 
 	const size_t maxtimestep, // maximum timesteps
 	const double dt // timestep
-) 
+)
 {
 	heap_array_md<double, Params::dim, Params::maxn> x_min, v_min, dvx, av;
 	heap_array<double, Params::maxn> u_min, rho_min, du, drho, tdsdt;
@@ -41,20 +41,16 @@ void time_integration(
 
 		// it not first time step, then update thermal energy, density and velocity half a time step
 		if (itimestep != 0) {
-#pragma omp parallel
-			{
-#pragma omp for
-				for (int i = 0; i < nfluid; i++) {
-					u_min(i) = u(i);
-					u(i) += (dt * 0.5) * du(i);
-					if (u(i) < 0) {
-						u(i) = 0;
-					}
+			for (int i = 0; i < nfluid; i++) {
+				u_min(i) = u(i);
+				u(i) += (dt * 0.5) * du(i);
+				if (u(i) < 0) {
+					u(i) = 0;
+				}
 
-					for (int d{}; d < Params::dim; d++) {
-						v_min(d, i) = vx(d, i);
-						vx(d, i) += (dt * 0.5) * dvx(d, i);
-					}
+				for (int d{}; d < Params::dim; d++) {
+					v_min(d, i) = vx(d, i);
+					vx(d, i) += (dt * 0.5) * dvx(d, i);
 				}
 			}
 
@@ -67,38 +63,30 @@ void time_integration(
 
 
 		if (itimestep == 0) {
-#pragma omp parallel
-			{
-#pragma omp for
-				for (int i = 0; i < nfluid; i++) {
-					u(i) += (dt * 0.5) * du(i);
-					if (u(i) < 0) {
-						u(i) = 0;
-					}
+			for (int i = 0; i < nfluid; i++) {
+				u(i) += (dt * 0.5) * du(i);
+				if (u(i) < 0) {
+					u(i) = 0;
+				}
 
-					for (int d = 0; d < Params::dim; d++) {
-						vx(d, i) += (dt * 0.5) * dvx(d, i) + av(d, i);
-						x(d, i) += dt * vx(d, i);
-					}
+				for (int d = 0; d < Params::dim; d++) {
+					vx(d, i) += (dt * 0.5) * dvx(d, i) + av(d, i);
+					x(d, i) += dt * vx(d, i);
 				}
 			}
 		}
 		else {
-#pragma omp parallel
-			{
-#pragma omp for
-				for (int i = 0; i < nfluid; i++) {
-					u(i) = u_min(i) + dt * du(i);
-					if (u(i) < 0) {
-						u(i) = 0;
-					}
-
-					for (int d = 0; d < Params::dim; d++) {
-						vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
-						x(d, i) += dt * vx(d, i);
-					}
-
+			for (int i = 0; i < nfluid; i++) {
+				u(i) = u_min(i) + dt * du(i);
+				if (u(i) < 0) {
+					u(i) = 0;
 				}
+
+				for (int d = 0; d < Params::dim; d++) {
+					vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
+					x(d, i) += dt * vx(d, i);
+				}
+
 			}
 		}
 

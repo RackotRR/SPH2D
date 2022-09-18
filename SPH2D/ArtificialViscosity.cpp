@@ -29,15 +29,11 @@ void art_visc(
 	// const to avoid singularities
 	static constexpr double etq = 0.1;
 
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int k = 0; k < ntotal; k++) {
-			for (int d = 0; d < Params::dim; d++) {
-				dvxdt(d, k) = 0;
-			}
-			dedt(k) = 0;
+	for (int k = 0; k < ntotal; k++) {
+		for (int d = 0; d < Params::dim; d++) {
+			dvxdt(d, k) = 0;
 		}
+		dedt(k) = 0;
 	}
 
 	// calculate SPH sum for artificial viscosity
@@ -75,11 +71,7 @@ void art_visc(
 		}
 	}
 
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int k = 0; k < ntotal; k++) {
-			dedt(k) *= 0.5;
-		}
+	for (int k = 0; k < ntotal; k++) {
+		dedt(k) *= 0.5;
 	}
 }

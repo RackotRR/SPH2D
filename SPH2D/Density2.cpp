@@ -14,8 +14,8 @@ void sum_density(
 {
 	size_t i, j;
 	// parameters for calling kernel func
-	heap_array<double, Params::dim> dx, dwdx; 
-	  
+	heap_array<double, Params::dim> dx, dwdx;
+
 	// normrho(maxn) --- integration of the kernel itself
 	heap_array<double, Params::maxn> normrho;
 
@@ -25,13 +25,9 @@ void sum_density(
 
 	if (Params::nor_density) {
 		// calculate the integration of the kernel over the space
-#pragma omp parallel private(wii)
-		{
-#pragma omp for		
-			for (int k = 0; k < ntotal; k++) {
-				kernel(r, dx, wii, dwdx);
-				normrho(k) = wii * mass(k) / rho(k);
-			}
+		for (int k = 0; k < ntotal; k++) {
+			kernel(r, dx, wii, dwdx);
+			normrho(k) = wii * mass(k) / rho(k);
 		}
 
 
@@ -44,13 +40,9 @@ void sum_density(
 	}
 
 	// calculate the rho integration of the kernel over the space
-#pragma omp parallel private(wii)
-	{
-#pragma omp for 
-		for (int k = 0; k < ntotal; k++) {
-			kernel(r, dx, wii, dwdx);
-			rho(k) = wii * mass(k);
-		}
+	for (int k = 0; k < ntotal; k++) {
+		kernel(r, dx, wii, dwdx);
+		rho(k) = wii * mass(k);
 	}
 	// calculate sph sum for rho
 	for (int k = 0; k < niac; k++) {
@@ -59,7 +51,7 @@ void sum_density(
 		rho(i) += mass(j) * w(k);
 		rho(j) += mass(i) * w(k);
 	}
-	
+
 	// calculate the normalized rho, rho = sum(rho)/sum(w)
 	if (Params::nor_density) {
 		for (int k = 0; k < ntotal; k++) {

@@ -8,13 +8,9 @@ void viscosity(
 	const heap_array<double, Params::maxn>& rho,	// density
 	heap_array<double, Params::maxn>& eta)	// dynamic viscosity
 {
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int i = 0; i < ntotal; i++) {
-			if (fabs(itype(i)) == 2) {
-				eta(i) = 1.e-3;
-			}
+	for (int i = 0; i < ntotal; i++) {
+		if (fabs(itype(i)) == 2) {
+			eta(i) = 1.e-3;
 		}
 	}
 }
