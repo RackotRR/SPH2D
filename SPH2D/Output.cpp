@@ -136,8 +136,5 @@ void output(
 	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
 	std::cout << "{ passed: " << totalTimePassed << "; w8 est." << timeEstimates << " }" << std::endl;
 
-	if (t.joinable()) {
-		t.join();
-	}
-	t = std::jthread(saveForSPH2D_Drawer, x.MakeCopy(), vx.MakeCopy(), rho.MakeCopy(), p.MakeCopy(), itype.MakeCopy(), ntotal );
+	t = std::jthread(saveForSPH2D_Drawer, x.MakeCopy(), vx.MakeCopy(), rho.MakeCopy(), p.MakeCopy(), itype.MakeCopy(), ntotal);
 }
