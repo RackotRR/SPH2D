@@ -2,10 +2,10 @@
 #include "CommonIncl.h"
 #include "Kernel.h"
 
-static consteval size_t GetScaleK() {
+static consteval int GetScaleK() {
 	static_assert(Params::skf > 0 && Params::skf < 4);
 
-	size_t scale_k;
+	int scale_k;
 	// skale_k depends on the smoothing kernel function
 	switch (Params::skf)
 	{
@@ -34,8 +34,8 @@ void direct_find(
 	heap_array<double, Params::max_interaction>& w, // out, kernel for all interaction pairs 
 	heap_array_md<double, Params::dim, Params::max_interaction>& dwdx) // out, derivative of kernel with respect to x, y, z
 {
-	constexpr size_t scale_k{ GetScaleK() };
-	const double hsml{ Params::hsml };
+	constexpr size_t scale_k = GetScaleK();
+	const double hsml = Params::hsml;
 
 	double driac, dij, r;
 	heap_array<double, Params::dim> dxiac;
@@ -43,11 +43,11 @@ void direct_find(
 	  
 
 	niac = 0;
-	for (size_t i{}; i < ntotal - 1; i++) {
+	for (int i = 0; i < ntotal - 1; i++) {
 		
 		if (itype(i) == 0) continue; // particle doesn't exist
 
-		for (size_t j{ i + 1 }; j < ntotal; j++) {
+		for (int j = i + 1; j < ntotal; j++) {
 			driac = 0;
 			for (size_t d{}; d < Params::dim; d++) {
 				dxiac(d) = x(d, i) - x(d, j);
@@ -67,7 +67,7 @@ void direct_find(
 					// kernel and derivation of kernel 
 					kernel(r, dxiac, w(niac), tdwdx);
 
-					for (size_t d{}; d < Params::dim; d++) {
+					for (int d = 0; d < Params::dim; d++) {
 						dwdx(d, niac) = tdwdx(d);
 					}
 				}

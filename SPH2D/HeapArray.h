@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
  
 template <typename T, size_t dimensions, size_t size>
 class heap_array_md {
@@ -13,15 +14,15 @@ public:
 	}
 
 
-	heap_array_md<T, dimensions, size>(heap_array_md<T, dimensions, size>&& arr) noexcept {
+	heap_array_md(heap_array_md&& arr) noexcept {
 		ptr = std::exchange(arr.ptr, nullptr);
 	}
-	heap_array_md<T, dimensions, size>& operator=(heap_array_md<T, dimensions, size>&& arr) noexcept {
+	heap_array_md& operator=(heap_array_md&& arr) noexcept {
 		std::swap(ptr, arr.ptr);
 		return *this;
 	}
 
-	heap_array_md<T, dimensions, size>(heap_array_md<T, dimensions, size>&) = delete;
+	heap_array_md(heap_array_md&) = delete;
 	auto operator=(heap_array_md&) = delete;
 
 	heap_array_md() : heap_array_md(T{}) {
@@ -33,7 +34,7 @@ public:
 	}
 
 	auto MakeCopy() const {
-		heap_array_md<T, dimensions, size> arr;
+		heap_array_md arr;
 		size_t count{ dimensions * size };
 		for (size_t i{}; i < count; i++) {
 			arr.ptr[i] = ptr[i];
@@ -64,19 +65,19 @@ public:
 		delete[] ptr;
 	}
 
-	heap_array<T, size>(heap_array<T, size>&& arr) noexcept {
+	heap_array(heap_array&& arr) noexcept {
 		ptr = std::exchange(arr.ptr, nullptr);
 	}
-	heap_array<T, size>& operator=(heap_array<T, size>&& arr) noexcept {
+	heap_array& operator=(heap_array&& arr) noexcept {
 		std::swap(ptr, arr.ptr);
 		return *this;
 	}
 
-	heap_array<T, size>(heap_array<T, size>&) = delete;
-	auto operator=(heap_array<T, size>&) = delete;
+	heap_array(heap_array&) = delete;
+	auto operator=(heap_array&) = delete;
 
 	auto MakeCopy() const {
-		heap_array<T, size> arr;
+		heap_array arr;
 		for (size_t i{}; i < size; i++) {
 			arr.ptr[i] = ptr[i];
 		}

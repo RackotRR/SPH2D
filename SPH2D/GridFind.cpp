@@ -18,11 +18,11 @@ namespace {
 		Grid grid;
 
 		const size_t sizeX, sizeY;
-		static constexpr bool throwIfNotValidIndex{ false };
+		static constexpr bool throwIfNotValidIndex = false;
 
 		// проверка существования блока [x][y]
 		bool IsIndexValid(size_t x, size_t y) const {
-			return x < sizeX&& y < sizeY;
+			return x < sizeX && y < sizeY;
 		}
 	public:
 		// Создаём сетку блоков
@@ -52,9 +52,13 @@ namespace {
 		}
 
 		void Clear() {
-			for (size_t row{}; row < sizeY; row++) {
-				for (size_t column{}; column < sizeX; column++) {
-					grid[column][row].clear();
+#pragma omp parallel
+			{
+#pragma omp for
+				for (int row = 0; row < sizeY; row++) {
+					for (int column = 0; column < sizeX; column++) {
+						grid[column][row].clear();
+					}
 				}
 			}
 		}
@@ -96,10 +100,10 @@ namespace {
 
 
 	// skale_k depends on the smoothing kernel function
-	consteval size_t GetScaleK() {
+	consteval int GetScaleK() {
 		static_assert(Params::skf > 0 && Params::skf < 4);
 
-		size_t scale_k;
+		int scale_k;
 		switch (Params::skf)
 		{
 		case 1:
@@ -141,14 +145,14 @@ void grid_find(
 	heap_array<double, Params::max_interaction>& w, // out, kernel for all interaction pairs 
 	heap_array_md<double, Params::dim, Params::max_interaction>& dwdx) // out, derivative of kernel with respect to x, y, z 
 {
-	static constexpr size_t scale_k{ GetScaleK() };
-	static const double hsml{ Params::hsml };
+	static constexpr int scale_k = GetScaleK();
+	static const double hsml = Params::hsml;
 
 	double dijSqr, dij;
 	heap_array<double, Params::dim> dij_dim;
 	heap_array<double, Params::dim> tmp_dwdx;
 
-	static const double blockSize{ BlockSize() };
+	static const double blockSize = BlockSize();
 
 	// create grid
 	static ParticlesGrid grid(SizeX(), SizeY());
@@ -163,23 +167,22 @@ void grid_find(
 	};
 
 	// fill in grid
-	for (size_t i{}; i < ntotal; i++) {
+	for (int i = 0; i < ntotal; i++) {
 		if (itype(i) == 0) continue; // particle doesn't exist
 
-
 		// block index of particle
-		size_t indexX{ xBlock(i) };
-		size_t indexY{ yBlock(i) };
+		size_t indexX = xBlock(i);
+		size_t indexY = yBlock(i);
 		grid.AddAt(indexX, indexY, i);
 	}
 
 	// grid search
 	niac = 0;
-	for (size_t i{}; i < ntotal; i++) {
+	for (int i = 0; i < ntotal; i++) {
 		if (itype(i) == 0) continue; // particle doesn't exist
 		// block index of particle
-		size_t indexX{ xBlock(i) };
-		size_t indexY{ yBlock(i) };
+		size_t indexX = xBlock(i);
+		size_t indexY = yBlock(i);
 
 		auto neighbourBlocks{ grid.GetNeighbours(indexX, indexY) };
 		for (auto* block : neighbourBlocks) {
@@ -188,7 +191,7 @@ void grid_find(
 
 				// distance between particles i and j
 				dijSqr = 0;
-				for (size_t d{}; d < Params::dim; d++) {
+				for (int d = 0; d < Params::dim; d++) {
 					dij_dim(d) = x(d, i) - x(d, j);
 					dijSqr += sqr(dij_dim(d));
 				}

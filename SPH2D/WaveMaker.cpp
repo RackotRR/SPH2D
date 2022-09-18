@@ -1,4 +1,3 @@
-#pragma once
 #include "CommonIncl.h"
 #include "WaveMaker.h"
 
@@ -29,7 +28,7 @@ void RZM_generator(
 	const size_t nfluid,
 	const double time)
 {
-	for (size_t i = 0; i < nfluid; i++) {
+	for (int i = 0; i < nfluid; i++) {
 		double x_ = x(0, i);
 		double z = x(1, i);
 		static double rzmg_x0 = Params::L * 0.25;
@@ -60,7 +59,7 @@ void RZM_absorber(
 	const size_t nfluid,
 	const double time)
 {
-	for (size_t i = 0; i < nfluid; i++) {
+	for (int i = 0; i < nfluid; i++) {
 		double x_ = x(0, i);
 		double z = x(1, i);
 		static double rzma_x0 = Params::beachX;

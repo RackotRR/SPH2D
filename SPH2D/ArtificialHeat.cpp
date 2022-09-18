@@ -25,19 +25,19 @@ void art_heat(
 
 	heap_array<double, Params::maxn> vcc;
 
-	static constexpr double g1{ 0.1 };
-	static constexpr double g2{ 1.0 };
+	static constexpr double g1 = 0.1;
+	static constexpr double g2 = 1.0;
 
 
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
 		j = pair_j(k);
-		for (size_t d{}; d < Params::dim; d++) {
+		for (int d = 0; d < Params::dim; d++) {
 			dvx(d) = vx(d, j) - vx(d, i);
 		}
 
 		hvcc = 0;
-		for (size_t d{}; d < Params::dim; d++) {
+		for (int d = 0; d < Params::dim; d++) {
 			hvcc += dvx(d) * dwdx(d, k);
 		}
 
@@ -45,13 +45,13 @@ void art_heat(
 		vcc(j) += mass(i) * hvcc / rho(i);
 	}
 
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
 		j = pair_j(k); 
 		mrho = (rho(i) + rho(j)) * 0.5;
 		rr = 0;
 		rdwdx = 0;
-		for (size_t d{}; d < Params::dim; d++) {
+		for (int d = 0; d < Params::dim; d++) {
 			dx = x(d, i) - x(d, j);
 			rr += sqr(dx);
 			rdwdx += dx * dwdx(d, k);

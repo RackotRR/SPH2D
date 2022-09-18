@@ -26,32 +26,35 @@ void time_integration(
 {
 	heap_array_md<double, Params::dim, Params::maxn> x_min, v_min, dvx, av;
 	heap_array<double, Params::maxn> u_min, rho_min, du, drho, tdsdt;
-	double time{};
+	double time = 0;
 
-	// print borders
 	RR::Timer timer;
 
-	for (size_t itimestep{}; itimestep < maxtimestep; itimestep++) {
+	for (int itimestep = 0; itimestep < maxtimestep; itimestep++) {
 		timer.start();
 
 		time = itimestep * dt;
 		if (itimestep % Params::save_step == 0) {
-			long long timeEstimate = timer.average() * (maxtimestep - itimestep) / 1000. / 60.;
+			long long timeEstimate = timer.average() * (maxtimestep - itimestep) * 1.E-9 / 60.;
 			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timeEstimate);
 		}
 
 		// it not first time step, then update thermal energy, density and velocity half a time step
 		if (itimestep != 0) {
-			for (size_t i{}; i < nfluid; i++) {
-				u_min(i) = u(i);
-				u(i) += (dt * 0.5) * du(i);
-				if (u(i) < 0) {
-					u(i) = 0;
-				}
+#pragma omp parallel
+			{
+#pragma omp for
+				for (int i = 0; i < nfluid; i++) {
+					u_min(i) = u(i);
+					u(i) += (dt * 0.5) * du(i);
+					if (u(i) < 0) {
+						u(i) = 0;
+					}
 
-				for (size_t d{}; d < Params::dim; d++) {
-					v_min(d, i) = vx(d, i);
-					vx(d, i) += (dt * 0.5) * dvx(d, i);
+					for (int d{}; d < Params::dim; d++) {
+						v_min(d, i) = vx(d, i);
+						vx(d, i) += (dt * 0.5) * dvx(d, i);
+					}
 				}
 			}
 
@@ -64,33 +67,39 @@ void time_integration(
 
 
 		if (itimestep == 0) {
-			for (size_t i{}; i < nfluid; i++) {
-				u(i) += (dt * 0.5) * du(i);
-				if (u(i) < 0) {
-					u(i) = 0;
-				}
+#pragma omp parallel
+			{
+#pragma omp for
+				for (int i = 0; i < nfluid; i++) {
+					u(i) += (dt * 0.5) * du(i);
+					if (u(i) < 0) {
+						u(i) = 0;
+					}
 
-				for (size_t d{}; d < Params::dim; d++) {
-					vx(d, i) += (dt * 0.5) * dvx(d, i) + av(d, i);
-					x(d, i) += dt * vx(d, i);
+					for (int d = 0; d < Params::dim; d++) {
+						vx(d, i) += (dt * 0.5) * dvx(d, i) + av(d, i);
+						x(d, i) += dt * vx(d, i);
+					}
 				}
 			}
 		}
 		else {
-			for (size_t i{}; i < nfluid; i++) {
-				u(i) = u_min(i) + dt * du(i);
-				if (u(i) < 0) {
-					u(i) = 0;
-				}
+#pragma omp parallel
+			{
+#pragma omp for
+				for (int i = 0; i < nfluid; i++) {
+					u(i) = u_min(i) + dt * du(i);
+					if (u(i) < 0) {
+						u(i) = 0;
+					}
 
-				for (size_t d{}; d < Params::dim; d++) {
-					vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
-					x(d, i) += dt * vx(d, i);
-				}
+					for (int d = 0; d < Params::dim; d++) {
+						vx(d, i) = v_min(d, i) + dt * dvx(d, i) + av(d, i);
+						x(d, i) += dt * vx(d, i);
+					}
 
+				}
 			}
-
-
 		}
 
 

@@ -37,20 +37,24 @@ void int_force(
 	heap_array<double, Params::maxn> txy; 
 
 	// initialization of shear tensor, velocity divergence, viscous energy, internal energy, acceleration
-	for (size_t i{}; i < ntotal; i++) {
-		tdsdt(i) = 0;
-		dedt(i) = 0;
-		for (size_t d{}; d < Params::dim; d++) {
-			dvxdt(d, i) = 0;
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int i = 0; i < ntotal; i++) {
+			tdsdt(i) = 0;
+			dedt(i) = 0;
+			for (int d = 0; d < Params::dim; d++) {
+				dvxdt(d, i) = 0;
+			}
 		}
 	}
 
 	// calculate SPH sum for shear tensor Tab = va,b + vb,a - 2/3 delta_ab vc,c
 	if (Params::visc) {
-		for (size_t k{}; k < niac; k++) {
+		for (int k = 0; k < niac; k++) {
 			i = pair_i(k);
 			j = pair_j(k);
-			for (size_t d{}; d < Params::dim; d++) {
+			for (int d = 0; d < Params::dim; d++) {
 				dvx(d) = vx(d, j) - vx(d, i);
 			}
 			 
@@ -70,7 +74,7 @@ void int_force(
 
 			// calculate SPH sum for vc, c = dvx/dx + dvy/dy + dvz/dz
 			hvcc = 0;
-			for (size_t d{}; d < Params::dim; d++) {
+			for (int d = 0; d < Params::dim; d++) {
 				hvcc += dvx(d) * dwdx(d, k);
 			}
 			vcc(i) += mass(j) * hvcc / rho(j);
@@ -78,28 +82,32 @@ void int_force(
 		}
 	}
 
-	for (size_t i{}; i < ntotal; i++) {
-		// viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
-		if (Params::visc) {  
-			tdsdt(i) = sqr(txx(i)) + 2 * sqr(txy(i)) + sqr(tyy(i)); 
-			tdsdt(i) = 0.5 * eta(i) / rho(i) * tdsdt(i);
-		}
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int i = 0; i < ntotal; i++) {
+			// viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
+			if (Params::visc) {
+				tdsdt(i) = sqr(txx(i)) + 2 * sqr(txy(i)) + sqr(tyy(i));
+				tdsdt(i) = 0.5 * eta(i) / rho(i) * tdsdt(i);
+			}
 
-		// pressure from equation of state 
-		p_art_water(rho(i), u(i), p(i), c(i)); 
+			// pressure from equation of state 
+			p_art_water(rho(i), u(i), p(i), c(i));
+		}
 	}
 	 
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
 		j = pair_j(k);
 		he = 0;
 
 		if (Params::pa_sph == 1) { // for sph algorithm 1
 			rhoij = 1.0 / (rho(i) * rho(j));
-			for (size_t d{}; d < Params::dim; d++) {
+			for (int d = 0; d < Params::dim; d++) {
 				// pressure part
 				h = -(p(i) + p(j)) * dwdx(d, k);
 				he += (vx(d, j) - vx(d, i)) * h;
@@ -124,7 +132,7 @@ void int_force(
 			dedt(j) += mass(i) * he;
 		}
 		else if (Params::pa_sph == 2) { // for sph algorithm 2
-			for (size_t d{}; d < Params::dim; d++) {
+			for (int d = 0; d < Params::dim; d++) {
 				h = -(p(i) / sqr(rho(i)) + p(j) / sqr(rho(j))) * dwdx(d, k);
 				he += (vx(d, j) - vx(d, i)) * h;
 
@@ -148,7 +156,11 @@ void int_force(
 	}
 
 	// change of specific internal energy de/dt = T ds/ds - p/rho vc, c:
-	for (size_t i{}; i < ntotal; i++) {
-		dedt(i) = tdsdt(i) + 0.5 * dedt(i);
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int i = 0; i < ntotal; i++) {
+			dedt(i) = tdsdt(i) + 0.5 * dedt(i);
+		}
 	}
 }

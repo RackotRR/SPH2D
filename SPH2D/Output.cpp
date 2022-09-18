@@ -20,7 +20,7 @@ namespace {
 	{
 		std::ofstream stream(std::to_string(itimestep) + ".txt");
 		stream << "total: " << ntotal << std::endl;
-		for (size_t i{}; i < ntotal; i++) {
+		for (int i = 0; i < ntotal; i++) {
 			stream << i << std::endl;
 			stream << "(" << x(0, i) << "; " << x(1, i) << ")\n";
 			stream << "(" << vx(0, i) << "; " << vx(1, i) << ")\n";
@@ -57,7 +57,7 @@ namespace {
 		stream.open(Params::fileToWrite, std::ofstream::app);
 
 		stream << ntotal << std::endl;
-		for (size_t i{}; i < ntotal; i++) {
+		for (int i = 0; i < ntotal; i++) {
 			stream << x(0, i) << std::endl << x(1, i) << std::endl;
 			stream << itype(i) << std::endl;
 			stream << vx(0, i) << std::endl << vx(1, i) << std::endl;
@@ -87,7 +87,7 @@ namespace {
 		stream.open(Params::fileToWrite, std::ofstream::app);
 
 		stream << ntotal << std::endl;
-		for (size_t i{}; i < ntotal; i++) {
+		for (int i = 0; i < ntotal; i++) {
 			stream << x(0, i) << std::endl << x(1, i) << std::endl;
 			stream << itype(i) << std::endl;
 		}
@@ -107,7 +107,7 @@ namespace {
 		stream << Params::dy << std::endl; // dy
 
 		stream << ntotal << std::endl;
-		for (size_t i{}; i < ntotal; i++) {
+		for (int i = 0; i < ntotal; i++) {
 			if (itype(i) > 0) continue;
 			stream << x(0, i) << std::endl << x(1, i) << std::endl;
 			stream << itype(i) << std::endl;

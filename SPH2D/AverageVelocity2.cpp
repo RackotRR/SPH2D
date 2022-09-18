@@ -16,27 +16,35 @@ void av_vel(
 	size_t i, j; 
 
 	// epsilon for 1 dimensional shock tube problem
-	static constexpr double epsilon{ 0.3 };
+	static constexpr double epsilon = 0.3;
 
-	for (size_t k{}; k < ntotal; k++) {
-		for (size_t d{}; d < Params::dim; d++) {
-			av(d, k) = 0;
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int k = 0; k < ntotal; k++) {
+			for (int d = 0; d < Params::dim; d++) {
+				av(d, k) = 0;
+			}
 		}
 	}
 
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
 		j = pair_j(k);
-		for (size_t d{}; d < Params::dim; d++) {
+		for (int d = 0; d < Params::dim; d++) {
 			dvx(d) = vx(d, i) - vx(d, j);
 			av(d, i) -= 2 * mass(j) * dvx(d) / (rho(i) + rho(j)) * w(k);
 			av(d, j) += 2 * mass(i) * dvx(d) / (rho(i) + rho(j)) * w(k);
 		}
 	}
 
-	for (size_t k{}; k < ntotal; k++) {
-		for (size_t d{}; d < Params::dim; d++) {
-			av(d, k) *= epsilon;
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int k = 0; k < ntotal; k++) {
+			for (int d = 0; d < Params::dim; d++) {
+				av(d, k) *= epsilon;
+			}
 		}
 	}
 }

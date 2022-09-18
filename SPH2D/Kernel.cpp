@@ -11,7 +11,7 @@ void kernel(
 	double hsml{ Params::hsml };
 
 	double factor;
-	double q{ r / hsml };
+	double q = r / hsml;
 
 	// zero out params
 	w = 0;

@@ -20,17 +20,22 @@ void sum_density(
 	heap_array<double, Params::maxn> normrho;
 
 	// self density of each particle: Wii (Kernel for distance 0) and take contribution of particle itself:
-	double r{ 0 };
+	double r = 0;
 	double wii;
 
 	if (Params::nor_density) {
 		// calculate the integration of the kernel over the space
-		for (size_t k{}; k < ntotal; k++) {
-			kernel(r, dx, wii, dwdx);
-			normrho(k) = wii * mass(k) / rho(k);
+#pragma omp parallel private(wii)
+		{
+#pragma omp for		
+			for (int k = 0; k < ntotal; k++) {
+				kernel(r, dx, wii, dwdx);
+				normrho(k) = wii * mass(k) / rho(k);
+			}
 		}
 
-		for (size_t k{}; k < niac; k++) {
+
+		for (int k = 0; k < niac; k++) {
 			i = pair_i(k);
 			j = pair_j(k);
 			normrho(i) += mass(j) / rho(j) * w(k);
@@ -39,21 +44,25 @@ void sum_density(
 	}
 
 	// calculate the rho integration of the kernel over the space
-	for (size_t k{}; k < ntotal; k++) {
-		kernel(r, dx, wii, dwdx);
-		rho(k) = wii * mass(k);
-	} 
+#pragma omp parallel private(wii)
+	{
+#pragma omp for 
+		for (int k = 0; k < ntotal; k++) {
+			kernel(r, dx, wii, dwdx);
+			rho(k) = wii * mass(k);
+		}
+	}
 	// calculate sph sum for rho
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
 		j = pair_j(k);
 		rho(i) += mass(j) * w(k);
 		rho(j) += mass(i) * w(k);
 	}
-
+	
 	// calculate the normalized rho, rho = sum(rho)/sum(w)
 	if (Params::nor_density) {
-		for (size_t k{}; k < ntotal; k++) {
+		for (int k = 0; k < ntotal; k++) {
 			rho(k) /= normrho(k);
 		}
 	}
@@ -79,15 +88,15 @@ void con_density(
 	double vcc;
 	heap_array<double, Params::dim> dvx;
 
-	for (size_t k{}; k < ntotal; k++) {
+	for (int k = 0; k < ntotal; k++) {
 		drhodt(k) = 0;
 	}
 
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
 		j = pair_j(k);
 		vcc = 0;
-		for (size_t d{}; d < Params::dim; d++) {
+		for (int d = 0; d < Params::dim; d++) {
 			dvx(d) = vx(d, i) - vx(d, j);
 			vcc += dvx(d) * dwdx(d, k);
 		}

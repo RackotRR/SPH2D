@@ -105,7 +105,7 @@ void generateParticles(
 	}
 
 
-	for (size_t i{}; i < ntotal; i++) {
+	for (int i = 0; i < ntotal; i++) {
 		vx(0, i) = 0;
 		vx(1, i) = 0;
 

@@ -33,7 +33,7 @@ void single_step(
 	heap_array_md<double, Params::dim, Params::maxn>& av, // out, Monaghan average velocity
 	const double time)
 {
-	size_t niac{};
+	size_t niac = 0;
 	heap_array<size_t, Params::max_interaction> pair_i, pair_j;
 	heap_array<double, Params::max_interaction> w;
 	heap_array_md<double, Params::dim, Params::max_interaction> dwdx;
@@ -93,8 +93,8 @@ void single_step(
 	}
 
 	// convert velocity, force and energy to f and dfdt
-	for (size_t i{}; i < nfluid; i++) {
-		for (size_t d{}; d < Params::dim; d++) {
+	for (int i = 0; i < nfluid; i++) {
+		for (int d = 0; d < Params::dim; d++) {
 			dvx(d, i) = indvxdt(d, i) + exdvxdt(d, i) + arvdvxdt(d, i);
 		}
 		du(i) += avdudt(i) + ahdudt(i);

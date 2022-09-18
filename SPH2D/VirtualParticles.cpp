@@ -51,8 +51,8 @@ void virt_part(
 	beach(ntotal, nvirt, x);
 
 	// init all virtual particles
-	for (size_t k{}; k < nvirt; k++) {
-		size_t i{ ntotal + k };
+	for (int k = 0; k < nvirt; k++) {
+		int i = ntotal + k;
 
 		vx(0, i) = 0;
 		vx(1, i) = 0;

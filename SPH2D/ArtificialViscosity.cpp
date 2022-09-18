@@ -19,30 +19,34 @@ void art_visc(
 	size_t i, j;
 	heap_array<double, Params::dim> dvx;
 	double dx, piv, muv, vr, rr, h, mc, mrho;
-	double hsml{ Params::hsml };
+	const double hsml = Params::hsml;
 
 	/// const for the artificial viscosity:
 	// shear viscosity
-	static constexpr double alpha{ 1 };
+	static constexpr double alpha = 1;
 	// bulk viscosity
-	static constexpr double beta{ 1 };
+	static constexpr double beta = 1;
 	// const to avoid singularities
-	static constexpr double etq{ 0.1 };
+	static constexpr double etq = 0.1;
 
-	for (size_t k{}; k < ntotal; k++) {
-		for (size_t d{}; d < Params::dim; d++) {
-			dvxdt(d, k) = 0;
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int k = 0; k < ntotal; k++) {
+			for (int d = 0; d < Params::dim; d++) {
+				dvxdt(d, k) = 0;
+			}
+			dedt(k) = 0;
 		}
-		dedt(k) = 0;
 	}
 
 	// calculate SPH sum for artificial viscosity
-	for (size_t k{}; k < niac; k++) {
+	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
-		j = pair_j(k); 
+		j = pair_j(k);
 		vr = 0;
 		rr = 0;
-		for (size_t d{}; d < Params::dim; d++) {
+		for (int d = 0; d < Params::dim; d++) {
 			dvx(d) = vx(d, i) - vx(d, j);
 			dx = x(d, i) - x(d, j);
 			vr += dvx(d) * dx;
@@ -60,7 +64,7 @@ void art_visc(
 			piv = (beta * muv - alpha * mc) * muv / mrho;
 
 			// calculate SPH sum for artificial viscous force
-			for (size_t d{}; d < Params::dim; d++) {
+			for (int d = 0; d < Params::dim; d++) {
 				h = -piv * dwdx(d, k);
 				dvxdt(d, i) += mass(j) * h;
 				dvxdt(d, j) -= mass(i) * h;
@@ -71,7 +75,11 @@ void art_visc(
 		}
 	}
 
-	for (size_t k{}; k < ntotal; k++) {
-		dedt(k) *= 0.5;
+#pragma omp parallel
+	{
+#pragma omp for
+		for (int k = 0; k < ntotal; k++) {
+			dedt(k) *= 0.5;
+		}
 	}
 }
