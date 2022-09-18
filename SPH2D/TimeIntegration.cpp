@@ -36,7 +36,7 @@ void time_integration(
 		time = itimestep * dt;
 		if (itimestep % Params::save_step == 0) {
 			long long timeEstimate = timer.average() * (maxtimestep - itimestep) * 1.E-9 / 60.;
-			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timeEstimate);
+			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
 		}
 
 		// it not first time step, then update thermal energy, density and velocity half a time step

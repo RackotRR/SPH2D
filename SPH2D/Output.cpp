@@ -128,11 +128,13 @@ void output(
 	const heap_array<int, Params::maxn>& itype,	// material type
 	const size_t ntotal,	// number of particles
 	const size_t itimestep,// current time step
+	const long long totalTimePassed,
 	const long long timeEstimates) 
 {
 	static std::jthread t;
 
-	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")" << "{est." << timeEstimates << "}" << std::endl;
+	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
+	std::cout << "{ passed: " << totalTimePassed << "; w8 est." << timeEstimates << " }" << std::endl;
 
 	if (t.joinable()) {
 		t.join();

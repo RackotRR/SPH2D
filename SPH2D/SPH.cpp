@@ -34,7 +34,7 @@ void sph() {
 	heap_array<double, Params::maxn> c;	// sound velocity 
 	heap_array<double, Params::maxn> e;	// total energy of particles
 	
-	double simulationTime = 20;
+	double simulationTime = 2;
 	double dt = 5e-4;
 	if (simulationTime / dt < 0) {
 		std::cerr << "maxtimestep error" << std::endl;
