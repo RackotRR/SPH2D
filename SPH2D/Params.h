@@ -49,7 +49,8 @@ namespace Params {
 	// nmw = 0 : no waves
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
-	constexpr int nwm{ 2 };
+	//		 3 : impulse method
+	constexpr int nwm{ 3 };
 
 	// const smoothing length
 	inline double hsml;
@@ -101,7 +102,7 @@ namespace Params {
 	constexpr bool full_stat{ true };
 
 	inline size_t maxtimestep; // time step to finish
-	constexpr int print_step{ 100 }; // print timestep (on screen)
+	constexpr int print_step{ 200 }; // print timestep (on screen)
 	inline int save_step; // save timestep (on disk)
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
 
