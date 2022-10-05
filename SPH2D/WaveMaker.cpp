@@ -7,8 +7,7 @@ void make_waves(
 	heap_array_md<double, Params::dim, Params::maxn>& a,
 	const size_t nfluid,
 	const size_t ntotal,
-	const double time,
-	const double dt)
+	const double time)
 {
 
 	// NWM
@@ -17,7 +16,7 @@ void make_waves(
 		//RZM_absorber(x, vx, dvx, nfluid, time);
 	}
 	else {
-		dynamicBoundaries(r, v, dt, time);
+		dynamicBoundaries(r, v, time);
 	}
 }
 

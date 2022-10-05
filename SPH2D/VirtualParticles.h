@@ -19,5 +19,4 @@ void virt_part(
 void dynamicBoundaries(
 	heap_array_md<double, Params::dim, Params::maxn>& x,	// out, coordinates of all particles
 	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	const double dt,
 	const double time);

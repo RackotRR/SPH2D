@@ -86,9 +86,6 @@
     <ClCompile Include="Kernel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Output.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SingleStep2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +126,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WaveMaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Output2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Projects\LIBS\json;E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Projects\LIBS\json;E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Projects\LIBS\json;E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Projects\LIBS\json;E:\Projects\LIBS\RackotRR;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -188,7 +188,7 @@
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InternalForce2.cpp" />
     <ClCompile Include="Kernel.cpp" />
-    <ClCompile Include="Output.cpp" />
+    <ClCompile Include="Output2.cpp" />
     <ClCompile Include="SingleStep2.cpp" />
     <ClCompile Include="SPH.cpp" />
     <ClCompile Include="TimeIntegration.cpp" />

@@ -144,14 +144,13 @@ void beach(
 void dynamicBoundaries(
 	heap_array_md<double, Params::dim, Params::maxn>& x,	// out, coordinates of all particles
 	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	const double dt,
 	const double time)
 {
 	double phase = 0;
 
 	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
 	for (size_t i = leftWallStart; i < leftWallEnd; i++) {
-		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * dt;
+		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * Params::dt;
 		vx(0, i) =  v;
 	}
 }

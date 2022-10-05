@@ -65,8 +65,8 @@ void input(
 	virt_part(nfluid, nvirt, mass, x, vx, rho, u, p, itype);
 	ntotal = nfluid + nvirt;
 
-	std::cout << "File to write: ";
-	std::getline(std::cin, Params::fileToWrite);
+	std::cout << "Experiment name: ";
+	std::getline(std::cin, Params::experimentName);
 }
 
 // generate data for the 2d shear driven cavity problem with Re=1

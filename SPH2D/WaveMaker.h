@@ -20,5 +20,4 @@ void make_waves(
 	heap_array_md<double, Params::dim, Params::maxn>& a,
 	const size_t nfluid,
 	const size_t ntotal,
-	const double time,
-	const double dt);
+	const double time);

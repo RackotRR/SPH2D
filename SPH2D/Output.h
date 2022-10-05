@@ -16,9 +16,5 @@ void output(
 	const long long timePassedTotal,
 	const long long timeEstimates);
 
-void printBorders(
-	const heap_array_md<double, Params::dim, Params::maxn>& x,
-	const heap_array<int, Params::maxn>& itype,	// material type
-	const size_t ntotal,
-	const size_t itimestep
-);
+// call once at start
+void setupOutput();

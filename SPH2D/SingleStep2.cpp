@@ -16,7 +16,6 @@
 // determine the right hand side of a differential equation
 // in a single step for performing integration
 void single_step(
-	const double dt, // timestep 
 	const size_t nfluid, // number of fluid particles
 	const size_t ntotal, // number of particles 
 	heap_array<double, Params::maxn>& mass,// particle masses
@@ -70,7 +69,7 @@ void single_step(
 	}
 
 	// internal forces
-	int_force(dt, ntotal, mass, vx, niac, rho, eta, pair_i, pair_j, dwdx,
+	int_force(ntotal, mass, vx, niac, rho, eta, pair_i, pair_j, dwdx,
 		itype, u, x, c, p, indvxdt, tdsdt, du);
 
 	// artificial viscosity
@@ -101,6 +100,6 @@ void single_step(
 	}  
 
 	if (Params::nwm) {
-		make_waves(x, vx, dvx, nfluid, ntotal, time, dt);
+		make_waves(x, vx, dvx, nfluid, ntotal, time);
 	}
 }

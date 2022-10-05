@@ -4,7 +4,6 @@
 // determine the right hand side of a differential equation
 // in a single step for performing integration
 void single_step(
-	const double dt, // timestep 
 	const size_t fluidn, // number of fluid particles
 	const size_t ntotal, // number of particles 
 	heap_array<double, Params::maxn>& mass,// particle masses

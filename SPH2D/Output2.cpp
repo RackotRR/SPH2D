@@ -1,0 +1,76 @@
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <thread>
+#include <filesystem>
+#include <nlohmann/json.hpp>
+
+#include "Output.h"
+
+namespace {
+	// params and other things
+	void printParams() {
+		
+		nlohmann::json json;
+		json = {
+			{"experiment_name", Params::experimentName},
+			{"x_mingeom", Params::x_mingeom},
+			{"y_mingeom", Params::y_mingeom},
+			{"x_size", Params::x_maxgeom - Params::x_mingeom},
+			{"y_size", Params::y_maxgeom - Params::y_mingeom},
+			{"dx", Params::dx},
+			{"dy", Params::dy},
+			{"dt", Params::dt},
+			{"simulation_time", Params::simulationTime},
+			{"save_step", Params::save_step}
+		};
+
+		std::string path = Params::experimentName + "/Params.json";
+		std::ofstream stream(path, std::ofstream::out);
+		stream << json;
+	}
+
+	void printFast(
+		const heap_array_md<double, Params::dim, Params::maxn> x,
+		const heap_array<int, Params::maxn> itype,
+		const size_t ntotal,
+		const size_t itimestep) 
+	{
+		std::ofstream stream(Params::experimentName + "/" + std::to_string(itimestep));
+		stream << ntotal << std::endl;
+		for (int i = 0; i < ntotal; i++) {
+			stream << x(0, i) << std::endl << x(1, i) << std::endl;
+			stream << itype(i) << std::endl;
+		}
+	}
+}
+
+
+void setupOutput() {
+	std::filesystem::create_directory(std::filesystem::current_path().append(Params::experimentName + "\\"));
+
+	printParams();
+}
+
+// save particle information to external disk file
+void output(
+	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
+	const heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
+	const heap_array<double, Params::maxn>& mass,// particle masses
+	const heap_array<double, Params::maxn>& rho,// density
+	const heap_array<double, Params::maxn>& p,	// pressure
+	const heap_array<double, Params::maxn>& u,	// specific internal energy
+	const heap_array<double, Params::maxn>& c,	// sound velocity
+	const heap_array<int, Params::maxn>& itype,	// material type 
+	const size_t ntotal,	// number of particles
+	const size_t itimestep,// current time step
+	const long long timePassedTotal,
+	const long long timeEstimates)
+{
+	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
+	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
+
+
+	auto t = std::thread(printFast, x.MakeCopy(), itype.MakeCopy(), ntotal, itimestep);
+	t.detach();
+}

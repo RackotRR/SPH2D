@@ -22,6 +22,8 @@ namespace Params {
 	inline double k;
 	inline double beachX;
 	 
+	inline double dt;
+	inline double simulationTime;
 
 	// form of eos
 	// eos = 1 : Lennard-Jones
@@ -109,5 +111,5 @@ namespace Params {
 	constexpr double pi{ 3.14159265358979323846 };
 	constexpr double g{ 9.81 };
 
-	inline std::string fileToWrite;
+	inline std::string experimentName;
 };
