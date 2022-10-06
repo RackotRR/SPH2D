@@ -16,14 +16,13 @@ void ext_force(
 		for (int d = 0; d < Params::dim; d++) {
 			dvxdt(d, k) = 0;
 		}
-	}
 
-	// consider self-gravity or not?
-	if (Params::self_gravity) {
-		for (int k = 0; k < ntotal; k++) {
-			dvxdt(Params::dim - 1, k) = -Params::g;
+		// consider self-gravity or not?
+		if (Params::self_gravity) {
+			dvxdt(1, k) = -Params::g;
 		}
 	}
+
 
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  

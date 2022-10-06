@@ -8,11 +8,11 @@
 #include <iostream>
 
 static void initConsts() {
-	constexpr double H = 0.16;
-	constexpr double L = 4.62; 
+	constexpr double H = 0.1;
+	constexpr double L = 2; 
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 2 * L;
+	constexpr double length = 8 * L;
 	constexpr double height = 2 * d;
 	constexpr int particlesPer_d = 50;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
@@ -35,15 +35,26 @@ static void initConsts() {
 	Params::height = height;
 	Params::L = L;
 	Params::d = d;
-	Params::freq = Params::pi;
 
 	constexpr double k = 2 * Params::pi / L;
 	constexpr double v = k * d;
+	Params::freq = sqrt(k * Params::g * tanh(v));
+
 	Params::A = H * 0.5 / sqr(sinh(v)) * (sinh(v) * cosh(v) + v);
 	Params::H = H;
 	Params::k = k;
-	Params::save_step = 25;
-	Params::beachX = L;
+	Params::save_step = 50;
+	Params::beachX = 0;
+
+	Params::simulationTime = 10;
+	Params::dt = 5e-4;
+	double steps = Params::simulationTime / Params::dt;
+	if (steps < 0) {
+		throw std::runtime_error{ "maxtimestep error" };
+	}
+	Params::maxtimestep = static_cast<size_t>(steps);
+
+	Params::nwm = 2;
 }
 
 // loading or generating initial particle information

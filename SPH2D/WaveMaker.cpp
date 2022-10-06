@@ -9,17 +9,36 @@ void make_waves(
 	const size_t ntotal,
 	const double time)
 {
-
 	// NWM
 	if (Params::nwm == 1) {
 		RZM_generator(r, a, nfluid, time);
 		//RZM_absorber(x, vx, dvx, nfluid, time);
 	}
-	else {
+	else if (Params::nwm == 2) {
 		dynamicBoundaries(r, v, time);
+	}
+	else if (Params::nwm == 3) {
+		impulseNWM(r, a, nfluid, ntotal, time);
 	}
 }
 
+
+void impulseNWM(
+	heap_array_md<double, Params::dim, Params::maxn>& r,	// coordinates of all particles
+	heap_array_md<double, Params::dim, Params::maxn>& a,
+	const size_t nfluid,
+	const size_t ntotal,
+	const double time) 
+{
+	constexpr double delta = 2;
+	const double nwmPos = Params::L * 2;
+	const double factor = 4. * sqr(Params::pi);
+	for (int i = 0; i < nfluid; i++) {
+		double x = r(0, i);
+		double diff = factor * (1 + Params::A * sin(Params::freq * time) * exp(-sqr(x - nwmPos) / sqr(delta)));
+		a(0, i) = diff;
+	}
+}
 
 void RZM_generator(
 	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles

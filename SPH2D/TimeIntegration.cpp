@@ -19,8 +19,7 @@ void time_integration(
 	heap_array<double, Params::maxn>& e,	// total energy of particles 
 	heap_array<int, Params::maxn>& itype, // material type: 1 - ideal gas, 2 - water, 3 - tnt   
 	const size_t ntotal, // total particle number at t = 0
-	const size_t nfluid, // fluid particles 
-	const size_t maxtimestep // maximum timesteps
+	const size_t nfluid  // fluid particles 
 )
 {
 	heap_array_md<double, Params::dim, Params::maxn> x_min, v_min, dvx, av;
@@ -29,12 +28,12 @@ void time_integration(
 
 	RR::Timer timer;
 
-	for (int itimestep = 0; itimestep < maxtimestep; itimestep++) {
+	for (int itimestep = 0; itimestep < Params::maxtimestep; itimestep++) {
 		timer.start();
 
 		time = itimestep * Params::dt;
 		if (itimestep % Params::save_step == 0) {
-			long long timeEstimate = timer.average() * (maxtimestep - itimestep) * 1.E-9 / 60.;
+			long long timeEstimate = timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.;
 			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
 		}
 

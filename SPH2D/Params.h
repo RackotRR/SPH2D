@@ -52,7 +52,7 @@ namespace Params {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	constexpr int nwm{ 3 };
+	inline int nwm{ 3 };
 
 	// const smoothing length
 	inline double hsml;

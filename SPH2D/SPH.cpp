@@ -34,19 +34,10 @@ void sph() {
 	heap_array<double, Params::maxn> c;	// sound velocity 
 	heap_array<double, Params::maxn> e;	// total energy of particles
 
-	Params::simulationTime = 5;
-	Params::dt = 5e-4;
-	double steps = Params::simulationTime / Params::dt;
-	if (steps < 0) {
-		throw std::runtime_error{ "maxtimestep error" };
-	}
-
-	Params::maxtimestep = static_cast<size_t>(steps);
-
 	input(x, vx, mass, rho, p, u, itype, ntotal, nfluid);
 	setupOutput();
 
-	time_integration(x, vx, mass, rho, p, u, c, e, itype, ntotal, nfluid, Params::maxtimestep);
+	time_integration(x, vx, mass, rho, p, u, c, e, itype, ntotal, nfluid);
 }
  
 

@@ -13,6 +13,5 @@ void time_integration(
 	heap_array<double, Params::maxn>& e,	// total energy of particles 
 	heap_array<int, Params::maxn>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual
 	const size_t start_ntotal, // total particle number at t = 0
-	const size_t nfluid, // fluid particles 
-	const size_t maxtimestep // maximum timesteps
+	const size_t nfluid // fluid particles 
 );

@@ -48,7 +48,7 @@ void virt_part(
 	leftWall(ntotal, nvirt, x);
 	rightWall(ntotal, nvirt, x);
 	ground(ntotal, nvirt, x);
-	beach(ntotal, nvirt, x);
+	//beach(ntotal, nvirt, x);
 
 	// init all virtual particles
 	for (int k = 0; k < nvirt; k++) {
@@ -111,7 +111,7 @@ void ground(
 {
 	auto y = Params::y_mingeom;
 	auto xmin = Params::x_mingeom;
-	auto xmax = Params::beachX;
+	auto xmax = Params::x_maxgeom;
 
 	for (auto x = xmax; x >= xmin; x -= dx) {
 		size_t i = ntotal + nvirt;
@@ -146,7 +146,10 @@ void dynamicBoundaries(
 	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
 	const double time)
 {
-	double phase = 0;
+	double phase = -Params::freq;
+	if (time < 1.0) {
+		return;
+	}
 
 	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
 	for (size_t i = leftWallStart; i < leftWallEnd; i++) {

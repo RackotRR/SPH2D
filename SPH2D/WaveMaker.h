@@ -13,6 +13,12 @@ void RZM_absorber(
 	const size_t nfluid,
 	const double time);
 
+void impulseNWM(
+	heap_array_md<double, Params::dim, Params::maxn>& r,	// coordinates of all particles
+	heap_array_md<double, Params::dim, Params::maxn>& a,
+	const size_t nfluid,
+	const size_t ntotal,
+	const double time);
 
 void make_waves(
 	heap_array_md<double, Params::dim, Params::maxn>& r,	// coordinates of all particles

@@ -36,7 +36,7 @@ void single_step(
 	heap_array<size_t, Params::max_interaction> pair_i, pair_j;
 	heap_array<double, Params::max_interaction> w;
 	heap_array_md<double, Params::dim, Params::max_interaction> dwdx;
-	heap_array_md<double, Params::dim, Params::maxn> indvxdt, exdvxdt, arvdvxdt;
+	heap_array_md<double, Params::dim, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
 	heap_array<double, Params::maxn> avdudt, ahdudt, c, eta;
 
 	// interaction parameters, calculating neighboring particles and optimizing smoothing lenght
@@ -91,15 +91,16 @@ void single_step(
 		av_vel(nfluid, mass, vx, niac, rho, pair_i, pair_j, w, av);
 	}
 
+	if (Params::nwm) {
+		make_waves(x, vx, nwmdvxdt, nfluid, ntotal, time);
+	}
+
 	// convert velocity, force and energy to f and dfdt
 	for (int i = 0; i < nfluid; i++) {
 		for (int d = 0; d < Params::dim; d++) {
-			dvx(d, i) = indvxdt(d, i) + exdvxdt(d, i) + arvdvxdt(d, i);
+			dvx(d, i) = indvxdt(d, i) + exdvxdt(d, i) + arvdvxdt(d, i) + nwmdvxdt(d, i);
 		}
 		du(i) += avdudt(i) + ahdudt(i);
-	}  
+	} 
 
-	if (Params::nwm) {
-		make_waves(x, vx, dvx, nfluid, ntotal, time);
-	}
 }
