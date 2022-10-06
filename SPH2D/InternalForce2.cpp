@@ -28,17 +28,21 @@ void int_force(
 {
 	size_t i, j;
 	double  hxx, hyy, hxy, h, hvcc, he, rhoij;
-	heap_array<double, Params::dim> dvx;
-	heap_array<double, Params::maxn> vcc;
+	static heap_array<double, Params::dim> dvx;
+	static heap_array<double, Params::maxn> vcc;
 
-	heap_array<double, Params::maxn> txx;
-	heap_array<double, Params::maxn> tyy;
-	heap_array<double, Params::maxn> txy;
+	static heap_array<double, Params::maxn> txx;
+	static heap_array<double, Params::maxn> tyy;
+	static heap_array<double, Params::maxn> txy;
 
 	// initialization of shear tensor, velocity divergence, viscous energy, internal energy, acceleration
 	for (int i = 0; i < ntotal; i++) {
 		tdsdt(i) = 0;
 		dedt(i) = 0;
+		vcc(i) = 0;
+		txx(i) = 0;
+		tyy(i) = 0;
+		txy(i) = 0;
 		for (int d = 0; d < Params::dim; d++) {
 			dvxdt(d, i) = 0;
 		}

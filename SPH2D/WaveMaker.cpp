@@ -67,6 +67,10 @@ void RZM_generator(
 			dvx(0, i) = C * dv_xt + (1 - C) * dvx(0, i);
 			dvx(1, i) = C * dv_zt + (1 - C) * dvx(1, i);
 		}
+		else {
+			dvx(0, i) = 0;
+			dvx(1, i) = 0;
+		}
 	}
 }
 
@@ -97,6 +101,10 @@ void RZM_absorber(
 			double au = dvx(0, i) * vx(0, i);
 			dvx(0, i) = au > 0 ? C * dv_xt : dv_xt;
 			dvx(1, i) = au > 0 ? C * dv_zt : dv_zt;
+		}
+		else {
+			dvx(0, i) = 0;
+			dvx(1, i) = 0;
 		}
 	}
 }

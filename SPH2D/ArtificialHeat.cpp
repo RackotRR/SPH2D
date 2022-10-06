@@ -23,11 +23,15 @@ void art_heat(
 	double hsml{ Params::hsml };
 	heap_array<double, Params::dim> dvx;
 
-	heap_array<double, Params::maxn> vcc;
+	static heap_array<double, Params::maxn> vcc;
 
 	static constexpr double g1 = 0.1;
 	static constexpr double g2 = 1.0;
 
+	for (int k = 0; k < ntotal; ++k) {
+		vcc(k) = 0;
+		dedt(k) = 0;
+	}
 
 	for (int k = 0; k < niac; k++) {
 		i = pair_i(k);
@@ -66,7 +70,7 @@ void art_heat(
 		dedt(j) += mass(j) * h * (u(j) - u(i));
 	}
 
-	for (size_t k{}; k < ntotal; k++) {
+	for (int k = 0; k < ntotal; k++) {
 		dedt(k) *= 2.0;
 	}
 }

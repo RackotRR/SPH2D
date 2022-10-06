@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <RRTime/Timer.h>
 
 #include "CommonIncl.h"
 #include "Input.h"
@@ -43,7 +44,11 @@ void sph() {
 
 int main(int arc, const char* argv[]) {
 	try {
+		RR::Timer timer;
+		timer.start();
 		sph();
+		timer.finish();
+		std::cout << "total time in seconds: " << timer.value<std::chrono::seconds>() << std::endl;
 	}
 	catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;

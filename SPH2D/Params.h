@@ -4,7 +4,7 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 51'000 }; // maximum number of particles
+	constexpr int maxn{ 81'000 }; // maximum number of particles
 	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
 	  
 	inline double x_maxgeom;

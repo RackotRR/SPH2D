@@ -33,11 +33,11 @@ void single_step(
 	const double time)
 {
 	size_t niac = 0;
-	heap_array<size_t, Params::max_interaction> pair_i, pair_j;
-	heap_array<double, Params::max_interaction> w;
-	heap_array_md<double, Params::dim, Params::max_interaction> dwdx;
-	heap_array_md<double, Params::dim, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
-	heap_array<double, Params::maxn> avdudt, ahdudt, c, eta;
+	static heap_array<size_t, Params::max_interaction> pair_i, pair_j;
+	static heap_array<double, Params::max_interaction> w;
+	static heap_array_md<double, Params::dim, Params::max_interaction> dwdx;
+	static heap_array_md<double, Params::dim, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
+	static heap_array<double, Params::maxn> c, avdudt, ahdudt, eta;
 
 	// interaction parameters, calculating neighboring particles and optimizing smoothing lenght
 	if (Params::nnps == 1) {

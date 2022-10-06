@@ -44,7 +44,7 @@ static void initConsts() {
 	Params::H = H;
 	Params::k = k;
 	Params::save_step = 50;
-	Params::beachX = 0;
+	Params::beachX = Params::x_maxgeom;
 
 	Params::simulationTime = 10;
 	Params::dt = 5e-4;

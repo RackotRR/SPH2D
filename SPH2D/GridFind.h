@@ -9,7 +9,7 @@
 void grid_find(
 	const size_t ntotal, // number of particles 
 	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	heap_array<int, Params::maxn>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual
+	const heap_array<int, Params::maxn>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual
 	size_t& niac, // out number of interaction pairs
 	heap_array<size_t, Params::max_interaction>& pair_i, // out, list of first partner of interaction pair
 	heap_array<size_t, Params::max_interaction>& pair_j, // out, list of second partner of interaction pair
