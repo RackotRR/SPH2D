@@ -14,16 +14,20 @@ void sum_density(
 {
 	size_t i, j;
 	// parameters for calling kernel func
-	heap_array<double, Params::dim> dx, dwdx;
+	static stack_array<double, Params::dim> dx, dwdx;
 
 	// normrho(maxn) --- integration of the kernel itself
-	heap_array<double, Params::maxn> normrho;
+	static heap_array<double, Params::maxn> normrho;
 
 	// self density of each particle: Wii (Kernel for distance 0) and take contribution of particle itself:
 	double r = 0;
 	double wii;
 
-	if (Params::nor_density) {
+	for (int d = 0; d < Params::dim; ++d) {
+		dx(d) = 0;
+	}
+
+	if constexpr (Params::nor_density) {
 		// calculate the integration of the kernel over the space
 		for (int k = 0; k < ntotal; k++) {
 			kernel(r, dx, wii, dwdx);
@@ -53,7 +57,7 @@ void sum_density(
 	}
 
 	// calculate the normalized rho, rho = sum(rho)/sum(w)
-	if (Params::nor_density) {
+	if constexpr (Params::nor_density) {
 		for (int k = 0; k < ntotal; k++) {
 			rho(k) /= normrho(k);
 		}
@@ -78,7 +82,7 @@ void con_density(
 {
 	size_t i, j;
 	double vcc;
-	heap_array<double, Params::dim> dvx;
+	double dvx;
 
 	for (int k = 0; k < ntotal; k++) {
 		drhodt(k) = 0;
@@ -89,8 +93,8 @@ void con_density(
 		j = pair_j(k);
 		vcc = 0;
 		for (int d = 0; d < Params::dim; d++) {
-			dvx(d) = vx(d, i) - vx(d, j);
-			vcc += dvx(d) * dwdx(d, k);
+			dvx = vx(d, i) - vx(d, j);
+			vcc += dvx * dwdx(d, k);
 		}
 		drhodt(i) += mass(j) * vcc;
 		drhodt(j) += mass(i) * vcc;

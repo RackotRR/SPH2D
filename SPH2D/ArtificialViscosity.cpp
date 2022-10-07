@@ -17,7 +17,7 @@ void art_visc(
 	heap_array<double, Params::maxn>& dedt)	// change of specific internal energy
 {
 	size_t i, j;
-	heap_array<double, Params::dim> dvx;
+	static stack_array<double, Params::dim> dvx;
 	double dx, piv, muv, vr, rr, h, mc, mrho;
 	const double hsml = Params::hsml;
 

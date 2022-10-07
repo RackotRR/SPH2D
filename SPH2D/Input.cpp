@@ -12,7 +12,7 @@ static void initConsts() {
 	constexpr double L = 2; 
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 8 * L;
+	constexpr double length = 6 * L;
 	constexpr double height = 2 * d;
 	constexpr int particlesPer_d = 50;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
@@ -23,8 +23,8 @@ static void initConsts() {
 
 	constexpr double delta = h;
 
-	Params::x_maxgeom = length + delta;
-	Params::x_mingeom = -delta * 2 - H;
+	Params::x_maxgeom = length;
+	Params::x_mingeom = -delta;
 	Params::y_maxgeom = height + delta;
 	Params::y_mingeom = -delta;
 
@@ -46,15 +46,13 @@ static void initConsts() {
 	Params::save_step = 50;
 	Params::beachX = Params::x_maxgeom;
 
-	Params::simulationTime = 10;
+	Params::simulationTime = 15;
 	Params::dt = 5e-4;
 	double steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
 	}
 	Params::maxtimestep = static_cast<size_t>(steps);
-
-	Params::nwm = 2;
 }
 
 // loading or generating initial particle information

@@ -1,5 +1,6 @@
 #pragma once
 #include <utility>
+#include <array>
  
 template <typename T, size_t dimensions, size_t size>
 class heap_array_md {
@@ -98,4 +99,15 @@ public:
 	T& operator() (size_t i) {
 		return ptr[i];
 	} 
+};
+
+template<typename T, size_t size>
+class stack_array : public std::array<T, size> {
+public:
+	T& operator() (size_t i) {
+		return (*this)[i];
+	}
+	const T& operator() (size_t i) const {
+		return (*this)[i];
+	}
 };

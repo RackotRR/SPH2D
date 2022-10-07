@@ -10,14 +10,14 @@ void make_waves(
 	const double time)
 {
 	// NWM
-	if (Params::nwm == 1) {
+	if constexpr (Params::nwm == 1) {
 		RZM_generator(r, a, nfluid, time);
 		//RZM_absorber(x, vx, dvx, nfluid, time);
 	}
-	else if (Params::nwm == 2) {
+	else if constexpr (Params::nwm == 2) {
 		dynamicBoundaries(r, v, time);
 	}
-	else if (Params::nwm == 3) {
+	else if constexpr (Params::nwm == 3) {
 		impulseNWM(r, a, nfluid, ntotal, time);
 	}
 }

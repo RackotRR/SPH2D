@@ -21,8 +21,8 @@ void art_heat(
 	size_t i, j;
 	double dx, rr, h, mrho, hvcc, mui, muj, muij, rdwdx;
 	double hsml{ Params::hsml };
-	heap_array<double, Params::dim> dvx;
-
+	
+	static stack_array<double, Params::dim> dvx;
 	static heap_array<double, Params::maxn> vcc;
 
 	static constexpr double g1 = 0.1;

@@ -4,7 +4,7 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 81'000 }; // maximum number of particles
+	constexpr int maxn{ 150'000 }; // maximum number of particles
 	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
 	  
 	inline double x_maxgeom;
@@ -52,7 +52,7 @@ namespace Params {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	inline int nwm{ 3 };
+	constexpr int nwm{ 2 };
 
 	// const smoothing length
 	inline double hsml;

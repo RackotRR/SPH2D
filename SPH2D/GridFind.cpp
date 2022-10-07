@@ -61,7 +61,7 @@ namespace {
 
 		// возвращает список частиц по блокам
 		// результат действителен, пока существует сетка
-		NeighbourBlocks GetNeighbours(size_t indexX, size_t indexY) const {
+		const NeighbourBlocks& GetNeighbours(size_t indexX, size_t indexY) const {
 			// если нужно бросать исключения при недействительном индексе, то бросаем
 			if constexpr (throwIfNotValidIndex) {
 				if (!IsIndexValid(indexX, indexY)) {
@@ -69,13 +69,13 @@ namespace {
 				}
 			}
 
-			NeighbourBlocks result;
+			static NeighbourBlocks result;
+			result.clear();
 
-			auto AddParticlesIfIndexValid{
+			static auto AddParticlesIfIndexValid =
 				[&](size_t x, size_t y) {
-					if (IsIndexValid(x, y)) { // если блок существует, то добавить в результат его список частиц
-						result.push_back(&grid[x][y]);
-					}
+				if (IsIndexValid(x, y)) { // если блок существует, то добавить в результат его список частиц
+					result.push_back(&grid[x][y]);
 				}
 			};
 
@@ -145,8 +145,8 @@ void grid_find(
 	static const double hsml = Params::hsml;
 
 	double dijSqr, dij;
-	heap_array<double, Params::dim> dij_dim;
-	heap_array<double, Params::dim> tmp_dwdx;
+	static stack_array<double, Params::dim> dij_dim;
+	static stack_array<double, Params::dim> tmp_dwdx;
 
 	static const double blockSize = BlockSize();
 
@@ -180,7 +180,7 @@ void grid_find(
 		size_t indexX = xBlock(i);
 		size_t indexY = yBlock(i);
 
-		auto neighbourBlocks{ grid.GetNeighbours(indexX, indexY) };
+		auto& neighbourBlocks = grid.GetNeighbours(indexX, indexY);
 		for (auto* block : neighbourBlocks) {
 			for (size_t j : *block) {
 				if (i >= j) continue;

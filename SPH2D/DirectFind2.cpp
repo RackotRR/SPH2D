@@ -38,8 +38,8 @@ void direct_find(
 	const double hsml = Params::hsml;
 
 	double driac, dij, r;
-	heap_array<double, Params::dim> dxiac;
-	heap_array<double, Params::dim> tdwdx;
+	static stack_array<double, Params::dim> dxiac;
+	static stack_array<double, Params::dim> tdwdx;
 	  
 
 	niac = 0;
@@ -49,7 +49,7 @@ void direct_find(
 
 		for (int j = i + 1; j < ntotal; j++) {
 			driac = 0;
-			for (size_t d{}; d < Params::dim; d++) {
+			for (int d = 0; d < Params::dim; d++) {
 				dxiac(d) = x(d, i) - x(d, j);
 				driac += sqr(dxiac(d));
 			}

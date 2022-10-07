@@ -13,7 +13,7 @@ void p_art_water(
     double H = Params::d;
     double g = Params::g;
     double cSqr = 200 * g * H;
-    if (Params::eos == 1) {
+    if constexpr (Params::eos == 1) {
 
         // Lennard-Jones EOS
         int alpha = 3;

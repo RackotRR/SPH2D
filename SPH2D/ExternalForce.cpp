@@ -18,7 +18,7 @@ void ext_force(
 		}
 
 		// consider self-gravity or not?
-		if (Params::self_gravity) {
+		if constexpr (Params::self_gravity) {
 			dvxdt(1, k) = -Params::g;
 		}
 	}
@@ -26,7 +26,7 @@ void ext_force(
 
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
-	heap_array<double, Params::dim> dx;
+	static stack_array<double, Params::dim> dx;
 
 	const double rr0 = Params::hsml;//{ 1.25e-5 };
 	const double dd = 5 * Params::g * Params::d;

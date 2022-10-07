@@ -8,6 +8,9 @@
 #include "Output.h"
 
 namespace {
+	std::string experimentRelativePath;
+	std::string dataOutputRelativePath;
+
 	// params and other things
 	void printParams() {
 		
@@ -25,7 +28,7 @@ namespace {
 			{"save_step", Params::save_step}
 		};
 
-		std::string path = Params::experimentName + "/Params.json";
+		std::string path = experimentRelativePath + "Params.json";
 		std::ofstream stream(path, std::ofstream::out);
 		stream << json;
 	}
@@ -36,7 +39,7 @@ namespace {
 		const size_t ntotal,
 		const size_t itimestep) 
 	{
-		std::ofstream stream(Params::experimentName + "/" + std::to_string(itimestep));
+		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
 		stream << ntotal << std::endl;
 		for (int i = 0; i < ntotal; i++) {
 			stream << x(0, i) << std::endl << x(1, i) << std::endl;
@@ -47,7 +50,13 @@ namespace {
 
 
 void setupOutput() {
-	std::filesystem::create_directory(std::filesystem::current_path().append(Params::experimentName + "\\"));
+	::experimentRelativePath = Params::experimentName + "\\";
+	::dataOutputRelativePath = ::experimentRelativePath + "data\\";
+	auto analysisResultsPath = ::experimentRelativePath + "analysis\\";
+
+	std::filesystem::create_directory(std::filesystem::current_path().append(::experimentRelativePath));
+	std::filesystem::create_directory(std::filesystem::current_path().append(::dataOutputRelativePath));
+	std::filesystem::create_directory(std::filesystem::current_path().append(analysisResultsPath));
 
 	printParams();
 }

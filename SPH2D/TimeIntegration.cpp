@@ -28,7 +28,7 @@ void time_integration(
 
 	RR::Timer timer;
 
-	for (int itimestep = 0; itimestep < Params::maxtimestep; itimestep++) {
+	for (int itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
 		timer.start();
 
 		time = itimestep * Params::dt;

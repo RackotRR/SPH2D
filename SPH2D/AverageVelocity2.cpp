@@ -12,7 +12,7 @@ void av_vel(
 	const heap_array<double, Params::max_interaction>& w,  // kernel for all interaction pairs 
 	heap_array_md<double, Params::dim, Params::maxn>& av) // average velocity of each particle
 {
-	heap_array<double, Params::dim> dvx;
+	double dvx;
 	size_t i, j;
 
 	// epsilon for 1 dimensional shock tube problem
@@ -28,9 +28,9 @@ void av_vel(
 		i = pair_i(k);
 		j = pair_j(k);
 		for (int d = 0; d < Params::dim; d++) {
-			dvx(d) = vx(d, i) - vx(d, j);
-			av(d, i) -= 2 * mass(j) * dvx(d) / (rho(i) + rho(j)) * w(k);
-			av(d, j) += 2 * mass(i) * dvx(d) / (rho(i) + rho(j)) * w(k);
+			dvx = vx(d, i) - vx(d, j);
+			av(d, i) -= 2 * mass(j) * dvx / (rho(i) + rho(j)) * w(k);
+			av(d, j) += 2 * mass(i) * dvx / (rho(i) + rho(j)) * w(k);
 		}
 	}
 

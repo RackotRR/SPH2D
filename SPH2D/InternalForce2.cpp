@@ -49,7 +49,7 @@ void int_force(
 	}
 
 	// calculate SPH sum for shear tensor Tab = va,b + vb,a - 2/3 delta_ab vc,c
-	if (Params::visc) {
+	if constexpr (Params::visc) {
 		for (int k = 0; k < niac; k++) {
 			i = pair_i(k);
 			j = pair_j(k);
@@ -83,7 +83,7 @@ void int_force(
 
 	for (int i = 0; i < ntotal; i++) {
 		// viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
-		if (Params::visc) {
+		if constexpr (Params::visc) {
 			tdsdt(i) = sqr(txx(i)) + 2 * sqr(txy(i)) + sqr(tyy(i));
 			tdsdt(i) = 0.5 * eta(i) / rho(i) * tdsdt(i);
 		}
@@ -100,7 +100,7 @@ void int_force(
 		j = pair_j(k);
 		he = 0;
 
-		if (Params::pa_sph == 1) { // for sph algorithm 1
+		if constexpr (Params::pa_sph == 1) { // for sph algorithm 1
 			rhoij = 1.0 / (rho(i) * rho(j));
 			for (int d = 0; d < Params::dim; d++) {
 				// pressure part
@@ -126,13 +126,13 @@ void int_force(
 			dedt(i) += mass(j) * he;
 			dedt(j) += mass(i) * he;
 		}
-		else if (Params::pa_sph == 2) { // for sph algorithm 2
+		else if constexpr (Params::pa_sph == 2) { // for sph algorithm 2
 			for (int d = 0; d < Params::dim; d++) {
 				h = -(p(i) / sqr(rho(i)) + p(j) / sqr(rho(j))) * dwdx(d, k);
 				he += (vx(d, j) - vx(d, i)) * h;
 
 				// viscous force
-				if (Params::visc) {
+				if constexpr (Params::visc) {
 					if (d == 1) { // x-coordinate of acceleration
 						h += (eta(i) * txx(i) / sqr(rho(i)) + eta(j) * txx(j) / sqr(rho(j))) * dwdx(0, k);
 						h += (eta(i) * txy(i) / sqr(rho(i)) + eta(j) * txy(j) / sqr(rho(j))) * dwdx(1, k);

@@ -40,13 +40,13 @@ void single_step(
 	static heap_array<double, Params::maxn> c, avdudt, ahdudt, eta;
 
 	// interaction parameters, calculating neighboring particles and optimizing smoothing lenght
-	if (Params::nnps == 1) {
+	if constexpr (Params::nnps == 1) {
 		direct_find(ntotal, x, itype, niac, pair_i, pair_j, w, dwdx);
 	}
-	else if (Params::nnps == 2) {
+	else if constexpr (Params::nnps == 2) {
 		grid_find(ntotal, x, itype, niac, pair_i, pair_j, w, dwdx);
 	}
-	else if (Params::nnps == 3) {
+	else if constexpr (Params::nnps == 3) {
 		//tree_search(ntotal + nvirt, x, niac, pair_i, pair_j, w, dwdx);
 		assert(false);
 	}
@@ -56,7 +56,7 @@ void single_step(
 
 
 	// density approximation or change rate
-	if (Params::summation_density) {
+	if constexpr (Params::summation_density) {
 		sum_density(ntotal, mass, x, niac, pair_i, pair_j, w, itype, rho);
 	}
 	else {
@@ -64,7 +64,7 @@ void single_step(
 	}
 
 	// dynamic viscosity
-	if (Params::visc) {
+	if constexpr (Params::visc) {
 		viscosity(ntotal, itype, x, rho, eta);
 	}
 
@@ -73,25 +73,25 @@ void single_step(
 		itype, u, x, c, p, indvxdt, tdsdt, du);
 
 	// artificial viscosity
-	if (Params::visc_artificial) {
+	if constexpr (Params::visc_artificial) {
 		art_visc(ntotal, mass, x, vx, niac, rho, c, pair_i, pair_j, w, dwdx, arvdvxdt, avdudt);
 	}
 
 	// external forces
-	if (Params::ex_force) {
+	if constexpr (Params::ex_force) {
 		ext_force(ntotal, mass, x, niac, pair_i, pair_j, itype, exdvxdt);
 	}
 
-	if (Params::heat_artificial) {
+	if constexpr (Params::heat_artificial) {
 		art_heat(ntotal, mass, x, vx, niac, rho, u, c, pair_i, pair_j, w, dwdx, ahdudt);
 	}
 
 	// calculating average velocity of each particle for avoiding penetration
-	if (Params::average_velocity) {
+	if constexpr (Params::average_velocity) {
 		av_vel(nfluid, mass, vx, niac, rho, pair_i, pair_j, w, av);
 	}
 
-	if (Params::nwm) {
+	if constexpr (Params::nwm) {
 		make_waves(x, vx, nwmdvxdt, nfluid, ntotal, time);
 	}
 
