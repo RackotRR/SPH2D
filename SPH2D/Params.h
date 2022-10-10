@@ -104,6 +104,7 @@ namespace Params {
 	constexpr bool full_stat{ true };
 
 	inline size_t maxtimestep; // time step to finish
+	constexpr int finite_check_step{ 500 };
 	constexpr int print_step{ 200 }; // print timestep (on screen)
 	inline int save_step; // save timestep (on disk)
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring

@@ -2,6 +2,7 @@
 #include "Output.h"
 #include "SingleStep.h"
 #include "VirtualParticles.h"
+#include "IsFiniteCheck.h"
 #include <RRTime/Timer.h>
 #include <iostream>
 
@@ -88,6 +89,11 @@ void time_integration(
 			}
 		}
 
+		if (itimestep % Params::finite_check_step == 0 &&
+			check_finite(x, vx, rho, p, nfluid) == false) 
+		{
+			throw std::runtime_error{ "encounter not finite value!" };
+		}
 
 		time += Params::dt;
 		timer.finish();

@@ -25,7 +25,9 @@ namespace {
 			{"dy", Params::dy},
 			{"dt", Params::dt},
 			{"simulation_time", Params::simulationTime},
-			{"save_step", Params::save_step}
+			{"save_step", Params::save_step},
+			{"wave_length", Params::L },
+			{"depth", Params::d}
 		};
 
 		std::string path = experimentRelativePath + "Params.json";

@@ -23,10 +23,6 @@ static void initConsts() {
 
 	constexpr double delta = h;
 
-	Params::x_maxgeom = length;
-	Params::x_mingeom = -delta;
-	Params::y_maxgeom = height + delta;
-	Params::y_mingeom = -delta;
 
 	Params::dx = h;
 	Params::dy = h;
@@ -44,6 +40,12 @@ static void initConsts() {
 	Params::H = H;
 	Params::k = k;
 	Params::save_step = 50;
+
+	Params::x_maxgeom = length;
+	Params::x_mingeom = -delta - Params::A;
+	Params::y_maxgeom = height + delta;
+	Params::y_mingeom = -delta;
+
 	Params::beachX = Params::x_maxgeom;
 
 	Params::simulationTime = 15;

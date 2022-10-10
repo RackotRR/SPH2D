@@ -75,6 +75,9 @@
     <ClInclude Include="WaveMaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IsFiniteCheck.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Input.cpp">
@@ -129,6 +132,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Output2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IsFiniteCheck.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
