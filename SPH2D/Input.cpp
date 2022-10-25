@@ -12,9 +12,9 @@ static void initConsts() {
 	constexpr double L = 2; 
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 6 * L;
+	constexpr double length = 5 * L;
 	constexpr double height = 2 * d;
-	constexpr int particlesPer_d = 50;
+	constexpr int particlesPer_d = 100;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
 	constexpr int particlesX = particlesPer_L * length / L;
 	constexpr int particlesY = particlesPer_d * height / d / 2;
@@ -39,17 +39,17 @@ static void initConsts() {
 	Params::A = H * 0.5 / sqr(sinh(v)) * (sinh(v) * cosh(v) + v);
 	Params::H = H;
 	Params::k = k;
-	Params::save_step = 50;
+	Params::save_step = 100;
 
-	Params::x_maxgeom = length;
+	Params::x_maxgeom = length + delta;
 	Params::x_mingeom = -delta - Params::A;
 	Params::y_maxgeom = height + delta;
 	Params::y_mingeom = -delta;
 
 	Params::beachX = Params::x_maxgeom;
 
-	Params::simulationTime = 15;
-	Params::dt = 5e-4;
+	Params::simulationTime = 11;
+	Params::dt = 1e-4;
 	double steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
