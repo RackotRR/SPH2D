@@ -12,6 +12,7 @@ void ext_force(
 	const heap_array<int, Params::maxn>& itype,	// type of particles  
 	heap_array_md<double, Params::dim, Params::maxn>& dvxdt) // out, acceleration with respect to x, y, z
 {
+#pragma omp parallel for
 	for (int k = 0; k < ntotal; k++) {
 		for (int d = 0; d < Params::dim; d++) {
 			dvxdt(d, k) = 0;

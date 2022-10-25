@@ -152,7 +152,8 @@ void dynamicBoundaries(
 	}
 
 	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
-	for (size_t i = leftWallStart; i < leftWallEnd; i++) {
+#pragma omp parallel for
+	for (int i = leftWallStart; i < leftWallEnd; i++) {
 		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * Params::dt;
 		vx(0, i) =  v;
 	}

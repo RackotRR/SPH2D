@@ -14,7 +14,7 @@ static void initConsts() {
 	constexpr double ratio = L / d;
 	constexpr double length = 5 * L;
 	constexpr double height = 2 * d;
-	constexpr int particlesPer_d = 100;
+	constexpr int particlesPer_d = 50;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
 	constexpr int particlesX = particlesPer_L * length / L;
 	constexpr int particlesY = particlesPer_d * height / d / 2;
@@ -48,8 +48,8 @@ static void initConsts() {
 
 	Params::beachX = Params::x_maxgeom;
 
-	Params::simulationTime = 11;
-	Params::dt = 1e-4;
+	Params::simulationTime = 2;
+	Params::dt = 5e-4;
 	double steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
@@ -116,6 +116,7 @@ void generateParticles(
 	}
 
 
+#pragma omp parallel for
 	for (int i = 0; i < ntotal; i++) {
 		vx(0, i) = 0;
 		vx(1, i) = 0;
