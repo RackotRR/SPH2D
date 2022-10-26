@@ -48,7 +48,7 @@ static void initConsts() {
 
 	Params::beachX = Params::x_maxgeom;
 
-	Params::simulationTime = 2;
+	Params::simulationTime = 11;
 	Params::dt = 5e-4;
 	double steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {

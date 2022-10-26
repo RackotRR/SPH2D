@@ -11,6 +11,7 @@
 *.sln.docstates
 
 SPH2D/params
+SPH2D/tmp
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

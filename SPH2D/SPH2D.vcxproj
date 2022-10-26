@@ -200,6 +200,9 @@
     <ClCompile Include="Viscosity.cpp" />
     <ClCompile Include="WaveMaker.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.gitignore" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
