@@ -29,7 +29,6 @@ void sum_density(
 
 	if constexpr (Params::nor_density) {
 		// calculate the integration of the kernel over the space
-#pragma omp parallel for private(wii)
 		for (int k = 0; k < ntotal; k++) {
 			kernel(r, dx, wii, dwdx);
 			normrho(k) = wii * mass(k) / rho(k);
@@ -45,7 +44,6 @@ void sum_density(
 	}
 
 	// calculate the rho integration of the kernel over the space
-#pragma omp parallel for private(wii)
 	for (int k = 0; k < ntotal; k++) {
 		kernel(r, dx, wii, dwdx);
 		rho(k) = wii * mass(k);
@@ -60,7 +58,6 @@ void sum_density(
 
 	// calculate the normalized rho, rho = sum(rho)/sum(w)
 	if constexpr (Params::nor_density) {
-#pragma omp parallel for
 		for (int k = 0; k < ntotal; k++) {
 			rho(k) /= normrho(k);
 		}

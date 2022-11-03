@@ -18,7 +18,6 @@ void av_vel(
 	// epsilon for 1 dimensional shock tube problem
 	static constexpr double epsilon = 0.3;
 
-#pragma omp parallel for
 	for (int k = 0; k < ntotal; k++) {
 		for (int d = 0; d < Params::dim; d++) {
 			av(d, k) = 0;
@@ -35,7 +34,6 @@ void av_vel(
 		}
 	}
 
-#pragma omp parallel for
 	for (int k = 0; k < ntotal; k++) {
 		for (int d = 0; d < Params::dim; d++) {
 			av(d, k) *= epsilon;

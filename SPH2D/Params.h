@@ -12,6 +12,16 @@ namespace Params {
 	inline double y_maxgeom;
 	inline double y_mingeom;
 
+	inline int x_fluid_particles;
+	inline int y_fluid_particles;
+	inline double x_fluid_origin;
+	inline double y_fluid_origin;
+
+	inline int x_boundary_particles;
+	inline int y_boundary_particles;
+	inline double x_boundary_origin;
+	inline double y_boundary_origin;
+
 	inline double L;
 	inline double d;
 	inline double length;
@@ -52,7 +62,7 @@ namespace Params {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	constexpr int nwm{ 2 };
+	constexpr int nwm{ 0 };
 
 	// const smoothing length
 	inline double hsml;
@@ -60,6 +70,8 @@ namespace Params {
 	// initial distance between particles
 	inline double dx;
 	inline double dy;
+	inline double boundary_dx;
+	inline double boundary_dy;
 
 	/// Switches for diferent scenarios;
 	

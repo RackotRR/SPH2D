@@ -12,21 +12,23 @@ static void initConsts() {
 	constexpr double L = 2; 
 	constexpr double d = 0.7f;
 	constexpr double ratio = L / d;
-	constexpr double length = 5 * L;
+	constexpr double length = L;
 	constexpr double height = 2 * d;
-	constexpr int particlesPer_d = 50;
+	constexpr int particlesPer_d = 100;
 	constexpr int particlesPer_L = particlesPer_d * ratio;
 	constexpr int particlesX = particlesPer_L * length / L;
 	constexpr int particlesY = particlesPer_d * height / d / 2;
 	constexpr int particles = particlesX * particlesY;
-	constexpr double h = d / particlesPer_d;
+	constexpr double delta = d / particlesPer_d;
 
-	constexpr double delta = h;
+	Params::x_fluid_particles = particlesX;
+	Params::y_fluid_particles = particlesY;
+	Params::x_fluid_origin = 0;
+	Params::y_fluid_origin = 0;
 
-
-	Params::dx = h;
-	Params::dy = h;
-	Params::hsml = h;
+	Params::dx = delta;
+	Params::dy = delta;
+	Params::hsml = delta;
 	Params::length = length;
 	Params::height = height;
 	Params::L = L;
@@ -41,15 +43,15 @@ static void initConsts() {
 	Params::k = k;
 	Params::save_step = 100;
 
-	Params::x_maxgeom = length + delta;
-	Params::x_mingeom = -delta - Params::A;
+	Params::x_maxgeom = std::floor(length / delta) * delta + delta;
+	Params::x_mingeom = -delta/* - Params::A*/;
 	Params::y_maxgeom = height + delta;
 	Params::y_mingeom = -delta;
 
 	Params::beachX = Params::x_maxgeom;
 
-	Params::simulationTime = 11;
-	Params::dt = 5e-4;
+	Params::simulationTime = 2;
+	Params::dt = 1e-4;
 	double steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
@@ -92,38 +94,24 @@ void generateParticles(
 	size_t& ntotal) // total particle number
 {  
 	initConsts();
-	auto L = Params::L;
-	auto d = Params::d;
-	auto h = Params::hsml;
-	auto length = Params::length;
-	auto beachX = Params::beachX;
 	ntotal = 0;
 
-	for (double x = 0; x < length; x += h) {
-		for (double y = 0; y < d; y += h) {
+	for (int x_i = 0; x_i < Params::x_fluid_particles; ++x_i) {
+		for (int y_i = 0; y_i < Params::y_fluid_particles; ++y_i) {
 
-			r(0, ntotal) = x;
-			
-			if (x >= beachX) {
-				auto yBeach = (x - beachX) / 6.0;
-				if (yBeach > y) {
-					continue;
-				}
-			}
-			r(1, ntotal) = y;
+			r(0, ntotal) = Params::x_fluid_origin + x_i * Params::dx;
+			r(1, ntotal) = Params::y_fluid_origin + y_i * Params::dy;
 			ntotal++;
 		}
 	}
 
-
-#pragma omp parallel for
 	for (int i = 0; i < ntotal; i++) {
 		vx(0, i) = 0;
 		vx(1, i) = 0;
 
 
 		rho(i) = 1000;
-		mass(i) = h * h * rho(i);
+		mass(i) = Params::dx * Params::dy * rho(i);
 		u(i) = 357.1;
 		itype(i) = 2; // water
 

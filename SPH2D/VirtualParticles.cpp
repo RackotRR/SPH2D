@@ -1,10 +1,6 @@
 #include "CommonIncl.h"
 #include "EOS.h"
 
-
-static double dx;
-static double dy;
-
 static size_t leftWallStart;
 static size_t leftWallEnd;
 
@@ -20,10 +16,10 @@ void ground(
 	const size_t ntotal,
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r);
-void beach(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r);
+//void beach(
+//	const size_t ntotal,
+//	size_t& nvirt,
+//	heap_array_md<double, Params::dim, Params::maxn>& r);
 
 // determine the information of virtual particles
 // here only the Monaghan type virtual particles for the 2d shear
@@ -41,9 +37,13 @@ void virt_part(
 {
 	nvirt = 0;
 
+	Params::x_boundary_particles = Params::x_fluid_particles * 2;
+	Params::y_boundary_particles = Params::y_fluid_particles * 4 + 1;
+	Params::x_boundary_origin = Params::x_fluid_origin - Params::dx;
+	Params::y_boundary_origin = Params::y_fluid_origin - Params::dy;
 
-	dx = Params::dx * 0.5;
-	dy = Params::dy * 0.5;
+	Params::boundary_dx = Params::dx * 0.5;
+	Params::boundary_dy = Params::dy * 0.5;
 
 	leftWall(ntotal, nvirt, x);
 	rightWall(ntotal, nvirt, x);
@@ -58,7 +58,7 @@ void virt_part(
 		vx(1, i) = 0;
 
 		rho(i) = 1000;
-		mass(i) = rho(i) * dx * dy;
+		mass(i) = rho(i) * Params::boundary_dx * Params::boundary_dy;
 		p(i) = 0;
 		u(i) = 357.1;
 		itype(i) = -2;
@@ -73,15 +73,13 @@ void leftWall(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r) 
 {
-	auto x = 0.;
-	auto ymin = Params::y_mingeom;
-	auto ymax = Params::y_maxgeom;
+	double x = Params::x_boundary_origin;
 
 	leftWallStart = ntotal + nvirt;
-	for (auto y = ymax; y >= ymin; y -= dy) {
+	for (int y_i = 0; y_i < Params::y_boundary_particles; ++y_i) {
 		size_t i = ntotal + nvirt;
 		r(0, i) = x;
-		r(1, i) = y;
+		r(1, i) = Params::y_boundary_origin + y_i * Params::boundary_dy;
 		nvirt++;
 	}
 	leftWallEnd = ntotal + nvirt;
@@ -92,14 +90,12 @@ void rightWall(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r) 
 {
-	auto x = Params::x_maxgeom;
-	auto ymin = Params::y_mingeom;
-	auto ymax = Params::y_maxgeom;
+	double x = Params::x_boundary_origin + Params::x_boundary_particles * Params::boundary_dx;
 
-	for (auto y = ymax; y >= ymin; y -= dy) {
+	for (int y_i = 0; y_i < Params::y_boundary_particles; ++y_i) {
 		size_t i = ntotal + nvirt;
 		r(0, i) = x;
-		r(1, i) = y;
+		r(1, i) = Params::y_boundary_origin + y_i * Params::boundary_dy;
 		nvirt++;
 	}
 }
@@ -109,13 +105,11 @@ void ground(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r)
 {
-	auto y = Params::y_mingeom;
-	auto xmin = Params::x_mingeom;
-	auto xmax = Params::x_maxgeom;
+	double y = Params::y_boundary_origin;
 
-	for (auto x = xmax; x >= xmin; x -= dx) {
+	for (int x_i = 0; x_i < Params::x_boundary_particles; ++x_i) {
 		size_t i = ntotal + nvirt;
-		r(0, i) = x;
+		r(0, i) = Params::x_boundary_origin + x_i * Params::boundary_dx;
 		r(1, i) = y;
 		nvirt++;
 	}
@@ -126,18 +120,18 @@ void beach(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r)
 {
-	auto y = Params::y_mingeom;
-	auto xmin = Params::beachX;
-	auto xmax = Params::x_maxgeom;
+	//auto y = Params::y_mingeom;
+	//auto xmin = Params::beachX;
+	//auto xmax = Params::x_maxgeom;
 
-	for (auto x = xmin; x <= xmax; x += dx) {
-		size_t i = ntotal + nvirt;
-		r(0, i) = x;
-		r(1, i) = y;
+	//for (auto x = xmin; x <= xmax; x += dx) {
+	//	size_t i = ntotal + nvirt;
+	//	r(0, i) = x;
+	//	r(1, i) = y;
 
-		y += dx / 6.0;
-		nvirt++;
-	}
+	//	y += dx / 6.0;
+	//	nvirt++;
+	//}
 }
 
 
@@ -152,7 +146,6 @@ void dynamicBoundaries(
 	}
 
 	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
-#pragma omp parallel for
 	for (int i = leftWallStart; i < leftWallEnd; i++) {
 		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * Params::dt;
 		vx(0, i) =  v;

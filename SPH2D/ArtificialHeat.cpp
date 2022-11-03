@@ -28,7 +28,6 @@ void art_heat(
 	static constexpr double g1 = 0.1;
 	static constexpr double g2 = 1.0;
 
-#pragma omp parallel for
 	for (int k = 0; k < ntotal; ++k) {
 		vcc(k) = 0;
 		dedt(k) = 0;
@@ -71,7 +70,6 @@ void art_heat(
 		dedt(j) += mass(j) * h * (u(j) - u(i));
 	}
 
-#pragma omp parallel for
 	for (int k = 0; k < ntotal; k++) {
 		dedt(k) *= 2.0;
 	}

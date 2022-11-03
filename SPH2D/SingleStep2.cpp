@@ -96,7 +96,6 @@ void single_step(
 	}
 
 	// convert velocity, force and energy to f and dfdt
-#pragma omp parallel for
 	for (int i = 0; i < nfluid; i++) {
 		for (int d = 0; d < Params::dim; d++) {
 			dvx(d, i) = indvxdt(d, i) + exdvxdt(d, i) + arvdvxdt(d, i) + nwmdvxdt(d, i);

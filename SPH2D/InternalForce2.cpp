@@ -36,7 +36,6 @@ void int_force(
 	static heap_array<double, Params::maxn> txy;
 
 	// initialization of shear tensor, velocity divergence, viscous energy, internal energy, acceleration
-#pragma omp parallel for
 	for (int i = 0; i < ntotal; i++) {
 		tdsdt(i) = 0;
 		dedt(i) = 0;

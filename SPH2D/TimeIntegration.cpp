@@ -40,7 +40,6 @@ void time_integration(
 
 		// it not first time step, then update thermal energy, density and velocity half a time step
 		if (itimestep != 0) {
-#pragma omp parallel for
 			for (int i = 0; i < nfluid; i++) {
 				u_min(i) = u(i);
 				u(i) += (Params::dt * 0.5) * du(i);
@@ -63,7 +62,6 @@ void time_integration(
 
 
 		if (itimestep == 0) {
-#pragma omp parallel for
 			for (int i = 0; i < nfluid; i++) {
 				u(i) += (Params::dt * 0.5) * du(i);
 				if (u(i) < 0) {
@@ -77,7 +75,6 @@ void time_integration(
 			}
 		}
 		else {
-#pragma omp parallel for
 			for (int i = 0; i < nfluid; i++) {
 				u(i) = u_min(i) + Params::dt * du(i);
 				if (u(i) < 0) {
