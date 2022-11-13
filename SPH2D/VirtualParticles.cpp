@@ -38,14 +38,14 @@ void virt_part(
 {
 	nvirt = 0;
 
-	Params::x_boundary_min = Params::x_fluid_min - 2 * Params::dx;
-	Params::y_boundary_min = Params::y_fluid_min - 2 * Params::dy;
-	Params::x_boundary_max = Params::x_fluid_max + 2 * Params::dx;
+	Params::x_boundary_min = Params::x_fluid_min - 3 * Params::dx;
+	Params::y_boundary_min = Params::y_fluid_min - 3 * Params::dy;
+	Params::x_boundary_max = Params::x_fluid_max + 3 * Params::dx;
 	Params::y_boundary_max = Params::y_maxgeom;
 
 
-	Params::boundary_dx = Params::dx;
-	Params::boundary_dy = Params::dy;
+	Params::boundary_dx = Params::dx * 2;
+	Params::boundary_dy = Params::dy * 2;
 
 	leftWall(ntotal, nvirt, x);
 	rightWall(ntotal, nvirt, x);
