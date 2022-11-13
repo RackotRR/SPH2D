@@ -55,14 +55,14 @@ namespace Params {
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
-	constexpr int skf{ 2 };
+	constexpr int skf{ 1 };
 	 
 	// numerical waves maker
 	// nmw = 0 : no waves
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	constexpr int nwm{ 0 };
+	constexpr int nwm{ 2 };
 
 	// const smoothing length
 	inline double hsml;
@@ -114,6 +114,11 @@ namespace Params {
 
 	// true : print statistics about SPH particle interactions including virtual particle information
 	constexpr bool full_stat{ true };
+
+	// false - just say
+	// true - stop on infinite
+	inline bool inf_stop{ true };
+	constexpr bool enable_check_finite{ false };
 
 	inline size_t maxtimestep; // time step to finish
 	constexpr int finite_check_step{ 500 };

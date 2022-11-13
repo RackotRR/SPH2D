@@ -4,9 +4,6 @@
 #include "VirtualParticles.h"
 #include "IsFiniteCheck.h"
 #include <RRTime/Timer.h>
-#include <iostream>
-
-
 
 
 void time_integration(
@@ -60,7 +57,6 @@ void time_integration(
 			tdsdt, dvx, du, drho, itype, av, time);
 
 
-
 		if (itimestep == 0) {
 			for (int i = 0; i < nfluid; i++) {
 				u(i) += (Params::dt * 0.5) * du(i);
@@ -89,10 +85,10 @@ void time_integration(
 			}
 		}
 
-		if (itimestep % Params::finite_check_step == 0 &&
-			check_finite(x, vx, rho, p, nfluid) == false) 
-		{
-			throw std::runtime_error{ "encounter not finite value!" };
+		if constexpr (Params::enable_check_finite) {
+			if (should_check_finite(itimestep)) {
+				check_finite(x, vx, rho, p, nfluid);
+			}
 		}
 
 		time += Params::dt;

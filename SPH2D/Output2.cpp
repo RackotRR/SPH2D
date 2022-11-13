@@ -24,10 +24,16 @@ namespace {
 			{"dx", Params::dx},
 			{"dy", Params::dy},
 			{"dt", Params::dt},
+			{"hsml", Params::hsml},
 			{"simulation_time", Params::simulationTime},
 			{"save_step", Params::save_step},
 			{"wave_length", Params::L },
-			{"depth", Params::d}
+			{"depth", Params::d},
+			{"skf", Params::skf},
+			{"particles_per_d", Params::fluid_particles_per_d},
+			{"particles_fluid", Params::particles_fluid},
+			{"particles_boundary", Params::particles_boundary},
+			{"particles_total", Params::particles_total}
 		};
 
 		std::string path = experimentRelativePath + "Params.json";

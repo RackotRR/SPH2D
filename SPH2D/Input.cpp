@@ -28,7 +28,7 @@ static void initConsts() {
 
 	Params::dx = delta;
 	Params::dy = delta;
-	Params::hsml = delta;
+	Params::hsml = delta * 1.2;
 	Params::length = length;
 	Params::height = height;
 	Params::L = L;
@@ -57,6 +57,8 @@ static void initConsts() {
 		throw std::runtime_error{ "maxtimestep error" };
 	}
 	Params::maxtimestep = static_cast<size_t>(steps);
+
+	Params::inf_stop = false;
 }
 
 // loading or generating initial particle information
