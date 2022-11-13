@@ -4,6 +4,7 @@
 static size_t leftWallStart;
 static size_t leftWallEnd;
 
+int getBoundaryParticlesY();
 void leftWall(
 	const size_t ntotal,
 	size_t& nvirt,
@@ -37,13 +38,14 @@ void virt_part(
 {
 	nvirt = 0;
 
-	Params::x_boundary_particles = Params::x_fluid_particles * 2;
-	Params::y_boundary_particles = Params::y_fluid_particles * 4 + 1;
-	Params::x_boundary_origin = Params::x_fluid_origin - Params::dx;
-	Params::y_boundary_origin = Params::y_fluid_origin - Params::dy;
+	Params::x_boundary_min = Params::x_fluid_min - 2 * Params::dx;
+	Params::y_boundary_min = Params::y_fluid_min - 2 * Params::dy;
+	Params::x_boundary_max = Params::x_fluid_max + 2 * Params::dx;
+	Params::y_boundary_max = Params::y_maxgeom;
 
-	Params::boundary_dx = Params::dx * 0.5;
-	Params::boundary_dy = Params::dy * 0.5;
+
+	Params::boundary_dx = Params::dx;
+	Params::boundary_dy = Params::dy;
 
 	leftWall(ntotal, nvirt, x);
 	rightWall(ntotal, nvirt, x);
@@ -73,14 +75,17 @@ void leftWall(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r) 
 {
-	double x = Params::x_boundary_origin;
+	double x = Params::x_boundary_min;
+	int y_particles = getBoundaryParticlesY();
 
 	leftWallStart = ntotal + nvirt;
-	for (int y_i = 0; y_i < Params::y_boundary_particles; ++y_i) {
+	for (int y_i = 0; y_i < y_particles; ++y_i) {
 		size_t i = ntotal + nvirt;
 		r(0, i) = x;
-		r(1, i) = Params::y_boundary_origin + y_i * Params::boundary_dy;
-		nvirt++;
+		r(1, i) = Params::y_boundary_min + y_i * Params::boundary_dy;
+		r(0, i + 1) = x + Params::boundary_dx * 0.5;
+		r(1, i + 1) = Params::y_boundary_min + (y_i + 0.5) * Params::boundary_dy;
+		nvirt += 2;
 	}
 	leftWallEnd = ntotal + nvirt;
 }
@@ -90,13 +95,16 @@ void rightWall(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r) 
 {
-	double x = Params::x_boundary_origin + Params::x_boundary_particles * Params::boundary_dx;
+	double x = Params::x_boundary_max;
+	int y_particles = getBoundaryParticlesY();
 
-	for (int y_i = 0; y_i < Params::y_boundary_particles; ++y_i) {
+	for (int y_i = 0; y_i < y_particles; ++y_i) {
 		size_t i = ntotal + nvirt;
 		r(0, i) = x;
-		r(1, i) = Params::y_boundary_origin + y_i * Params::boundary_dy;
-		nvirt++;
+		r(1, i) = Params::y_boundary_min + y_i * Params::boundary_dy;
+		r(0, i + 1) = x - Params::boundary_dx * 0.5f;
+		r(1, i + 1) = Params::y_boundary_min + (y_i + 0.5) * Params::boundary_dy;
+		nvirt += 2;
 	}
 }
 
@@ -105,13 +113,16 @@ void ground(
 	size_t& nvirt,
 	heap_array_md<double, Params::dim, Params::maxn>& r)
 {
-	double y = Params::y_boundary_origin;
+	double y = Params::y_boundary_min;
+	int x_particles = (Params::x_maxgeom - Params::x_mingeom) / Params::boundary_dx;
 
-	for (int x_i = 0; x_i < Params::x_boundary_particles; ++x_i) {
+	for (int x_i = 0; x_i < x_particles; ++x_i) {
 		size_t i = ntotal + nvirt;
-		r(0, i) = Params::x_boundary_origin + x_i * Params::boundary_dx;
+		r(0, i) = Params::x_mingeom + x_i * Params::boundary_dx;
 		r(1, i) = y;
-		nvirt++;
+		r(0, i + 1) = Params::x_mingeom + (x_i - 0.5) * Params::boundary_dx;
+		r(1, i + 1) = y + Params::boundary_dy * 0.5;
+		nvirt += 2;
 	}
 }
 
@@ -140,14 +151,19 @@ void dynamicBoundaries(
 	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
 	const double time)
 {
-	double phase = -Params::freq;
-	if (time < 1.0) {
+	constexpr float wait_for = 0;
+	if (time < wait_for) {
 		return;
 	}
+	double phase = -Params::freq * wait_for;
 
 	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
 	for (int i = leftWallStart; i < leftWallEnd; i++) {
 		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * Params::dt;
 		vx(0, i) =  v;
 	}
+}
+
+int getBoundaryParticlesY() {
+	return (Params::y_boundary_max - Params::y_boundary_min) / Params::boundary_dy;
 }

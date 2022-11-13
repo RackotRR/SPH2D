@@ -4,7 +4,7 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 150'000 }; // maximum number of particles
+	constexpr int maxn{ 50'000 }; // maximum number of particles
 	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
 	  
 	inline double x_maxgeom;
@@ -14,13 +14,21 @@ namespace Params {
 
 	inline int x_fluid_particles;
 	inline int y_fluid_particles;
-	inline double x_fluid_origin;
-	inline double y_fluid_origin;
+	inline double x_fluid_min;
+	inline double y_fluid_min;
+	inline double x_fluid_max;
+	inline double y_fluid_max;
 
-	inline int x_boundary_particles;
-	inline int y_boundary_particles;
-	inline double x_boundary_origin;
-	inline double y_boundary_origin;
+
+	inline double x_boundary_min;
+	inline double y_boundary_min;
+	inline double x_boundary_max;
+	inline double y_boundary_max;
+
+	inline int particles_fluid;
+	inline int particles_boundary;
+	inline int particles_total;
+	inline int fluid_particles_per_d;
 
 	inline double L;
 	inline double d;
