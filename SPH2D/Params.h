@@ -6,6 +6,7 @@ namespace Params {
 
 	constexpr int maxn{ 50'000 }; // maximum number of particles
 	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
+	constexpr int max_cells{ maxn / 4 }; // maximum number of cells in grid
 	  
 	inline double x_maxgeom;
 	inline double x_mingeom;

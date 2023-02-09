@@ -2,6 +2,7 @@
 #include <forward_list>
 #include <stdexcept>  
 
+#include "GridUtils.h"
 #include "GridFind.h"
 #include "Kernel.h"
 
@@ -214,5 +215,51 @@ void grid_find(
 				}
 			}
 		}
+	}
+}
+
+void makeGrid(
+	const size_t ntotal,
+	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
+	heap_array<int, Params::maxn>& itype,
+	heap_array<size_t, Params::maxn>& grid,
+	heap_array<size_t, Params::max_cells>& cells) // grid index of particle
+{
+	static heap_array<unsigned, Params::maxn> unsorted_grid;
+
+	unsorted_grid.fill(0);
+	cells.fill(0);
+
+	unsigned cells_x = get_cell_x_from_coordinate(Params::x_maxgeom);
+	unsigned cells_y = get_cell_y_from_coordinate(Params::y_maxgeom);
+	unsigned cells_count = get_cell_idx(cells_x + 1, cells_y + 1);
+
+	
+	for (size_t i = 0; i < ntotal; ++i) {
+		unsigned cell_x = get_cell_x_from_coordinate(x(0, i));
+		unsigned cell_y = get_cell_y_from_coordinate(x(1, i));
+		unsigned cell_idx = get_cell_idx(cell_x, cell_y);
+		unsorted_grid(i) = cell_idx;
+
+		if (cell_idx >= cells_count) {
+			cell_idx = Params::max_cells - 1;
+		}
+
+		cells(cell_idx)++;
+	}
+
+	for (size_t i = 1; i < cells_count; ++i) {
+		cells(i) += cells(i - 1);
+	}
+
+	for (size_t i = ntotal; i > 0; --i) {
+		size_t j = i - 1;
+		if (itype(j) == 0) {
+			continue;
+		}
+
+		unsigned cell_idx = unsorted_grid(j);
+		grid(cells(cell_idx) - 1) = j;
+		cells(cell_idx)--;
 	}
 }

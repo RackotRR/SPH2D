@@ -88,6 +88,6 @@ void output(
 	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
 
 
-	auto t = std::thread(printFast, x.MakeCopy(), itype.MakeCopy(), ntotal, itimestep);
+	auto t = std::thread(printFast, x.copy(), itype.copy(), ntotal, itimestep);
 	t.detach();
 }

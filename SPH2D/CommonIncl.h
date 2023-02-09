@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "Params.h"
+#include "Types.h"
 #include "HeapArray.h" 
 
 

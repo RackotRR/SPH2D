@@ -6,7 +6,7 @@ template <typename T, size_t dimensions, size_t size>
 class heap_array_md {
 private:
 	T* ptr;
-	void Create(T initValue) {
+	void create(T initValue) {
 		ptr = new T[dimensions * size]{ initValue }; 
 	}
 public:
@@ -31,10 +31,10 @@ public:
 	}
 
 	explicit heap_array_md(T initValue) {
-		Create(initValue);
+		create(initValue);
 	}
 
-	auto MakeCopy() const {
+	auto copy() const {
 		heap_array_md arr;
 		size_t count{ dimensions * size };
 		for (size_t i{}; i < count; i++) {
@@ -49,13 +49,27 @@ public:
 	T& operator() (size_t i, size_t j) {
 		return ptr[i + dimensions * j];
 	}
+
+	T* data() {
+		return ptr;
+	}
+	const T* data() const {
+		return ptr;
+	}
+
+	void fill(const T& value) {
+		size_t count{ dimensions * size };
+		for (size_t i = 0; i < count; ++i) {
+			ptr[i] = value;
+		}
+	}
 };
 
 template<typename T, size_t size>
 class heap_array {
 private:
 	T* ptr;
-	void Create(T initValue) {
+	void create(T initValue) {
 		ptr = new T[size];
 		for (size_t i{}; i < size; i++) {
 			ptr[i] = initValue;
@@ -77,7 +91,7 @@ public:
 	heap_array(heap_array&) = delete;
 	auto operator=(heap_array&) = delete;
 
-	auto MakeCopy() const {
+	auto copy() const {
 		heap_array arr;
 		for (size_t i{}; i < size; i++) {
 			arr.ptr[i] = ptr[i];
@@ -90,7 +104,7 @@ public:
 	}
 
 	explicit heap_array(T initValue) {
-		Create(initValue);
+		create(initValue);
 	}
 
 	const T& operator() (size_t i) const {
@@ -98,7 +112,20 @@ public:
 	} 
 	T& operator() (size_t i) {
 		return ptr[i];
-	} 
+	}
+
+	T* data() {
+		return ptr;
+	}
+	const T* data() const {
+		return ptr;
+	}
+
+	void fill(const T& value) {
+		for (size_t i = 0; i < size; ++i) {
+			ptr[i] = value;
+		}
+	}
 };
 
 template<typename T, size_t size>

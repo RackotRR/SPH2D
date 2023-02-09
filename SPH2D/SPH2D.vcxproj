@@ -166,6 +166,7 @@
     <ClInclude Include="EOS.h" />
     <ClInclude Include="ExtForce.h" />
     <ClInclude Include="GridFind.h" />
+    <ClInclude Include="GridUtils.h" />
     <ClInclude Include="HeapArray.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="InternalForce.h" />
@@ -173,8 +174,10 @@
     <ClInclude Include="Kernel.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="Params.h" />
+    <ClInclude Include="RadixSort.h" />
     <ClInclude Include="SingleStep.h" />
     <ClInclude Include="TimeIntegration.h" />
+    <ClInclude Include="Types.h" />
     <ClInclude Include="VirtualParticles.h" />
     <ClInclude Include="Viscosity.h" />
     <ClInclude Include="WaveMaker.h" />

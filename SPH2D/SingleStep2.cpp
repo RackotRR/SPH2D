@@ -18,7 +18,7 @@
 void single_step(
 	const size_t nfluid, // number of fluid particles
 	const size_t ntotal, // number of particles 
-	heap_array<double, Params::maxn>& mass,// particle masses
+	const heap_array<double, Params::maxn>& mass,// particle masses
 	heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
 	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
 	heap_array<double, Params::maxn>& u,	// specific internal energy 
@@ -28,7 +28,7 @@ void single_step(
 	heap_array_md<double, Params::dim, Params::maxn>& dvx,	// out, dvx = d(vx)/dt, force per unit mass
 	heap_array<double, Params::maxn>& du,	// out, du = d(u)/dt
 	heap_array<double, Params::maxn>& drho,	// out, drho = d(rho)/dt
-	heap_array<int, Params::maxn>& itype,// material type of particles
+	const heap_array<int, Params::maxn>& itype,// material type of particles
 	heap_array_md<double, Params::dim, Params::maxn>& av, // out, Monaghan average velocity
 	const double time)
 {
