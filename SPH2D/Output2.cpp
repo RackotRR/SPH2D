@@ -42,15 +42,15 @@ namespace {
 	}
 
 	void printFast(
-		const heap_array_md<double, Params::dim, Params::maxn> x,
-		const heap_array<int, Params::maxn> itype,
-		const size_t ntotal,
-		const size_t itimestep) 
+		const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+		const heap_array<rr_int, Params::maxn> itype,
+		const rr_uint ntotal,
+		const rr_uint itimestep)
 	{
 		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
 		stream << ntotal << std::endl;
-		for (int i = 0; i < ntotal; i++) {
-			stream << x(0, i) << std::endl << x(1, i) << std::endl;
+		for (rr_uint i = 0; i < ntotal; i++) {
+			stream << r(i).x << std::endl << r(i).y << std::endl;
 			stream << itype(i) << std::endl;
 		}
 	}
@@ -71,23 +71,21 @@ void setupOutput() {
 
 // save particle information to external disk file
 void output(
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	const heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	const heap_array<double, Params::maxn>& mass,// particle masses
-	const heap_array<double, Params::maxn>& rho,// density
-	const heap_array<double, Params::maxn>& p,	// pressure
-	const heap_array<double, Params::maxn>& u,	// specific internal energy
-	const heap_array<double, Params::maxn>& c,	// sound velocity
-	const heap_array<int, Params::maxn>& itype,	// material type 
-	const size_t ntotal,	// number of particles
-	const size_t itimestep,// current time step
+	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+	const heap_array<rr_float, Params::maxn>& mass,// particle masses
+	const heap_array<rr_float, Params::maxn>& rho,// density
+	const heap_array<rr_float, Params::maxn>& p,	// pressure
+	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
+	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
+	const heap_array<rr_int, Params::maxn>& itype,	// material type 
+	const rr_uint ntotal,	// number of particles
+	const rr_uint itimestep,// current time step
 	const long long timePassedTotal,
 	const long long timeEstimates)
 {
 	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
 	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
 
-
-	auto t = std::thread(printFast, x.copy(), itype.copy(), ntotal, itimestep);
-	t.detach();
+	std::thread(printFast, r.copy(), itype.copy(), ntotal, itimestep).detach();
 }

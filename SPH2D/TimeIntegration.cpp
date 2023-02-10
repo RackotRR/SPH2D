@@ -3,91 +3,88 @@
 #include "SingleStep.h"
 #include "VirtualParticles.h"
 #include "IsFiniteCheck.h"
+#include "WaveMaker.h"
 #include <RRTime/Timer.h>
 
 
+
 void time_integration(
-	heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	heap_array<double, Params::maxn>& mass,// particle masses
-	heap_array<double, Params::maxn>& rho,	// out, density
-	heap_array<double, Params::maxn>& p,	// out, pressure
-	heap_array<double, Params::maxn>& u,	// specific internal energy
-	heap_array<double, Params::maxn>& c,	// sound velocity 
-	heap_array<double, Params::maxn>& e,	// total energy of particles 
-	heap_array<int, Params::maxn>& itype, // material type: 1 - ideal gas, 2 - water, 3 - tnt   
-	const size_t ntotal, // total particle number at t = 0
-	const size_t nfluid  // fluid particles 
+	heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+	heap_array<rr_float, Params::maxn>& mass,// particle masses
+	heap_array<rr_float, Params::maxn>& rho,	// out, density
+	heap_array<rr_float, Params::maxn>& p,	// out, pressure
+	heap_array<rr_float, Params::maxn>& u,	// specific internal energy
+	heap_array<rr_float, Params::maxn>& c,	// sound velocity 
+	heap_array<rr_float, Params::maxn>& e,	// total energy of particles 
+	heap_array<rr_int, Params::maxn>& itype, // material type: 1 - ideal gas, 2 - water, 3 - tnt   
+	const rr_uint ntotal, // total particle number at t = 0
+	const rr_uint nfluid  // fluid particles 
 )
 {
-	heap_array_md<double, Params::dim, Params::maxn> x_min, v_min, dvx, av;
-	heap_array<double, Params::maxn> u_min, rho_min, du, drho, tdsdt;
-	double time = 0;
+	heap_array<rr_float, Params::maxn> u_min, rho_min, du, drho, tdsdt;
+	heap_array<rr_float2, Params::maxn> v_min, a, av;
+	rr_float time = 0;
 
 	RR::Timer timer;
 
-	for (int itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
+	for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
 		timer.start();
 
 		time = itimestep * Params::dt;
 		if (itimestep % Params::save_step == 0) {
-			long long timeEstimate = timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.;
-			output(x, vx, mass, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+			long long timeEstimate = static_cast<long long>(timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.);
+			output(r, v, mass, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
 		}
 
 		// it not first time step, then update thermal energy, density and velocity half a time step
 		if (itimestep != 0) {
-			for (int i = 0; i < nfluid; i++) {
+			for (rr_uint i = 0; i < nfluid; i++) {
 				u_min(i) = u(i);
-				u(i) += (Params::dt * 0.5) * du(i);
+				u(i) += du(i) * Params::dt * 0.5f;
 				if (u(i) < 0) {
 					u(i) = 0;
 				}
 
-				for (int d{}; d < Params::dim; d++) {
-					v_min(d, i) = vx(d, i);
-					vx(d, i) += (Params::dt * 0.5) * dvx(d, i);
-				}
+				v_min(i) = v(i);
+				v(i) += a(i) * Params::dt * 0.5f;
 			}
-
 		}
 
 		// definition of variables out of the function vector:
-		single_step(nfluid, ntotal, mass, x, vx, u, rho, p,
-			tdsdt, dvx, du, drho, itype, av, time);
+		single_step(nfluid, ntotal, mass, itype, r, v, u, rho, p,
+			tdsdt, a, du, drho, av, time);
 
+		if constexpr (Params::nwm) {
+			make_waves(r, v, a, nfluid, ntotal, time);
+		}
 
 		if (itimestep == 0) {
-			for (int i = 0; i < nfluid; i++) {
-				u(i) += (Params::dt * 0.5) * du(i);
+			for (rr_uint i = 0; i < nfluid; i++) {
+				u(i) += du(i) * Params::dt * 0.5f;
 				if (u(i) < 0) {
 					u(i) = 0;
 				}
 
-				for (int d = 0; d < Params::dim; d++) {
-					vx(d, i) += (Params::dt * 0.5) * dvx(d, i) + av(d, i);
-					x(d, i) += Params::dt * vx(d, i);
-				}
+				v(i) += a(i) * Params::dt * 0.5f + av(i);
+				r(i) += v(i) * Params::dt;
 			}
 		}
 		else {
-			for (int i = 0; i < nfluid; i++) {
-				u(i) = u_min(i) + Params::dt * du(i);
+			for (rr_uint i = 0; i < nfluid; i++) {
+				u(i) = du(i) * Params::dt + u_min(i);
 				if (u(i) < 0) {
 					u(i) = 0;
 				}
 
-				for (int d = 0; d < Params::dim; d++) {
-					vx(d, i) = v_min(d, i) + Params::dt * dvx(d, i) + av(d, i);
-					x(d, i) += Params::dt * vx(d, i);
-				}
-
+				v(i) = v_min(i) + a(i) * Params::dt + av(i);
+				r(i) += v(i) * Params::dt;
 			}
 		}
 
 		if constexpr (Params::enable_check_finite) {
 			if (should_check_finite(itimestep)) {
-				check_finite(x, vx, rho, p, nfluid);
+				check_finite(r, v, rho, p, nfluid);
 			}
 		}
 

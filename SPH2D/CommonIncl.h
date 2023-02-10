@@ -9,6 +9,6 @@
 
 
 // value squared
-double sqr(double value);
-
-double pow(double value, int power);
+rr_float sqr(rr_float value);
+rr_float pow(rr_float value, rr_int power);
+rr_float pow(rr_float value, rr_uint power);

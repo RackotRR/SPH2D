@@ -68,10 +68,6 @@ namespace {
     unsigned get_cell_idx(float x, float y) {
         get_cell_idx(get_cell_x_from_coordinate(x), get_cell_y_from_coordinate(x));
     }
-    // temp:
-    unsigned get_cell_idx(double x, double y) {
-        get_cell_idx((float)x, (float)y);
-    }
 
     unsigned uninterleave_bits(unsigned idx) {
         // get every second bit (1, 4, 16, 64...), total 16 bits

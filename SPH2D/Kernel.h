@@ -3,8 +3,7 @@
 
 // calculate the smoothing kernel wij and its derivatives dwdxij
 void kernel(
-	const double r, // distance between particles i and j
-	const stack_array<double, Params::dim>& dx, // x- y- z- distance between i and j 
-	double& w, // out, kernel for all interaction pairs
-	stack_array<double, Params::dim>& dwdx); // out, derivation of kernel with respect to x, y, z
+	const rr_float2& dx, // x- y- z- distance between i and j 
+	rr_float& w, // out, kernel for all interaction pairs
+	rr_float2& dwdx); // out, derivation of kernel with respect to x, y, z
 

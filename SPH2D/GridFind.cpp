@@ -12,32 +12,32 @@ namespace {
 
 	// двумерная сетка для поиска соседних частиц 
 	class ParticlesGrid {
-		using NeighbourBlocks = std::vector<const std::vector<size_t>*>; // список соседних блоков
-		using Particles = std::vector<size_t>; // список частиц в блоке
+		using NeighbourBlocks = std::vector<const std::vector<rr_uint>*>; // список соседних блоков
+		using Particles = std::vector<rr_uint>; // список частиц в блоке
 		using Grid = std::vector<std::vector<Particles>>; // сетка блоков
 	private:
 		Grid grid;
 
-		const size_t sizeX, sizeY;
+		const rr_uint sizeX, sizeY;
 		static constexpr bool throwIfNotValidIndex = false;
 
 		// проверка существования блока [x][y]
-		bool IsIndexValid(size_t x, size_t y) const {
+		bool IsIndexValid(rr_uint x, rr_uint y) const {
 			return x < sizeX && y < sizeY;
 		}
 	public:
 		// Создаём сетку блоков
-		ParticlesGrid(size_t sizeX, size_t sizeY)
+		ParticlesGrid(rr_uint sizeX, rr_uint sizeY)
 			: sizeX{ sizeX }, sizeY{ sizeY }
 		{
 			grid = std::vector<std::vector<Particles>>(sizeX);
-			for (size_t i{}; i < sizeX; i++) {
+			for (rr_uint i{}; i < sizeX; i++) {
 				grid[i] = std::vector<Particles>(sizeY);
 			}
 		}
 
 		// добавляет данные в нужный блок
-		void AddAt(size_t indexX, size_t indexY, size_t indexParticle) {
+		void AddAt(rr_uint indexX, rr_uint indexY, rr_uint indexParticle) {
 			bool isIndexValid{ IsIndexValid(indexX, indexY) };
 
 			// если нужно бросать исключения при недействительном индексе, то бросаем
@@ -53,8 +53,8 @@ namespace {
 		}
 
 		void Clear() {
-			for (int row = 0; row < sizeY; row++) {
-				for (int column = 0; column < sizeX; column++) {
+			for (rr_uint row = 0; row < sizeY; row++) {
+				for (rr_uint column = 0; column < sizeX; column++) {
 					grid[column][row].clear();
 				}
 			}
@@ -62,7 +62,7 @@ namespace {
 
 		// возвращает список частиц по блокам
 		// результат действителен, пока существует сетка
-		const NeighbourBlocks& GetNeighbours(size_t indexX, size_t indexY) const {
+		const NeighbourBlocks& GetNeighbours(rr_uint indexX, rr_uint indexY) const {
 			// если нужно бросать исключения при недействительном индексе, то бросаем
 			if constexpr (throwIfNotValidIndex) {
 				if (!IsIndexValid(indexX, indexY)) {
@@ -74,7 +74,7 @@ namespace {
 			result.clear();
 
 			static auto AddParticlesIfIndexValid =
-				[&](size_t x, size_t y) {
+				[&](rr_uint x, rr_uint y) {
 				if (IsIndexValid(x, y)) { // если блок существует, то добавить в результат его список частиц
 					result.push_back(&grid[x][y]);
 				}
@@ -97,10 +97,10 @@ namespace {
 
 
 	// skale_k depends on the smoothing kernel function
-	consteval int GetScaleK() {
+	consteval rr_float GetScaleK() {
 		static_assert(Params::skf > 0 && Params::skf < 4);
 
-		int scale_k;
+		rr_float scale_k;
 		switch (Params::skf)
 		{
 		case 1:
@@ -116,14 +116,14 @@ namespace {
 		return scale_k;
 	}
 
-	double BlockSize() {
+	rr_float BlockSize() {
 		return GetScaleK() * Params::hsml;
 	}
-	size_t SizeX() {
-		return static_cast<size_t>(ceil((Params::x_maxgeom - Params::x_mingeom) / BlockSize()));
+	rr_uint SizeX() {
+		return static_cast<rr_uint>(ceil((Params::x_maxgeom - Params::x_mingeom) / BlockSize()));
 	}
-	size_t SizeY() {
-		return static_cast<size_t>(ceil((Params::y_maxgeom - Params::y_mingeom) / BlockSize()));
+	rr_uint SizeY() {
+		return static_cast<rr_uint>(ceil((Params::y_maxgeom - Params::y_mingeom) / BlockSize()));
 	}
 }
 
@@ -133,80 +133,66 @@ namespace {
 // Interaction pairs are determined by constucting mesh
 // comparing distance with the corresponding smoothing length within nearest blocks of particles
 void grid_find(
-	const size_t ntotal, // number of particles 
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	const heap_array<int, Params::maxn>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual
-	size_t& niac, // out number of interaction pairs
-	heap_array<size_t, Params::max_interaction>& pair_i, // out, list of first partner of interaction pair
-	heap_array<size_t, Params::max_interaction>& pair_j, // out, list of second partner of interaction pair
-	heap_array<double, Params::max_interaction>& w, // out, kernel for all interaction pairs 
-	heap_array_md<double, Params::dim, Params::max_interaction>& dwdx) // out, derivative of kernel with respect to x, y, z 
+	const rr_uint ntotal, // number of particles 
+	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	const heap_array<rr_int, Params::maxn>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual
+	rr_uint& niac, // out number of interaction pairs
+	heap_array<rr_uint, Params::max_interaction>& pair_i, // out, list of first partner of interaction pair
+	heap_array<rr_uint, Params::max_interaction>& pair_j, // out, list of second partner of interaction pair
+	heap_array<rr_float, Params::max_interaction>& w, // out, kernel for all interaction pairs 
+	heap_array<rr_float2, Params::max_interaction>& dwdx) // out, derivative of kernel with respect to x, y, z
 {
-	static constexpr int scale_k = GetScaleK();
-	static const double hsml = Params::hsml;
-
-	double dijSqr, dij;
-	static stack_array<double, Params::dim> dij_dim;
-	static stack_array<double, Params::dim> tmp_dwdx;
-
-	static const double blockSize = BlockSize();
+	static constexpr rr_float scale_k = GetScaleK();
+	static const rr_float hsml = Params::hsml;
+	static const rr_float blockSize = BlockSize();
 
 	// create grid
 	static ParticlesGrid grid(SizeX(), SizeY());
 	grid.Clear();
 
 	// get block index by particle index
-	auto xBlock = [&](size_t i) {
-		return static_cast<size_t>((-Params::x_mingeom + x(0, i)) / blockSize);
+	auto xBlock = [&](rr_uint i) {
+		return static_cast<rr_uint>((-Params::x_mingeom + r(i).x) / blockSize);
 	};
-	auto yBlock = [&](size_t i) {
-		return static_cast<size_t>((-Params::y_mingeom + x(1, i)) / blockSize);
+	auto yBlock = [&](rr_uint i) {
+		return static_cast<rr_uint>((-Params::y_mingeom + r(i).y) / blockSize);
 	};
 
 	// fill in grid
-	for (int i = 0; i < ntotal; i++) {
+	for (rr_uint i = 0; i < ntotal; i++) {
 		if (itype(i) == 0) continue; // particle doesn't exist
 
 		// block index of particle
-		size_t indexX = xBlock(i);
-		size_t indexY = yBlock(i);
+		rr_uint indexX = xBlock(i);
+		rr_uint indexY = yBlock(i);
 		grid.AddAt(indexX, indexY, i);
 	}
 
 	// grid search
 	niac = 0;
-	for (int i = 0; i < ntotal; i++) {
+	for (rr_uint i = 0; i < ntotal; i++) {
 		if (itype(i) == 0) continue; // particle doesn't exist
 		// block index of particle
-		size_t indexX = xBlock(i);
-		size_t indexY = yBlock(i);
+		rr_uint indexX = xBlock(i);
+		rr_uint indexY = yBlock(i);
 
 		auto& neighbourBlocks = grid.GetNeighbours(indexX, indexY);
 		for (auto* block : neighbourBlocks) {
-			for (size_t j : *block) {
+			for (rr_uint j : *block) {
 				if (i >= j) continue;
 
 				// distance between particles i and j
-				dijSqr = 0;
-				for (int d = 0; d < Params::dim; d++) {
-					dij_dim(d) = x(d, i) - x(d, j);
-					dijSqr += sqr(dij_dim(d));
-				}
-				dij = sqrt(dijSqr);
+				rr_float2 dij = r(i) - r(j);
+				rr_float dist = length(dij);
 
 				// are neighbours?
-				if (dij < scale_k * hsml) {
+				if (dist < scale_k * hsml) {
 					if (niac < Params::max_interaction) {
 						pair_i(niac) = i;
 						pair_j(niac) = j;
 
 						// kernel and derivation of kernel
-						kernel(dij, dij_dim, w(niac), tmp_dwdx);
-
-						// save derivation of kernel
-						for (size_t d{}; d < Params::dim; d++) {
-							dwdx(d, niac) = tmp_dwdx(d);
-						}
+						kernel(dij, w(niac), dwdx(niac));
 						niac++;
 					}
 					else {
@@ -219,11 +205,11 @@ void grid_find(
 }
 
 void makeGrid(
-	const size_t ntotal,
-	const heap_array_md<double, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	heap_array<int, Params::maxn>& itype,
-	heap_array<size_t, Params::maxn>& grid,
-	heap_array<size_t, Params::max_cells>& cells) // grid index of particle
+	const rr_uint ntotal,
+	const heap_array_md<float, Params::dim, Params::maxn>& x,	// coordinates of all particles
+	heap_array<rr_int, Params::maxn>& itype,
+	heap_array<rr_uint, Params::maxn>& grid,
+	heap_array<rr_uint, Params::max_cells>& cells) // grid index of particle
 {
 	static heap_array<unsigned, Params::maxn> unsorted_grid;
 
@@ -235,7 +221,7 @@ void makeGrid(
 	unsigned cells_count = get_cell_idx(cells_x + 1, cells_y + 1);
 
 	
-	for (size_t i = 0; i < ntotal; ++i) {
+	for (rr_uint i = 0; i < ntotal; ++i) {
 		unsigned cell_x = get_cell_x_from_coordinate(x(0, i));
 		unsigned cell_y = get_cell_y_from_coordinate(x(1, i));
 		unsigned cell_idx = get_cell_idx(cell_x, cell_y);
@@ -248,12 +234,12 @@ void makeGrid(
 		cells(cell_idx)++;
 	}
 
-	for (size_t i = 1; i < cells_count; ++i) {
+	for (rr_uint i = 1; i < cells_count; ++i) {
 		cells(i) += cells(i - 1);
 	}
 
-	for (size_t i = ntotal; i > 0; --i) {
-		size_t j = i - 1;
+	for (rr_uint i = ntotal; i > 0; --i) {
+		rr_uint j = i - 1;
 		if (itype(j) == 0) {
 			continue;
 		}

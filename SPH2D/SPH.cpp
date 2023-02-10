@@ -7,38 +7,44 @@
 #include "Output.h"
 #include "TimeIntegration.h" 
 
-double sqr(double value) { 
+rr_float sqr(rr_float value) { 
 	return value * value;
 }
-
-double pow(double value, int power) {
-	double result{ 1 };
-	for (int i{ power }; i > 0; i--) {
+rr_float pow(rr_float value, rr_int power) {
+	rr_float result{ 1 };
+	for (rr_int i{ power }; i > 0; i--) {
 		result *= value;
 	}
-	for (int i{ power }; i < 0; i++) {
+	for (rr_int i{ power }; i < 0; i++) {
 		result /= value;
 	}
 	return result;
-}  
+}
+rr_float pow(rr_float value, rr_uint power) {
+	rr_float result{ 1 };
+	for (rr_uint i{ power }; i > 0; i--) {
+		result *= value;
+	}
+	return result;
+}
 
 void sph() {
-	heap_array<double, Params::maxn> mass; // particle masses
-	size_t ntotal; // number of particles
-	size_t nfluid;
-	heap_array<int, Params::maxn> itype;// material type of particles
-	heap_array_md<double, Params::dim, Params::maxn> x;	// coordinates of all particles
-	heap_array_md<double, Params::dim, Params::maxn> vx;// velocities of all particles
-	heap_array<double, Params::maxn> rho; // density
-	heap_array<double, Params::maxn> p;	// pressure
-	heap_array<double, Params::maxn> u;	// specific internal energy
-	heap_array<double, Params::maxn> c;	// sound velocity 
-	heap_array<double, Params::maxn> e;	// total energy of particles
+	heap_array<rr_float, Params::maxn> mass; // particle masses
+	rr_uint ntotal; // number of particles
+	rr_uint nfluid;
+	heap_array<rr_int, Params::maxn> itype;// material type of particles
+	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
+	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
+	heap_array<rr_float, Params::maxn> rho; // density
+	heap_array<rr_float, Params::maxn> p;	// pressure
+	heap_array<rr_float, Params::maxn> u;	// specific internal energy
+	heap_array<rr_float, Params::maxn> c;	// sound velocity 
+	heap_array<rr_float, Params::maxn> e;	// total energy of particles
 
-	input(x, vx, mass, rho, p, u, itype, ntotal, nfluid);
+	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 	setupOutput();
 
-	time_integration(x, vx, mass, rho, p, u, c, e, itype, ntotal, nfluid);
+	time_integration(r, v, mass, rho, p, u, c, e, itype, ntotal, nfluid);
 }
  
 

@@ -4,45 +4,45 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr int maxn{ 50'000 }; // maximum number of particles
-	constexpr int max_interaction{ 50 * maxn }; // maximum number of interaction pairs
-	constexpr int max_cells{ maxn / 4 }; // maximum number of cells in grid
+	constexpr unsigned maxn{ 50'000 }; // maximum number of particles
+	constexpr unsigned max_interaction{ 50 * maxn }; // maximum number of interaction pairs
+	constexpr unsigned max_cells{ maxn / 4 }; // maximum number of cells in grid
 	  
-	inline double x_maxgeom;
-	inline double x_mingeom;
-	inline double y_maxgeom;
-	inline double y_mingeom;
+	inline float x_maxgeom;
+	inline float x_mingeom;
+	inline float y_maxgeom;
+	inline float y_mingeom;
 
-	inline int x_fluid_particles;
-	inline int y_fluid_particles;
-	inline double x_fluid_min;
-	inline double y_fluid_min;
-	inline double x_fluid_max;
-	inline double y_fluid_max;
+	inline unsigned x_fluid_particles;
+	inline unsigned y_fluid_particles;
+	inline float x_fluid_min;
+	inline float y_fluid_min;
+	inline float x_fluid_max;
+	inline float y_fluid_max;
 
 
-	inline double x_boundary_min;
-	inline double y_boundary_min;
-	inline double x_boundary_max;
-	inline double y_boundary_max;
+	inline float x_boundary_min;
+	inline float y_boundary_min;
+	inline float x_boundary_max;
+	inline float y_boundary_max;
 
-	inline int particles_fluid;
-	inline int particles_boundary;
-	inline int particles_total;
-	inline int fluid_particles_per_d;
+	inline unsigned particles_fluid;
+	inline unsigned	particles_boundary;
+	inline unsigned particles_total;
+	inline unsigned fluid_particles_per_d;
 
-	inline double L;
-	inline double d;
-	inline double length;
-	inline double height;
-	inline double freq;
-	inline double A;
-	inline double H;
-	inline double k;
-	inline double beachX;
+	inline float L;
+	inline float d;
+	inline float length;
+	inline float height;
+	inline float freq;
+	inline float A;
+	inline float H;
+	inline float k;
+	inline float beachX;
 	 
-	inline double dt;
-	inline double simulationTime;
+	inline float dt;
+	inline float simulationTime;
 
 	// form of eos
 	// eos = 1 : Lennard-Jones
@@ -74,13 +74,13 @@ namespace Params {
 	constexpr int nwm{ 2 };
 
 	// const smoothing length
-	inline double hsml;
+	inline float hsml;
 
 	// initial distance between particles
-	inline double dx;
-	inline double dy;
-	inline double boundary_dx;
-	inline double boundary_dy;
+	inline float dx;
+	inline float dy;
+	inline float boundary_dx;
+	inline float boundary_dy;
 
 	/// Switches for diferent scenarios;
 	
@@ -135,8 +135,8 @@ namespace Params {
 	inline int save_step; // save timestep (on disk)
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
 
-	constexpr double pi{ 3.14159265358979323846 };
-	constexpr double g{ 9.81 };
+	constexpr float pi{ 3.14159265358979323846f };
+	constexpr float g{ 9.81f };
 
 	inline std::string experimentName;
 };

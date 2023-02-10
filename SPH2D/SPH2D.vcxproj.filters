@@ -81,9 +81,6 @@
     <ClInclude Include="GridUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RadixSort.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>

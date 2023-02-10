@@ -1,40 +1,38 @@
 #include "CommonIncl.h"
 #include "EOS.h"
 
-static size_t leftWallStart;
-static size_t leftWallEnd;
+static rr_uint leftWallStart;
+static rr_uint leftWallEnd;
 
-int getBoundaryParticlesY();
+rr_uint getBoundaryParticlesY();
+rr_uint getBoundaryParticlesX();
+
 void leftWall(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r);
+	const rr_uint ntotal,
+	rr_uint& nvirt,
+	heap_array<rr_float2, Params::maxn>& r);
 void rightWall(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r);
+	const rr_uint ntotal,
+	rr_uint& nvirt,
+	heap_array<rr_float2, Params::maxn>& r);
 void ground(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r);
-//void beach(
-//	const size_t ntotal,
-//	size_t& nvirt,
-//	heap_array_md<double, Params::dim, Params::maxn>& r);
+	const rr_uint ntotal,
+	rr_uint& nvirt,
+	heap_array<rr_float2, Params::maxn>& r);
 
 // determine the information of virtual particles
 // here only the Monaghan type virtual particles for the 2d shear
 // cavity driven probles generated
 void virt_part(
-	const size_t ntotal, // number of particles
-	size_t& nvirt, // out, number of virtual particles 
-	heap_array<double, Params::maxn>& mass,// out, particle masses
-	heap_array_md<double, Params::dim, Params::maxn>& x,	// out, coordinates of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& vx,	// out, velocities of all particles
-	heap_array<double, Params::maxn>& rho,	// out, density
-	heap_array<double, Params::maxn>& u,	// out, specific internal energy
-	heap_array<double, Params::maxn>& p,	// out, pressure
-	heap_array<int, Params::maxn>& itype) // out, material type: 1 - ideal gas, 2 - water, 3 - tnt
+	const rr_uint ntotal, // number of particles
+	rr_uint& nvirt, // out, number of virtual particles 
+	heap_array<rr_float, Params::maxn>& mass,// out, particle masses
+	heap_array<rr_float2, Params::maxn>& r,	// out, coordinates of all particles
+	heap_array<rr_float2, Params::maxn>& v,	// out, velocities of all particles
+	heap_array<rr_float, Params::maxn>& rho,	// out, density
+	heap_array<rr_float, Params::maxn>& u,	// out, specific internal energy
+	heap_array<rr_float, Params::maxn>& p,	// out, pressure
+	heap_array<rr_int, Params::maxn>& itype) // out, material type: 1 - ideal gas, 2 - water, 3 - tnt
 {
 	nvirt = 0;
 
@@ -47,123 +45,104 @@ void virt_part(
 	Params::boundary_dx = Params::dx * 2;
 	Params::boundary_dy = Params::dy * 2;
 
-	leftWall(ntotal, nvirt, x);
-	rightWall(ntotal, nvirt, x);
-	ground(ntotal, nvirt, x);
-	//beach(ntotal, nvirt, x);
+	leftWall(ntotal, nvirt, r);
+	rightWall(ntotal, nvirt, r);
+	ground(ntotal, nvirt, r);
 
 	// init all virtual particles
-	for (int k = 0; k < nvirt; k++) {
-		int i = ntotal + k;
+	for (rr_uint k = 0; k < nvirt; k++) {
+		rr_uint i = ntotal + k;
 
-		vx(0, i) = 0;
-		vx(1, i) = 0;
+		v(i) = { 0.f };
 
-		rho(i) = 1000;
+		rho(i) = 1000.f;
 		mass(i) = rho(i) * Params::boundary_dx * Params::boundary_dy;
-		p(i) = 0;
-		u(i) = 357.1;
+		p(i) = 0.f;
+		u(i) = 357.1f;
 		itype(i) = -2;
 
-		double c = 0;
+		rr_float c = 0.f;
 		p_art_water(rho(i), u(i), p(i), c);
 	}
 }
 
 void leftWall(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r) 
+	const rr_uint ntotal,
+	rr_uint& nvirt,
+	heap_array<rr_float2, Params::maxn>& r) 
 {
-	double x = Params::x_boundary_min;
-	int y_particles = getBoundaryParticlesY();
+	rr_float x = Params::x_boundary_min;
+	rr_uint y_particles = getBoundaryParticlesY();
 
 	leftWallStart = ntotal + nvirt;
-	for (int y_i = 0; y_i < y_particles; ++y_i) {
-		size_t i = ntotal + nvirt;
-		r(0, i) = x;
-		r(1, i) = Params::y_boundary_min + y_i * Params::boundary_dy;
-		r(0, i + 1) = x + Params::boundary_dx * 0.5;
-		r(1, i + 1) = Params::y_boundary_min + (y_i + 0.5) * Params::boundary_dy;
+	for (rr_uint y_i = 0; y_i < y_particles; ++y_i) {
+		rr_uint i = ntotal + nvirt;
+		r(i).x = x;
+		r(i).y = Params::y_boundary_min + y_i * Params::boundary_dy;
+		r(i + 1ull).x = x + Params::boundary_dx * 0.5f;
+		r(i + 1ull).y = Params::y_boundary_min + (y_i + 0.5f) * Params::boundary_dy;
 		nvirt += 2;
 	}
 	leftWallEnd = ntotal + nvirt;
 }
 
 void rightWall(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r) 
+	const rr_uint ntotal,
+	rr_uint& nvirt,
+	heap_array<rr_float2, Params::maxn>& r) 
 {
-	double x = Params::x_boundary_max;
-	int y_particles = getBoundaryParticlesY();
+	rr_float x = Params::x_boundary_max;
+	rr_uint y_particles = getBoundaryParticlesY();
 
-	for (int y_i = 0; y_i < y_particles; ++y_i) {
-		size_t i = ntotal + nvirt;
-		r(0, i) = x;
-		r(1, i) = Params::y_boundary_min + y_i * Params::boundary_dy;
-		r(0, i + 1) = x - Params::boundary_dx * 0.5f;
-		r(1, i + 1) = Params::y_boundary_min + (y_i + 0.5) * Params::boundary_dy;
+	for (rr_uint y_i = 0; y_i < y_particles; ++y_i) {
+		rr_uint i = ntotal + nvirt;
+		r(i).x = x;
+		r(i).y = Params::y_boundary_min + y_i * Params::boundary_dy;
+		r(i + 1ull).x = x - Params::boundary_dx * 0.5f;
+		r(i + 1ull).y = Params::y_boundary_min + (y_i + 0.5f) * Params::boundary_dy;
 		nvirt += 2;
 	}
 }
 
 void ground(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r)
+	const rr_uint ntotal,
+	rr_uint& nvirt,
+	heap_array<rr_float2, Params::maxn>& r)
 {
-	double y = Params::y_boundary_min;
-	int x_particles = (Params::x_maxgeom - Params::x_mingeom) / Params::boundary_dx;
+	rr_float y = Params::y_boundary_min;
+	rr_uint x_particles = getBoundaryParticlesX();
 
-	for (int x_i = 0; x_i < x_particles; ++x_i) {
-		size_t i = ntotal + nvirt;
-		r(0, i) = Params::x_mingeom + x_i * Params::boundary_dx;
-		r(1, i) = y;
-		r(0, i + 1) = Params::x_mingeom + (x_i - 0.5) * Params::boundary_dx;
-		r(1, i + 1) = y + Params::boundary_dy * 0.5;
+	for (rr_uint x_i = 0; x_i < x_particles; ++x_i) {
+		rr_uint i = ntotal + nvirt;
+		r(i).x = Params::x_mingeom + x_i * Params::boundary_dx;
+		r(i).y = y;
+		r(i + 1ull).x = Params::x_mingeom + (x_i - 0.5f) * Params::boundary_dx;
+		r(i + 1ull).y = y + Params::boundary_dy * 0.5f;
 		nvirt += 2;
 	}
 }
 
-void beach(
-	const size_t ntotal,
-	size_t& nvirt,
-	heap_array_md<double, Params::dim, Params::maxn>& r)
-{
-	//auto y = Params::y_mingeom;
-	//auto xmin = Params::beachX;
-	//auto xmax = Params::x_maxgeom;
-
-	//for (auto x = xmin; x <= xmax; x += dx) {
-	//	size_t i = ntotal + nvirt;
-	//	r(0, i) = x;
-	//	r(1, i) = y;
-
-	//	y += dx / 6.0;
-	//	nvirt++;
-	//}
-}
-
-
 void dynamicBoundaries(
-	heap_array_md<double, Params::dim, Params::maxn>& x,	// out, coordinates of all particles
-	heap_array_md<double, Params::dim, Params::maxn>& vx,	// velocities of all particles
-	const double time)
+	heap_array<rr_float2, Params::maxn>& r,	// out, coordinates of all particles
+	heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+	const rr_float time)
 {
-	constexpr float wait_for = 0;
+	constexpr rr_float wait_for = 0.f;
 	if (time < wait_for) {
 		return;
 	}
-	double phase = -Params::freq * wait_for;
+	rr_float phase = -Params::freq * wait_for;
 
-	double v = Params::A * Params::freq * cos(Params::freq * time + phase);
-	for (int i = leftWallStart; i < leftWallEnd; i++) {
-		x(0, i) = x(0, i) + 0.5 * (vx(0, i) + v) * Params::dt;
-		vx(0, i) =  v;
+	rr_float vx = Params::A * Params::freq * cos(Params::freq * time + phase);
+	for (rr_uint i = leftWallStart; i < leftWallEnd; i++) {
+		r(i).x = r(i).x + 0.5f * (v(i).x + vx) * Params::dt;
+		v(i).x = vx;
 	}
 }
 
-int getBoundaryParticlesY() {
-	return (Params::y_boundary_max - Params::y_boundary_min) / Params::boundary_dy;
+rr_uint getBoundaryParticlesY() {
+	return static_cast<rr_uint>((Params::y_boundary_max - Params::y_boundary_min) / Params::boundary_dy);
+}
+rr_uint getBoundaryParticlesX() {
+	return static_cast<rr_uint>((Params::x_maxgeom - Params::x_mingeom) / Params::boundary_dx);
 }
