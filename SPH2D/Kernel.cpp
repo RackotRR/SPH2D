@@ -1,5 +1,22 @@
 #include "CommonIncl.h"
+#include "Kernel.h"
 
+// kernel for self
+void kernel_self(
+	rr_float& w_ii, // out, kernel for all interaction pairs
+	rr_float2& dwdr_ii) // out, derivation of kernel with respect to x, y, z
+{
+	kernel(rr_float2{ 0.f }, w_ii, dwdr_ii);
+}
+
+void kernel(
+	const rr_float2& ri,
+	const rr_float2& rj,
+	rr_float& w, // out, kernel for all interaction pairs
+	rr_float2& dwdr) // out, derivation of kernel with respect to x, y, z
+{
+	kernel(ri - rj, w, dwdr);
+}
 
 // calculate the smoothing kernel wij and its derivatives dwdxij
 void kernel(

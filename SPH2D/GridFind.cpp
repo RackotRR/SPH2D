@@ -204,17 +204,16 @@ void grid_find(
 	}
 }
 
-void makeGrid(
+void make_grid(
 	const rr_uint ntotal,
-	const heap_array_md<float, Params::dim, Params::maxn>& x,	// coordinates of all particles
-	heap_array<rr_int, Params::maxn>& itype,
+	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_uint, Params::maxn>& grid,
-	heap_array<rr_uint, Params::max_cells>& cells) // grid index of particle
+	heap_array<rr_uint, Params::max_cells>& cells_start_in_grid) // grid index of particle
 {
 	static heap_array<unsigned, Params::maxn> unsorted_grid;
 
 	unsorted_grid.fill(0);
-	cells.fill(0);
+	cells_start_in_grid.fill(0);
 
 	unsigned cells_x = get_cell_x_from_coordinate(Params::x_maxgeom);
 	unsigned cells_y = get_cell_y_from_coordinate(Params::y_maxgeom);
@@ -222,30 +221,31 @@ void makeGrid(
 
 	
 	for (rr_uint i = 0; i < ntotal; ++i) {
-		unsigned cell_x = get_cell_x_from_coordinate(x(0, i));
-		unsigned cell_y = get_cell_y_from_coordinate(x(1, i));
-		unsigned cell_idx = get_cell_idx(cell_x, cell_y);
+		unsigned cell_idx = get_cell_idx(r(i));
 		unsorted_grid(i) = cell_idx;
 
-		if (cell_idx >= cells_count) {
-			cell_idx = Params::max_cells - 1;
-		}
-
-		cells(cell_idx)++;
+		cells_start_in_grid(cell_idx)++;
 	}
 
-	for (rr_uint i = 1; i < cells_count; ++i) {
-		cells(i) += cells(i - 1);
+	for (rr_uint i = 1; i < Params::max_cells; ++i) {
+		cells_start_in_grid(i) += cells_start_in_grid(i - 1ull);
 	}
 
 	for (rr_uint i = ntotal; i > 0; --i) {
 		rr_uint j = i - 1;
-		if (itype(j) == 0) {
-			continue;
-		}
+
+		auto xmax = Params::x_maxgeom;
+		auto xmin = Params::x_mingeom;
+		auto ymin = Params::y_mingeom;
+		auto ymax = Params::y_maxgeom;
+		auto xy = r(j);
 
 		unsigned cell_idx = unsorted_grid(j);
-		grid(cells(cell_idx) - 1) = j;
-		cells(cell_idx)--;
+		unsigned cell_x = get_cell_x(cell_idx);
+		unsigned cell_y = get_cell_y(cell_idx);
+		auto cells_cell_idx = cells_start_in_grid(cell_idx);
+		auto grid_i = cells_start_in_grid(cell_idx) - 1ull;
+		grid(grid_i) = j;
+		cells_start_in_grid(cell_idx)--;
 	}
 }

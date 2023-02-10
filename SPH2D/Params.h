@@ -1,13 +1,14 @@
 #pragma once 
 #include <string>
+
 namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
 	constexpr unsigned maxn{ 50'000 }; // maximum number of particles
 	constexpr unsigned max_interaction{ 50 * maxn }; // maximum number of interaction pairs
-	constexpr unsigned max_cells{ maxn / 4 }; // maximum number of cells in grid
-	  
+	constexpr unsigned max_cells{ max_interaction }; // maximum number of cells in grid
+
 	inline float x_maxgeom;
 	inline float x_mingeom;
 	inline float y_maxgeom;
@@ -19,7 +20,6 @@ namespace Params {
 	inline float y_fluid_min;
 	inline float x_fluid_max;
 	inline float y_fluid_max;
-
 
 	inline float x_boundary_min;
 	inline float y_boundary_min;
@@ -33,14 +33,12 @@ namespace Params {
 
 	inline float L;
 	inline float d;
-	inline float length;
-	inline float height;
 	inline float freq;
 	inline float A;
 	inline float H;
 	inline float k;
 	inline float beachX;
-	 
+
 	inline float dt;
 	inline float simulationTime;
 
@@ -59,13 +57,13 @@ namespace Params {
 	//		  2 : sorting grid linked list
 	//        3 : tree algorithm
 	constexpr int nnps{ 2 };
-	  
+
 	// smoothing kernel function
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
 	constexpr int skf{ 1 };
-	 
+
 	// numerical waves maker
 	// nmw = 0 : no waves
 	//		 1 : relaxation zone method
@@ -77,13 +75,11 @@ namespace Params {
 	inline float hsml;
 
 	// initial distance between particles
-	inline float dx;
-	inline float dy;
-	inline float boundary_dx;
-	inline float boundary_dy;
+	inline float delta;
+	inline float boundary_delta;
 
 	/// Switches for diferent scenarios;
-	
+
 	// true : use density summation model
 	// false : use continuity equation
 	constexpr bool summation_density{ true };
@@ -125,12 +121,12 @@ namespace Params {
 	constexpr bool full_stat{ true };
 
 	// false - just say
-	// true - stop on infinite
-	inline bool inf_stop{ true };
-	constexpr bool enable_check_finite{ false };
+	// true - stop on not normal
+	constexpr bool inf_stop{ true };
+	constexpr bool enable_check_normal{ true };
 
 	inline size_t maxtimestep; // time step to finish
-	constexpr int finite_check_step{ 500 };
+	constexpr int normal_check_step{ 500 };
 	constexpr int print_step{ 200 }; // print timestep (on screen)
 	inline int save_step; // save timestep (on disk)
 	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
@@ -139,4 +135,10 @@ namespace Params {
 	constexpr float g{ 9.81f };
 
 	inline std::string experimentName;
+
+	enum {
+		TYPE_BOUNDARY = -2,
+		TYPE_NON_EXISTENT = 0,
+		TYPE_WATER = 2,
+	};
 };

@@ -1,4 +1,5 @@
 #include "CommonIncl.h"
+#include "VirtualParticles.h"
 #include "WaveMaker.h"
 
 void make_waves(
@@ -11,19 +12,19 @@ void make_waves(
 {
 	// NWM
 	if constexpr (Params::nwm == 1) {
-		RZM_generator(r, a, nfluid, time);
+		rzm_generator(r, a, nfluid, time);
 		//RZM_absorber(r, v, a, nfluid, time);
 	}
 	else if constexpr (Params::nwm == 2) {
-		dynamicBoundaries(r, v, time);
+		dynamic_boundaries(r, v, time);
 	}
 	else if constexpr (Params::nwm == 3) {
-		impulseNWM(r, a, nfluid, ntotal, time);
+		impulse_nwm(r, a, nfluid, ntotal, time);
 	}
 }
 
 
-void impulseNWM(
+void impulse_nwm(
 	heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_float2, Params::maxn>& a,
 	const rr_uint nfluid,
@@ -40,7 +41,7 @@ void impulseNWM(
 	}
 }
 
-void RZM_generator(
+void rzm_generator(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_float2, Params::maxn>& a,
 	const rr_uint nfluid,
@@ -73,7 +74,7 @@ void RZM_generator(
 	}
 }
 
-void RZM_absorber(
+void rzm_absorber(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	heap_array<rr_float2, Params::maxn>& a,

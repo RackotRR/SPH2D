@@ -16,3 +16,26 @@ void art_visc(
 	const heap_array<rr_float2, Params::max_interaction>& dwdx,  // derivative of kernel with respect to x, y, z
 	heap_array<rr_float2, Params::maxn>& a, // out, acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt); // out, change of specific internal energy
+
+void art_visc2(
+	const rr_uint ntotal,	// number of particles
+	const heap_array<rr_float, Params::maxn>& mass,// particle masses
+	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+	const heap_array<rr_float, Params::maxn>& rho,// density 
+	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
+	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
+	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	heap_array<rr_float2, Params::maxn>& a, // out, acceleration with respect to x, y, z
+	heap_array<rr_float, Params::maxn>& dedt); // out, change of specific internal energy
+
+void art_visc_part(
+	const rr_uint self,
+	const rr_uint other,
+	const heap_array<rr_float, Params::maxn>& mass,// particle masses
+	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+	const heap_array<rr_float, Params::maxn>& rho,// density 
+	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
+	heap_array<rr_float2, Params::maxn>& a, // out, acceleration with respect to x, y, z
+	heap_array<rr_float, Params::maxn>& dedt); // out, change of specific internal energy

@@ -75,7 +75,7 @@
     <ClInclude Include="WaveMaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IsFiniteCheck.h">
+    <ClInclude Include="IsNormalCheck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GridUtils.h">
@@ -140,7 +140,7 @@
     <ClCompile Include="Output2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IsFiniteCheck.cpp">
+    <ClCompile Include="IsNormalCheck.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

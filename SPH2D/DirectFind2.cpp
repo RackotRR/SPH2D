@@ -2,26 +2,6 @@
 #include "CommonIncl.h"
 #include "Kernel.h"
 
-static consteval rr_float get_scale_k() {
-	static_assert(Params::skf > 0 && Params::skf < 4);
-
-	rr_float scale_k;
-	// skale_k depends on the smoothing kernel function
-	switch (Params::skf)
-	{
-	case 1:
-		scale_k = 2;
-		break;
-	case 2:
-		scale_k = 3;
-		break;
-	case 3:
-		scale_k = 3;
-		break;
-	}
-	return scale_k;
-}
-
 // calculate the smoothing function for each particle and the interaction parameters used by SPH algorithm.
 // Interaction pairs are determined by directly comparing the particle distance with the corresponding smoothing length
 void direct_find(

@@ -2,8 +2,9 @@
 // fill these in by prepocessor
 inline float X_MIN, X_MAX;
 inline float Y_MIN, Y_MAX;
-inline float CELL_SIZE;	
+inline float CELL_SIZE;
 
+#include "Types.h"
 #include "Params.h"
 
 namespace {
@@ -66,7 +67,10 @@ namespace {
         return (unsigned)((Y_MIN + y) / CELL_SIZE);
     }
     unsigned get_cell_idx(float x, float y) {
-        get_cell_idx(get_cell_x_from_coordinate(x), get_cell_y_from_coordinate(x));
+        return get_cell_idx(get_cell_x_from_coordinate(x), get_cell_y_from_coordinate(x));
+    }
+    unsigned get_cell_idx(rr_float2 r) {
+        return get_cell_idx(r.x, r.y);
     }
 
     unsigned uninterleave_bits(unsigned idx) {
@@ -82,5 +86,28 @@ namespace {
     }
     unsigned get_cell_y(unsigned idx) {
         return uninterleave_bits(idx >> 1);
+    }
+
+    void get_neighbouring_cells(unsigned idx, unsigned cells[9]) {
+        unsigned x = get_cell_x(idx);
+        unsigned y = get_cell_y(idx);
+
+        cells[0] = idx;
+        unsigned top = get_cell_idx(x, max(y, y + 1));
+        cells[1] = (top == idx) ? Params::max_cells : top;
+        unsigned bottom = get_cell_idx(x, min(y, y - 1));
+        cells[2] = (bottom == idx) ? Params::max_cells : bottom;
+        unsigned left = get_cell_idx(min(x, x - 1), y);
+        cells[3] = (left == idx) ? Params::max_cells : left;
+        unsigned right = get_cell_idx(max(x, x + 1), y);
+        cells[4] = (right == idx) ? Params::max_cells : right;                
+        unsigned top_left = get_cell_idx(min(x, x - 1), max(y, y + 1)); 
+        cells[5] = (top_left == left || top_left == top || top_left == idx) ? Params::max_cells : top_left;
+        unsigned top_right = get_cell_idx(max(x, x + 1), max(y, y + 1));
+        cells[6] = (top_right == right || top_right == top || top_right == idx) ? Params::max_cells : top_right;
+        unsigned bottom_left = get_cell_idx(min(x, x - 1), min(y, y - 1));
+        cells[7] = (bottom_left == left || bottom_left == bottom || bottom_left == idx) ? Params::max_cells : bottom_left;
+        unsigned bottom_right = get_cell_idx(max(x, x + 1), min(y, y - 1));
+        cells[8] = (bottom_right == right || bottom_right == bottom || bottom_right == idx) ? Params::max_cells : bottom_right;
     }
 }

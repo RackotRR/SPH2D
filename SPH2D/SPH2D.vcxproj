@@ -99,7 +99,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,7 +135,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -178,7 +178,7 @@
     <ClInclude Include="HeapArray.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="InternalForce.h" />
-    <ClInclude Include="IsFiniteCheck.h" />
+    <ClInclude Include="IsNormalCheck.h" />
     <ClInclude Include="Kernel.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="Params.h" />
@@ -200,7 +200,7 @@
     <ClCompile Include="GridFind.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InternalForce2.cpp" />
-    <ClCompile Include="IsFiniteCheck.cpp" />
+    <ClCompile Include="IsNormalCheck.cpp" />
     <ClCompile Include="Kernel.cpp" />
     <ClCompile Include="Output2.cpp" />
     <ClCompile Include="SingleStep2.cpp" />

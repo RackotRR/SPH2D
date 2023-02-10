@@ -2,7 +2,7 @@
 #include "Output.h"
 #include "SingleStep.h"
 #include "VirtualParticles.h"
-#include "IsFiniteCheck.h"
+#include "IsNormalCheck.h"
 #include "WaveMaker.h"
 #include <RRTime/Timer.h>
 
@@ -28,6 +28,7 @@ void time_integration(
 
 	RR::Timer timer;
 
+	initUtils();
 	for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
 		timer.start();
 
@@ -52,7 +53,7 @@ void time_integration(
 		}
 
 		// definition of variables out of the function vector:
-		single_step(nfluid, ntotal, mass, itype, r, v, u, rho, p,
+		single_step2(nfluid, ntotal, mass, itype, r, v, u, rho, p,
 			tdsdt, a, du, drho, av, time);
 
 		if constexpr (Params::nwm) {
@@ -82,9 +83,10 @@ void time_integration(
 			}
 		}
 
-		if constexpr (Params::enable_check_finite) {
-			if (should_check_finite(itimestep)) {
-				check_finite(r, v, rho, p, nfluid);
+		if constexpr (Params::enable_check_normal) {
+			if (should_check_normal(itimestep)) {
+				check_finite(r, v, rho, p, itype, ntotal);
+				check_particles_are_within_boundaries(ntotal, r, itype);
 			}
 		}
 

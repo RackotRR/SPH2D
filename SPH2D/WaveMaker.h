@@ -1,19 +1,18 @@
 #pragma once
-#include "VirtualParticles.h"
 
-void RZM_generator(
+void rzm_generator(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_float2, Params::maxn>& a,
 	const rr_uint nfluid,
 	const rr_float time);
-void RZM_absorber(
+void rzm_absorber(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	heap_array<rr_float2, Params::maxn>& a,
 	const rr_uint nfluid,
 	const rr_float time);
 
-void impulseNWM(
+void impulse_nwm(
 	heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_float2, Params::maxn>& a,
 	const rr_uint nfluid,

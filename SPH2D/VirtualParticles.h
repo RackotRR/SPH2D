@@ -16,7 +16,7 @@ void virt_part(
 	heap_array<rr_float, Params::maxn>& p,	// out, pressure
 	heap_array<rr_int, Params::maxn>& itype); // out, material type: 1 - ideal gas, 2 - water, 3 - tnt
 
-void dynamicBoundaries(
+void dynamic_boundaries(
 	heap_array<rr_float2, Params::maxn>& x,	// out, coordinates of all particles
 	heap_array<rr_float2, Params::maxn>& vx,	// velocities of all particles
 	const rr_float time);
