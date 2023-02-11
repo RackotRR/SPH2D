@@ -8,6 +8,7 @@ namespace Params {
 	constexpr unsigned maxn{ 50'000 }; // maximum number of particles
 	constexpr unsigned max_interaction{ 50 * maxn }; // maximum number of interaction pairs
 	constexpr unsigned max_cells{ max_interaction }; // maximum number of cells in grid
+	constexpr unsigned max_neighbours{ 50 }; 
 
 	inline float x_maxgeom;
 	inline float x_mingeom;
@@ -97,7 +98,7 @@ namespace Params {
 	constexpr bool vp_input{ false };
 
 	// viscosity on?
-	constexpr bool visc{ true };
+	constexpr bool visc{ false };
 
 	// external force on?
 	constexpr bool ex_force{ true };

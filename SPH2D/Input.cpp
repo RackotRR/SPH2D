@@ -45,7 +45,7 @@ static void initConsts() {
 	Params::A = H * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
 	Params::H = H;
 	Params::k = k;
-	Params::save_step = 25;
+	Params::save_step = 250;
 
 
 	Params::beachX = 0;

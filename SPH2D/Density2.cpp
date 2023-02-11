@@ -61,35 +61,24 @@ static void density_normalization(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
-	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
-	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	const heap_array<rr_float, Params::maxn>& rho,	// density of particles
 	heap_array<rr_float, Params::maxn>& normrho) // out, density normalization coef
 {
-	normrho.fill(0);
-
 #pragma omp parallel for
-	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
-		rr_uint center_cell_idx = get_cell_idx(r(j));
+	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+		rr_float wjj;
+		rr_float2 dwdrjj;
+		kernel_self(wjj, dwdrjj);
+		normrho(j) = mass(j) / rho(j) * wjj;
 
-		rr_uint neighbour_cells[9];
-		get_neighbouring_cells(center_cell_idx, neighbour_cells);
-		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
-			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == Params::max_cells) continue; // invalid cell
-
-			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
-				grid_i < cell_starts_in_grid(cell_idx + 1ull);
-				++grid_i)
-			{
-				rr_uint i = grid(grid_i); // index of particle
-				// j - current particle; i - particle near
-
-				rr_float wij;
-				rr_float2 dwdr;
-				kernel(r(i), r(j), wij, dwdr);
-				normrho(j) += mass(i) / rho(i) * wij;
-			}
+		rr_uint nc = neighbours_count(j);
+		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
+			rr_uint i = neighbours(n, j); // particle near
+			normrho(j) += mass(i) / rho(i) * w(n, j);
 		}
 	}
 }
@@ -97,38 +86,23 @@ static void density_summation(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
-	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
-	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& rho)	// out, density of particles
 {
-	rho.fill(0);
-
 #pragma omp parallel for
-	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
-		rr_uint center_cell_idx = get_cell_idx(r(j).x, r(j).y);
+	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+		rr_float wjj;
+		rr_float2 dwdrjj;
+		kernel_self(wjj, dwdrjj);
+		rho(j) = mass(j) * wjj;
 
-		if (center_cell_idx != 0) {
-			int a = 0;
-		}
-
-		rr_uint neighbour_cells[9]; 
-		get_neighbouring_cells(center_cell_idx, neighbour_cells);
-		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
-			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == Params::max_cells) continue; // invalid cell
-
-			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
-				grid_i < cell_starts_in_grid(cell_idx + 1ull);
-				++grid_i)
-			{
-				rr_uint i = grid(grid_i); // index of particle
-				// j - current particle; i - particle near
-
-				rr_float wij;
-				rr_float2 dwdr;
-				kernel(r(i), r(j), wij, dwdr);
-				rho(j) += mass(i) * wij;
-			}
+		rr_uint nc = neighbours_count(j);
+		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
+			rr_uint i = neighbours(n, j); // particle near
+			rho(j) += mass(i) * w(n, j);
 		}
 	}
 }
@@ -136,8 +110,10 @@ void sum_density2(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
-	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
-	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& rho) // out, density
 {
 	// normrho(maxn) --- integration of the kernel itself
@@ -147,8 +123,10 @@ void sum_density2(
 			ntotal,
 			mass,
 			r,
-			grid,
-			cell_starts_in_grid,
+			neighbours_count,
+			neighbours,
+			w,
+			dwdr,
 			rho,
 			normrho);
 	}
@@ -158,8 +136,10 @@ void sum_density2(
 		ntotal,
 		mass,
 		r,
-		grid,
-		cell_starts_in_grid,
+		neighbours_count,
+		neighbours,
+		w,
+		dwdr,
 		rho);
 
 	// calculate the normalized rho, rho = sum(rho)/sum(w)

@@ -23,6 +23,7 @@ void art_heat2(const rr_uint ntotal,	// number of particles
 	const heap_array<rr_float, Params::maxn>& rho,	// density
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
-	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
-	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& dedt); // out, produced artificial heat, adding to energy Eq

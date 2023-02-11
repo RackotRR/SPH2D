@@ -3,7 +3,6 @@
 #include "DirectFind.h"
 #include "GridFind.h"
 #include "Density.h"
-#include "Viscosity.h"
 #include "InternalForce.h"
 #include "ArtificialViscosity.h"
 #include "ExtForce.h" 
@@ -11,7 +10,8 @@
 #include "AverageVelocity.h"
 
 #include "Output.h"
-
+#include <iostream>
+#include <format>
 
 // determine the right hand side of a differential equation
 // in a single step for performing integration
@@ -32,42 +32,96 @@ void single_step2(
 	heap_array<rr_float2, Params::maxn>& av, // out, Monaghan average velocity
 	const rr_float time)
 {
-	static heap_array<rr_uint, Params::maxn> grid;
-	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
 	static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
 	static heap_array<rr_float, Params::maxn> c, avdudt, ahdudt, eta;
 
-	// interaction parameters, calculating neighboring particles
-	make_grid(ntotal, r, grid, cell_starts_in_grid);
+	static heap_array<rr_uint, Params::maxn> neighbours_count;
+	static heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours;
+	static heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w;
+	static heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr;
 
-	// density approximation or change rate
-	sum_density2(ntotal, mass, r, grid, cell_starts_in_grid, rho);
+	grid_find2(ntotal,
+		r,
+		neighbours_count,
+		neighbours,
+		w,
+		dwdr);
 
-	// dynamic viscosity
-	if constexpr (Params::visc) {
-		viscosity(ntotal, r, rho, eta);
-	}
+	sum_density2(ntotal, 
+		mass, 
+		r, 
+		neighbours_count,
+		neighbours,
+		w,
+		dwdr, 
+		rho);
 
-	// internal forces
-	int_force2(ntotal, mass, r, v, rho, eta, u, grid, cell_starts_in_grid, c, p, indvxdt, tdsdt, du);
+	int_force2(ntotal, 
+		mass, 
+		r, 
+		v, 
+		rho, 
+		u, 
+		neighbours_count,
+		neighbours,
+		w,
+		dwdr,
+		eta,
+		c, 
+		p, 
+		indvxdt, 
+		tdsdt, 
+		du);
 
-	// artificial viscosity
 	if constexpr (Params::visc_artificial) {
-		art_visc2(ntotal, mass, r, v, rho, c, grid, cell_starts_in_grid, arvdvxdt, avdudt);
+		art_visc2(ntotal, 
+			mass, 
+			r, 
+			v, 
+			rho, 
+			c, 
+			neighbours_count,
+			neighbours,
+			dwdr, 
+			arvdvxdt, 
+			avdudt);
 	}
 
-	// external forces
 	if constexpr (Params::ex_force) {
-		ext_force2(ntotal, mass, r, grid, cell_starts_in_grid, itype, exdvxdt);
+		ext_force2(ntotal, 
+			mass, 
+			r, 
+			neighbours_count,
+			neighbours, 
+			itype, 
+			exdvxdt);
 	}
 
 	if constexpr (Params::heat_artificial) {
-		art_heat2(ntotal, mass, r, v, rho, u, c, grid, cell_starts_in_grid, ahdudt);
+		art_heat2(ntotal, 
+			mass, 
+			r, 
+			v, 
+			rho, 
+			u, 
+			c, 
+			neighbours_count,
+			neighbours, 
+			dwdr,
+			ahdudt);
 	}
 
 	// calculating average velocity of each particle for avoiding penetration
 	if constexpr (Params::average_velocity) {
-		av_vel2(nfluid, mass, r, v, rho, grid, cell_starts_in_grid, av);
+		av_vel2(nfluid, 
+			mass, 
+			r, 
+			v, 
+			rho, 
+			neighbours_count,
+			neighbours,
+			w, 
+			av);
 	}
 
 	// convert velocity, force and energy to f and dfdt
@@ -126,14 +180,9 @@ void single_step(
 		con_density(ntotal, mass, r, v, niac, pair_i, pair_j, w, rho, dwdx, drho);
 	}
 
-	// dynamic viscosity
-	if constexpr (Params::visc) {
-		viscosity(ntotal, r, rho, eta);
-	}
-
 	// internal forces
-	int_force(ntotal, mass, r, v, niac, rho, eta, pair_i, pair_j, dwdx,
-		u, c, p, indvxdt, tdsdt, du);
+	int_force(ntotal, mass, r, v, niac, rho, pair_i, pair_j, dwdx,
+		u, eta, c, p, indvxdt, tdsdt, du);
 
 	// artificial viscosity
 	if constexpr (Params::visc_artificial) {

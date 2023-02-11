@@ -56,8 +56,9 @@ void art_visc2(
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& rho,// density 
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
-	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
-	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float2, Params::maxn>& a, // out, acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt) // out, change of specific internal energy
 {
@@ -69,57 +70,37 @@ void art_visc2(
 	// const to avoid singularities
 	static constexpr rr_float etq = 0.1f;
 
-	for (rr_uint k = 0; k < ntotal; k++) {
-		a(k) = { 0.f };
-		dedt(k) = 0.f;
-	}
-
 #pragma omp parallel for
-	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
-		rr_uint center_cell_idx = get_cell_idx(r(j));
+	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+		a(j) = { 0.f };
+		dedt(j) = 0.f;
 
-		rr_uint neighbour_cells[9];
-		get_neighbouring_cells(center_cell_idx, neighbour_cells);
-		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
-			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == Params::max_cells) continue; // invalid cell
+		rr_uint nc = neighbours_count(j);
+		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
+			rr_uint i = neighbours(n, j); // particle near
 
-			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
-				grid_i < cell_starts_in_grid(cell_idx + 1ull);
-				++grid_i)
-			{
-				rr_uint i = grid(grid_i); // index of particle
-				// j - current particle; i - particle near
+			rr_float2 dv = v(i) - v(j);
+			rr_float2 dr = r(i) - r(j);
+			rr_float vr = reduce(dv * dr);
+			rr_float rr = length_sqr(dr);
 
-				rr_float2 dv = v(i) - v(j);
-				rr_float2 dr = r(i) - r(j);
-				rr_float vr = reduce(dv * dr);
-				rr_float rr = length_sqr(dr);
+			// artificial viscous force only if v_ij * r_ij < 0
+			if (vr < 0) {
+				// calculate muv_ij = hsml v_ij * r_ij / (r_ij^2 + hsml^2 etq^2)
+				rr_float muv = Params::hsml * vr / (rr + sqr(Params::hsml * etq));
 
-				// artificial viscous force only if v_ij * r_ij < 0
-				if (vr < 0) {
-					// calculate muv_ij = hsml v_ij * r_ij / (r_ij^2 + hsml^2 etq^2)
-					rr_float muv = Params::hsml * vr / (rr + sqr(Params::hsml * etq));
+				// calculate PIv_ij = (-alpha muv_ij c_ij + beta muv_ij^2) / rho_ij
+				rr_float mc = 0.5f * (c(i) + c(j));
+				rr_float mrho = 0.5f * (rho(i) + rho(j));
+				rr_float piv = (beta * muv - alpha * mc) * muv / mrho;
 
-					// calculate PIv_ij = (-alpha muv_ij c_ij + beta muv_ij^2) / rho_ij
-					rr_float mc = 0.5f * (c(i) + c(j));
-					rr_float mrho = 0.5f * (rho(i) + rho(j));
-					rr_float piv = (beta * muv - alpha * mc) * muv / mrho;
-
-					rr_float wij;
-					rr_float2 dwdr;
-					kernel(r(i), r(j), wij, dwdr);
-
-					rr_float2 h = -dwdr * piv;
-					a(j) -= h * mass(i);
-					dedt(j) -= reduce(dv * h) * mass(i);
-				}
+				rr_float2 h = -dwdr(n, j) * piv;
+				a(j) -= h * mass(i);
+				dedt(j) -= reduce(dv * h) * mass(i);
 			}
 		}
-	}
 
-	for (rr_uint k = 0; k < ntotal; k++) {
-		dedt(k) *= 0.5f;
+		dedt(j) *= 0.5f;
 	}
 }
 

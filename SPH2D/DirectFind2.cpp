@@ -34,7 +34,7 @@ void direct_find(
 					pair_j(niac) = j;
 
 					// kernel and derivation of kernel
-					kernel(dij, w(niac), dwdx(niac));
+					kernel(dist, dij, w(niac), dwdx(niac));
 				}
 				else {
 					throw std::runtime_error{ "Too many interactions!" }; 

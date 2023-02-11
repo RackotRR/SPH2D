@@ -192,7 +192,7 @@ void grid_find(
 						pair_j(niac) = j;
 
 						// kernel and derivation of kernel
-						kernel(dij, w(niac), dwdx(niac));
+						kernel(dist, dij, w(niac), dwdx(niac));
 						niac++;
 					}
 					else {
@@ -204,7 +204,8 @@ void grid_find(
 	}
 }
 
-void make_grid(
+
+static void make_grid(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_uint, Params::maxn>& grid,
@@ -215,11 +216,6 @@ void make_grid(
 	unsorted_grid.fill(0);
 	cells_start_in_grid.fill(0);
 
-	unsigned cells_x = get_cell_x_from_coordinate(Params::x_maxgeom);
-	unsigned cells_y = get_cell_y_from_coordinate(Params::y_maxgeom);
-	unsigned cells_count = get_cell_idx(cells_x + 1, cells_y + 1);
-
-	
 	for (rr_uint i = 0; i < ntotal; ++i) {
 		unsigned cell_idx = get_cell_idx(r(i));
 		unsorted_grid(i) = cell_idx;
@@ -234,18 +230,56 @@ void make_grid(
 	for (rr_uint i = ntotal; i > 0; --i) {
 		rr_uint j = i - 1;
 
-		auto xmax = Params::x_maxgeom;
-		auto xmin = Params::x_mingeom;
-		auto ymin = Params::y_mingeom;
-		auto ymax = Params::y_maxgeom;
-		auto xy = r(j);
-
 		unsigned cell_idx = unsorted_grid(j);
-		unsigned cell_x = get_cell_x(cell_idx);
-		unsigned cell_y = get_cell_y(cell_idx);
-		auto cells_cell_idx = cells_start_in_grid(cell_idx);
-		auto grid_i = cells_start_in_grid(cell_idx) - 1ull;
-		grid(grid_i) = j;
+		grid(cells_start_in_grid(cell_idx) - 1ull) = j;
 		cells_start_in_grid(cell_idx)--;
 	}
+}
+
+void grid_find2(
+	const rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& r,
+	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
+{
+	static heap_array<rr_uint, Params::maxn> grid;
+	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
+	make_grid(ntotal, r, grid, cell_starts_in_grid);
+
+	constexpr rr_float scale_k = get_scale_k();
+	const rr_float max_dist = scale_k * Params::hsml;
+
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
+		neighbours_count(j) = 0;
+		rr_uint center_cell_idx = get_cell_idx(r(j));
+
+		rr_uint neighbour_cells[9];
+		get_neighbouring_cells(center_cell_idx, neighbour_cells);
+		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
+			rr_uint cell_idx = neighbour_cells[cell_i];
+			if (cell_idx == Params::max_cells) continue; // invalid cell
+
+			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
+				grid_i < cell_starts_in_grid(cell_idx + 1ull);
+				++grid_i)
+			{
+				rr_uint i = grid(grid_i); // index of particle
+				// j - current particle; i - particle near
+				if (i == j) continue;
+
+				rr_float2 diff = r(i) - r(j);
+				rr_float dist = length(diff);
+
+				if (dist < max_dist) {
+					rr_uint neighbour_id = neighbours_count(j)++;
+					neighbours(neighbour_id, j) = i;
+
+					kernel(dist, diff, w(neighbour_id, j), dwdr(neighbour_id, j));
+				}
+			} // grid_i
+		} // cell_i
+	} // j (particle itself)
 }

@@ -20,8 +20,9 @@ void av_vel2(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& rho,	// density 
-	const heap_array<rr_uint, Params::maxn>& grid, // particles indices sorted so particles in the same cell are one after another
-	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid, // indices of first particle in cell
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float2, Params::maxn>& av); // average velocity of each particle
 
 	

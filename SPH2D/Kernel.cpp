@@ -1,12 +1,12 @@
 #include "CommonIncl.h"
 #include "Kernel.h"
 
-// kernel for self
+// kernel for particle itself
 void kernel_self(
 	rr_float& w_ii, // out, kernel for all interaction pairs
 	rr_float2& dwdr_ii) // out, derivation of kernel with respect to x, y, z
 {
-	kernel(rr_float2{ 0.f }, w_ii, dwdr_ii);
+	kernel(0.f, rr_float2{ 0.f }, w_ii, dwdr_ii);
 }
 
 void kernel(
@@ -15,11 +15,14 @@ void kernel(
 	rr_float& w, // out, kernel for all interaction pairs
 	rr_float2& dwdr) // out, derivation of kernel with respect to x, y, z
 {
-	kernel(ri - rj, w, dwdr);
+	rr_float2 diff = ri - rj;
+	rr_float dist = length(diff);
+	kernel(dist, diff, w, dwdr);
 }
 
 // calculate the smoothing kernel wij and its derivatives dwdxij
 void kernel(
+	const rr_float dist,
 	const rr_float2& diff, // x- y- z- distance between i and j 
 	rr_float& w, // out, kernel for all interaction pairs
 	rr_float2& dwdx) // out, derivation of kernel with respect to x, y, z
@@ -27,7 +30,6 @@ void kernel(
 	rr_float hsml{ Params::hsml };
 
 	rr_float factor;
-	rr_float dist = length(diff);
 	rr_float q = dist / hsml;
 
 	// zero out params
