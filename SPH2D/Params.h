@@ -83,14 +83,14 @@ namespace Params {
 
 	// true : use density summation model
 	// false : use continuity equation
-	constexpr bool summation_density{ false };
+	constexpr bool summation_density{ true };
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
 	constexpr bool average_velocity{ true }; // Liu G.R. (eq 4.92)
 
 	// viscosity on?
-	constexpr bool visc{ false };
+	constexpr bool visc{ true };
 
 	// external force on?
 	constexpr bool ex_force{ true };

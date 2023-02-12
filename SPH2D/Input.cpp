@@ -62,7 +62,7 @@ static void initConsts() {
 	Params::normal_check_step = 500;
 	Params::save_step = 250;
 	Params::simulationTime = 2.f;
-	Params::dt = 0.25e-4f;
+	Params::dt = 1e-4f;
 	rr_float steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
