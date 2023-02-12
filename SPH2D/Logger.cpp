@@ -31,6 +31,10 @@ PrintLog& PrintLog::operator()(unsigned value) {
 	printlog_part(std::to_string(value));
 	return *this;
 }
+PrintLog& PrintLog::operator()(int value) {
+	printlog_part(std::to_string(value));
+	return *this;
+}
 
 static std::unique_ptr<std::ostream> log_stream;
 void PrintLog::init(const std::string& experimentName) {

@@ -2,6 +2,8 @@
 #include "GridFind.h"
 #include "Kernel.h"
 
+#include <stdexcept>
+
 static void make_grid(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
@@ -19,6 +21,15 @@ static void make_grid(
 		unsigned cell_idx = get_cell_idx(r(i));
 		unsorted_grid(i) = cell_idx;
 
+		if constexpr (Params::enable_check_consistency) {
+			if (cell_idx >= Params::max_cells) {
+				printlog("cell_idx: ")(cell_idx)();
+				printlog("max_cells: ")(Params::max_cells)();
+				printlog("x: ")(r(i).x)(" -> (")(Params::x_mingeom)(";")(Params::x_maxgeom)(")")();
+				printlog("y: ")(r(i).y)(" -> (")(Params::y_mingeom)(";")(Params::y_maxgeom)(")")();
+				throw std::runtime_error{ "cell_idx was >= Params::max_cells" };
+			}
+		}
 		cells_start_in_grid(cell_idx)++;
 	}
 
@@ -35,9 +46,11 @@ static void make_grid(
 	}
 }
 
-void grid_find2(
+static void find_neighbours(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,
+	const heap_array<rr_uint, Params::maxn>& grid,
+	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid,
 	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
@@ -45,12 +58,10 @@ void grid_find2(
 {
 	printlog(__func__)();
 
-	static heap_array<rr_uint, Params::maxn> grid;
-	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
-	make_grid(ntotal, r, grid, cell_starts_in_grid);
-
 	constexpr rr_float scale_k = get_scale_k();
 	constexpr rr_float max_dist = sqr(scale_k * Params::hsml);
+
+	bool err = false;
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
@@ -69,13 +80,29 @@ void grid_find2(
 			{
 				rr_uint i = grid(grid_i); // index of particle
 				// j - current particle; i - particle near
-				if (i == j) continue;
+				if (i == j) continue; // particle isn't neighbour of itself
 
 				rr_float2 diff = r(i) - r(j);
 				rr_float dist_sqr = length_sqr(diff);
 
 				if (dist_sqr < max_dist) {
 					rr_uint neighbour_id = neighbours_count(j)++;
+					if constexpr (Params::enable_check_consistency) {
+						if (neighbour_id >= Params::max_neighbours) {
+							#pragma omp critical
+							{
+								printlog("neighbour_id: ")(neighbour_id)(" / ")(Params::max_neighbours)();
+								printlog("j: ")(j)(" / ")(ntotal)();
+								printlog("x: ")(r(j).x)();
+								printlog("y: ")(r(j).y)();
+								printlog("cell: ")(center_cell_idx)();
+								printlog("cell_x: ")(get_cell_x(center_cell_idx))();
+								printlog("cell_y: ")(get_cell_y(center_cell_idx))();
+								err = true;
+							}
+							--neighbour_id;
+						}
+					}
 					neighbours(neighbour_id, j) = i;
 
 					kernel(sqrtf(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j));
@@ -83,4 +110,37 @@ void grid_find2(
 			} // grid_i
 		} // cell_i
 	} // j (particle itself)
+
+
+	if (err) {
+		throw std::runtime_error{ "making neighbours grid: error occured" };
+	}
+}
+
+void grid_find2(
+	const rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& r,
+	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
+{
+	printlog(__func__)();
+
+	static heap_array<rr_uint, Params::maxn> grid;
+	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
+
+	make_grid(ntotal, 
+		r, 
+		grid, 
+		cell_starts_in_grid);
+	
+	find_neighbours(ntotal,
+		r,
+		grid,
+		cell_starts_in_grid,
+		neighbours_count,
+		neighbours,
+		w,
+		dwdr);
 }

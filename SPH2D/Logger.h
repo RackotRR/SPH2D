@@ -11,6 +11,7 @@ public:
 	PrintLog& operator()(const std::string&);
 	PrintLog& operator()(float);
 	PrintLog& operator()(long long);
+	PrintLog& operator()(int);
 	PrintLog& operator()(unsigned);
 
 	static PrintLog& instance() {

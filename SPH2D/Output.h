@@ -18,3 +18,6 @@ void output(
 
 // call once at start
 void setupOutput();
+
+// call once at start after initialization
+void printParams();

@@ -84,6 +84,9 @@ namespace Params {
 	// true : use density summation model
 	// false : use continuity equation
 	constexpr bool summation_density{ true };
+	// true : density normalization by using CSPM
+	// false : no normalization
+	constexpr bool nor_density{ summation_density && false };
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
@@ -102,9 +105,6 @@ namespace Params {
 	// artificial heat on?
 	constexpr bool heat_artificial{ false };
 
-	// true : density normalization by using CSPM
-	// false : no normalization
-	constexpr bool nor_density{ false };
 
 	enum {
 		TYPE_BOUNDARY = -2,
@@ -118,7 +118,7 @@ namespace Params {
 	// false - just say
 	// true - stop on not normal
 	constexpr bool inf_stop{ true };
-	constexpr bool enable_check_normal{ true };
+	constexpr bool enable_check_consistency{ true };
 
 	inline unsigned maxtimestep; // time step to finish
 	inline unsigned normal_check_step; // step for checking boundaries and finite values

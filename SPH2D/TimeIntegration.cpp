@@ -124,7 +124,7 @@ void time_integration(
 			make_waves(r, v, a, nfluid, ntotal, time);
 		}
 
-		if constexpr (Params::enable_check_normal) {
+		if constexpr (Params::enable_check_consistency) {
 			if (should_check_normal(itimestep)) {
 				check_finite(r, v, rho, p, itype, ntotal);
 				check_particles_are_within_boundaries(ntotal, r, itype);

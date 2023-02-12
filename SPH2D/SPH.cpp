@@ -42,8 +42,8 @@ int main(int arc, const char* argv[]) {
 
 		printlog("total time in seconds: ")(timer.value<std::chrono::seconds>());
 	}
-	catch (std::exception& ex) {
-		printlog("catch exception: ")(ex.what());
+	catch (const std::exception& ex) {
+		printlog("catch exception: ")(ex.what())();
 	}
 	system("pause");
 	return 0;

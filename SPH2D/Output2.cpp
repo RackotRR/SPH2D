@@ -11,35 +11,6 @@ namespace {
 	std::string experimentRelativePath;
 	std::string dataOutputRelativePath;
 
-	// params and other things
-	void printParams() {
-		nlohmann::json json;
-		json = {
-			{"experiment_name", Params::experimentName},
-			{"x_mingeom", Params::x_mingeom},
-			{"y_mingeom", Params::y_mingeom},
-			{"x_size", Params::x_maxgeom - Params::x_mingeom},
-			{"y_size", Params::y_maxgeom - Params::y_mingeom},
-			{"dx", Params::delta},
-			{"dy", Params::delta},
-			{"dt", Params::dt},
-			{"hsml", Params::hsml},
-			{"simulation_time", Params::simulationTime},
-			{"save_step", Params::save_step},
-			{"wave_length", Params::L },
-			{"depth", Params::d},
-			{"skf", Params::skf},
-			{"particles_per_d", Params::fluid_particles_per_d},
-			{"particles_fluid", Params::particles_fluid},
-			{"particles_boundary", Params::particles_boundary},
-			{"particles_total", Params::particles_total}
-		};
-
-		std::string path = experimentRelativePath + "Params.json";
-		std::ofstream stream(path, std::ofstream::out);
-		stream << json;
-	}
-
 	void printFast(
 		const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 		const heap_array<rr_int, Params::maxn> itype,
@@ -55,6 +26,35 @@ namespace {
 	}
 }
 
+// params and other things
+void printParams() {
+	nlohmann::json json;
+	json = {
+		{"experiment_name", Params::experimentName},
+		{"x_mingeom", Params::x_mingeom},
+		{"y_mingeom", Params::y_mingeom},
+		{"x_size", Params::x_maxgeom - Params::x_mingeom},
+		{"y_size", Params::y_maxgeom - Params::y_mingeom},
+		{"dx", Params::delta},
+		{"dy", Params::delta},
+		{"dt", Params::dt},
+		{"hsml", Params::hsml},
+		{"simulation_time", Params::simulationTime},
+		{"save_step", Params::save_step},
+		{"wave_length", Params::L },
+		{"depth", Params::d},
+		{"skf", Params::skf},
+		{"particles_per_d", Params::fluid_particles_per_d},
+		{"particles_fluid", Params::particles_fluid},
+		{"particles_boundary", Params::particles_boundary},
+		{"particles_total", Params::particles_total}
+	};
+
+	std::string path = experimentRelativePath + "Params.json";
+	std::ofstream stream(path, std::ofstream::out);
+	stream << json;
+}
+
 
 void setupOutput() {
 	::experimentRelativePath = Params::experimentName + "\\";
@@ -64,8 +64,6 @@ void setupOutput() {
 	std::filesystem::create_directory(std::filesystem::current_path().append(::experimentRelativePath));
 	std::filesystem::create_directory(std::filesystem::current_path().append(::dataOutputRelativePath));
 	std::filesystem::create_directory(std::filesystem::current_path().append(analysisResultsPath));
-
-	printParams();
 
 	init_logger(Params::experimentName);
 }

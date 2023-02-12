@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "EOS.h"
 #include "VirtualParticles.h"
+#include "Output.h"
 
 #include <stdexcept>
 
@@ -94,6 +95,7 @@ void input(
 	rr_uint nvirt = 0;
 
 	initConsts();
+	printParams();
 
 	generateParticles(r, v, mass, rho, p, u, itype, nfluid);
 	virt_part(nfluid, nvirt, mass, r, v, rho, u, p, itype);
