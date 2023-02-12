@@ -13,6 +13,7 @@ namespace {
 
 	// params and other things
 	void printParams() {
+		printlog()(__func__)();
 		
 		nlohmann::json json;
 		json = {
@@ -58,6 +59,8 @@ namespace {
 
 
 void setupOutput() {
+	printlog(__func__)();
+
 	::experimentRelativePath = Params::experimentName + "\\";
 	::dataOutputRelativePath = ::experimentRelativePath + "data\\";
 	auto analysisResultsPath = ::experimentRelativePath + "analysis\\";
@@ -84,6 +87,8 @@ void output(
 	const long long timePassedTotal,
 	const long long timeEstimates)
 {
+	printlog()(__func__)();
+
 	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
 	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
 

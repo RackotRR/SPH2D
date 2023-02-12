@@ -6,8 +6,9 @@
 #include "Types.h"
 #include "GridUtils.h"
 #include "HeapArray.h" 
+#include "Logger.h"
 
-// value squared
+// simple math utils
 constexpr rr_float sqr(rr_float value) {
 	return value * value;
 }

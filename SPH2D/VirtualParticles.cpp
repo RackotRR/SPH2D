@@ -34,14 +34,20 @@ void virt_part(
 	heap_array<rr_float, Params::maxn>& p,	// out, pressure
 	heap_array<rr_int, Params::maxn>& itype) // out, material type: 1 - ideal gas, 2 - water, 3 - tnt
 {
+	printlog()(__func__)();
 	nvirt = 0;
 
 	Params::x_boundary_min = Params::x_fluid_min - 3 * Params::delta;
 	Params::y_boundary_min = Params::y_fluid_min - 3 * Params::delta;
 	Params::x_boundary_max = Params::x_fluid_max + 3 * Params::delta;
 	Params::y_boundary_max = Params::y_maxgeom;
-
 	Params::boundary_delta = Params::delta * 2;
+	printlog("boundary delta")(Params::boundary_delta)();
+	printlog("boundary xmin")(Params::x_boundary_min)();
+	printlog("boundary xmax")(Params::x_boundary_max)();
+	printlog("boundary ymin")(Params::y_boundary_min)();
+	printlog("boundary ymax")(Params::y_boundary_max)();
+
 
 	left_wall(ntotal, nvirt, r);
 	right_wall(ntotal, nvirt, r);
@@ -69,6 +75,8 @@ void left_wall(
 	rr_uint& nvirt,
 	heap_array<rr_float2, Params::maxn>& r) 
 {
+	printlog(__func__)();
+
 	rr_float x = Params::x_boundary_min;
 	rr_uint y_particles = get_boundary_particles_y();
 
@@ -90,6 +98,8 @@ void right_wall(
 	rr_uint& nvirt,
 	heap_array<rr_float2, Params::maxn>& r) 
 {
+	printlog(__func__)();
+
 	rr_float x = Params::x_boundary_max;
 	rr_uint y_particles = get_boundary_particles_y();
 
@@ -109,6 +119,8 @@ void ground(
 	rr_uint& nvirt,
 	heap_array<rr_float2, Params::maxn>& r)
 {
+	printlog(__func__)();
+
 	rr_float y = Params::y_boundary_min;
 	rr_uint x_particles = get_boundary_particles_x();
 
@@ -128,17 +140,22 @@ void dynamic_boundaries(
 	heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const rr_float time)
 {
+	printlog(__func__)();
+
 	constexpr rr_float wait_for = 0.f;
 	if (time < wait_for) {
 		return;
 	}
 	rr_float phase = -Params::freq * wait_for;
-
 	rr_float v_x = Params::A * Params::freq * cos(Params::freq * time + phase);
+
 	for (rr_uint i = left_wall_start; i < left_wall_end; i++) {
 		r(i).x = r(i).x + v_x * Params::dt;
 		v(i).x = v_x;
 	}
+
+	printlog("r.x: ")(r(left_wall_start).x)();
+	printlog("v.x: ")(v_x)();
 }
 
 rr_uint get_boundary_particles_y() {

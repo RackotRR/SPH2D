@@ -1,13 +1,13 @@
 #include "CommonIncl.h"
 #include "Input.h"
 #include "EOS.h"
-#include "Density.h"
-#include "DirectFind.h"
 #include "VirtualParticles.h"
 
-#include <iostream>
+#include <stdexcept>
 
 static void initConsts() {
+	printlog()(__func__)();
+
 	constexpr rr_float H = 0.1f;
 	constexpr rr_float L = 2.f;
 	constexpr rr_float depth = 0.7f;
@@ -22,11 +22,11 @@ static void initConsts() {
 	constexpr rr_float delta = depth / particlesPer_d;
 
 	Params::delta = delta;
-	Params::hsml = delta * 1.2f;
-	Params::L = L;
-	Params::d = depth;
-	Params::fluid_particles_per_d = particlesPer_d;
+	//Params::hsml = delta * 1.2f;
+	printlog("dx=dy=delta: ")(Params::delta)();
+	printlog("hsml: ")(Params::hsml)();
 
+	Params::fluid_particles_per_d = particlesPer_d;
 	Params::x_fluid_particles = fluid_particles_x;
 	Params::y_fluid_particles = fluid_particles_y;
 	Params::x_fluid_min = 0.1f;
@@ -38,6 +38,11 @@ static void initConsts() {
 	Params::x_mingeom = 0;
 	Params::y_maxgeom = 4.f;
 	Params::y_mingeom = 0;
+	Params::beachX = 0; // is not in use now
+	printlog("x_maxgeom: ")(Params::x_maxgeom)();
+	printlog("x_mingeom: ")(Params::x_mingeom)();
+	printlog("y_maxgeom: ")(Params::y_maxgeom)();
+	printlog("y_mingeom: ")(Params::y_mingeom)();
 
 	constexpr rr_float k = 2.f * Params::pi / L;
 	constexpr rr_float kd = k * depth;
@@ -45,18 +50,29 @@ static void initConsts() {
 	Params::A = H * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
 	Params::H = H;
 	Params::k = k;
+	Params::L = L;
+	Params::d = depth;
+	printlog("generation wave k: ")(Params::k)();
+	printlog("generation freq: ")(Params::freq)();
+	printlog("generation wave height: ")(Params::H)();
+	printlog("generation wave length: ")(Params::L)();
+	printlog("generation fluid level (depth): ")(Params::d)();
+	printlog("generator amplitude: ")(Params::A)();
+
+	Params::normal_check_step = 500;
 	Params::save_step = 250;
-
-
-	Params::beachX = 0;
-
 	Params::simulationTime = 2.f;
-	Params::dt = 1e-4f;
+	Params::dt = 0.25e-4f;
 	rr_float steps = Params::simulationTime / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
 	}
 	Params::maxtimestep = static_cast<size_t>(steps);
+	printlog("check normal step: ")(Params::normal_check_step)();
+	printlog("save step: ")(Params::save_step)();
+	printlog("simulation time: ")(Params::simulationTime)();
+	printlog("dt: ")(Params::dt)();
+	printlog("maxtimestep: ")(Params::maxtimestep)();
 }
 
 // loading or generating initial particle information
@@ -70,7 +86,9 @@ void input(
 	heap_array<rr_int, Params::maxn>& itype,	  // particle material type
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid)
-{ 
+{
+	printlog()(__func__)();
+
 	ntotal = 0;
 	nfluid = 0;
 	rr_uint nvirt = 0;
@@ -85,8 +103,9 @@ void input(
 	Params::particles_boundary = nvirt;
 	Params::particles_total = ntotal;
 
-	std::cout << "Experiment name: ";
-	std::getline(std::cin, Params::experimentName);
+	printlog("nfluid: ")(nfluid)();
+	printlog("nvirt: ")(nvirt)();
+	printlog("ntotal: ")(ntotal)();
 }
 
 
@@ -99,7 +118,9 @@ void generateParticles(
 	heap_array<rr_float, Params::maxn>& u,	 // particle internal energy
 	heap_array<rr_int, Params::maxn>& itype,	 // particle material type
 	rr_uint& nfluid) // total particle number
-{  
+{
+	printlog()(__func__)();
+
 	nfluid = 0;
 	for (rr_uint x_i = 0; x_i < Params::x_fluid_particles; ++x_i) {
 		for (rr_uint y_i = 0; y_i < Params::y_fluid_particles; ++y_i) {

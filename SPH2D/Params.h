@@ -73,7 +73,7 @@ namespace Params {
 	constexpr int nwm{ 2 };
 
 	// const smoothing length
-	inline float hsml;
+	constexpr float hsml = 0.0167999994f;
 
 	// initial distance between particles
 	inline float delta;
@@ -83,25 +83,18 @@ namespace Params {
 
 	// true : use density summation model
 	// false : use continuity equation
-	constexpr bool summation_density{ true };
+	constexpr bool summation_density{ false };
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
 	constexpr bool average_velocity{ true }; // Liu G.R. (eq 4.92)
-
-	// true : use virtual particle
-	// false : no use of virtual particle
-	constexpr bool virtual_part{ true };
-
-	// true : load virtual particle information
-	// false : generate virtual particle information
-	constexpr bool vp_input{ false };
 
 	// viscosity on?
 	constexpr bool visc{ false };
 
 	// external force on?
 	constexpr bool ex_force{ true };
+	constexpr bool self_gravity{ ex_force && true };
 
 	// artificial viscosity on?
 	constexpr bool visc_artificial{ true };
@@ -109,37 +102,31 @@ namespace Params {
 	// artificial heat on?
 	constexpr bool heat_artificial{ false };
 
-	// self gravity on?
-	constexpr bool self_gravity{ true };
-
 	// true : density normalization by using CSPM
 	// false : no normalization
 	constexpr bool nor_density{ false };
-
-	/// control parameters for output
-
-	// true : print statistics about SPH particle interactions including virtual particle information
-	constexpr bool full_stat{ true };
-
-	// false - just say
-	// true - stop on not normal
-	constexpr bool inf_stop{ true };
-	constexpr bool enable_check_normal{ true };
-
-	inline size_t maxtimestep; // time step to finish
-	constexpr int normal_check_step{ 500 };
-	constexpr int print_step{ 200 }; // print timestep (on screen)
-	inline int save_step; // save timestep (on disk)
-	constexpr int moni_particle{ 1600 }; // num of particles for information monitoring
-
-	constexpr float pi{ 3.14159265358979323846f };
-	constexpr float g{ 9.81f };
-
-	inline std::string experimentName;
 
 	enum {
 		TYPE_BOUNDARY = -2,
 		TYPE_NON_EXISTENT = 0,
 		TYPE_WATER = 2,
 	};
+
+
+	/// control parameters for output
+
+	// false - just say
+	// true - stop on not normal
+	constexpr bool inf_stop{ true };
+	constexpr bool enable_check_normal{ true };
+
+	inline unsigned maxtimestep; // time step to finish
+	inline unsigned normal_check_step; // step for checking boundaries and finite values
+	inline unsigned save_step; // save timestep (on disk)
+
+	constexpr float pi{ 3.14159265358979323846f };
+	constexpr float g{ 9.81f };
+
+	inline std::string experimentName;
+
 };

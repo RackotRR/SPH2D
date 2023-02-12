@@ -10,6 +10,8 @@ void make_waves(
 	const rr_uint ntotal,
 	const rr_float time)
 {
+	printlog()(__func__)();
+
 	// NWM
 	if constexpr (Params::nwm == 1) {
 		rzm_generator(r, a, nfluid, time);

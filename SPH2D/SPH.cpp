@@ -29,15 +29,22 @@ void sph() {
  
 
 int main(int arc, const char* argv[]) {
+	std::cout << "Experiment name: ";
+	std::getline(std::cin, Params::experimentName);
+	init_logger(Params::experimentName);
+	printlog("Experiment: ")(Params::experimentName)();
+
 	try {
 		RR::Timer timer;
+
 		timer.start();
 		sph();
 		timer.finish();
-		std::cout << "total time in seconds: " << timer.value<std::chrono::seconds>() << std::endl;
+
+		printlog("total time in seconds: ")(timer.value<std::chrono::seconds>());
 	}
 	catch (std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
+		printlog("catch exception: ")(ex.what());
 	}
 	system("pause");
 	return 0;
