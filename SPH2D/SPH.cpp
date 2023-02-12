@@ -22,8 +22,6 @@ void sph() {
 	heap_array<rr_float, Params::maxn> e;	// total energy of particles
 
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-	setupOutput();
-
 	time_integration(r, v, mass, rho, p, u, c, e, itype, ntotal, nfluid);
 }
  
@@ -31,7 +29,8 @@ void sph() {
 int main(int arc, const char* argv[]) {
 	std::cout << "Experiment name: ";
 	std::getline(std::cin, Params::experimentName);
-	init_logger(Params::experimentName);
+	setupOutput();
+
 	printlog("Experiment: ")(Params::experimentName)();
 
 	try {

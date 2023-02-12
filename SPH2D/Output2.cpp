@@ -13,8 +13,6 @@ namespace {
 
 	// params and other things
 	void printParams() {
-		printlog()(__func__)();
-		
 		nlohmann::json json;
 		json = {
 			{"experiment_name", Params::experimentName},
@@ -59,8 +57,6 @@ namespace {
 
 
 void setupOutput() {
-	printlog(__func__)();
-
 	::experimentRelativePath = Params::experimentName + "\\";
 	::dataOutputRelativePath = ::experimentRelativePath + "data\\";
 	auto analysisResultsPath = ::experimentRelativePath + "analysis\\";
@@ -70,6 +66,8 @@ void setupOutput() {
 	std::filesystem::create_directory(std::filesystem::current_path().append(analysisResultsPath));
 
 	printParams();
+
+	init_logger(Params::experimentName);
 }
 
 // save particle information to external disk file
