@@ -170,7 +170,6 @@
     <ClInclude Include="AverageVelocity.h" />
     <ClInclude Include="CommonIncl.h" />
     <ClInclude Include="Density.h" />
-    <ClInclude Include="DirectFind.h" />
     <ClInclude Include="EOS.h" />
     <ClInclude Include="ExtForce.h" />
     <ClInclude Include="GridFind.h" />
@@ -180,6 +179,7 @@
     <ClInclude Include="InternalForce.h" />
     <ClInclude Include="IsNormalCheck.h" />
     <ClInclude Include="Kernel.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="Params.h" />
     <ClInclude Include="SingleStep.h" />
@@ -193,7 +193,6 @@
     <ClCompile Include="ArtificialViscosity.cpp" />
     <ClCompile Include="AverageVelocity2.cpp" />
     <ClCompile Include="Density2.cpp" />
-    <ClCompile Include="DirectFind2.cpp" />
     <ClCompile Include="EOS.cpp" />
     <ClCompile Include="ExternalForce.cpp" />
     <ClCompile Include="GridFind.cpp" />
@@ -202,6 +201,7 @@
     <ClCompile Include="IsNormalCheck.cpp" />
     <ClCompile Include="Kernel.cpp" />
     <ClCompile Include="Output2.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="SingleStep2.cpp" />
     <ClCompile Include="SPH.cpp" />
     <ClCompile Include="TimeIntegration.cpp" />

@@ -4,9 +4,65 @@
 #include "VirtualParticles.h"
 #include "IsNormalCheck.h"
 #include "WaveMaker.h"
+
 #include <RRTime/Timer.h>
 
+void predict_half_step(
+	const rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& rho, // density
+	const heap_array<rr_float, Params::maxn>& drho,	// density change
+	const heap_array<rr_float, Params::maxn>& u, // specific internal energy
+	const heap_array<rr_float, Params::maxn>& du,	// specific internal energy change
+	const heap_array<rr_float2, Params::maxn>& v,	// velocities
+	const heap_array<rr_float2, Params::maxn>& a,	// acceleration
+	heap_array<rr_float, Params::maxn>& rho_predict, // half step for density
+	heap_array<rr_float, Params::maxn>& u_predict, // half step for internal energy
+	heap_array<rr_float2, Params::maxn>& v_predict)	// half step for velocities
+{
+	printlog()(__func__)();
 
+	for (rr_uint i = 0; i < ntotal; i++) {
+		u_predict(i) = u(i) + du(i) * Params::dt * 0.5f;
+		u_predict(i) = max(u_predict(i), 0.f);
+
+		if constexpr (Params::summation_density == false) {
+			rho_predict(i) = rho(i) + drho(i) * Params::dt * 0.5f;
+		}
+
+		v_predict(i) = v(i) + a(i) * Params::dt * 0.5f;
+	}
+}
+void correct_step(
+	const rr_uint ntotal,
+	const heap_array<rr_int, Params::maxn>& itype, // material type 
+	const heap_array<rr_float, Params::maxn>& drho,	// density change
+	const heap_array<rr_float, Params::maxn>& du,	// specific internal energy change
+	const heap_array<rr_float2, Params::maxn>& a,	// acceleration
+	const heap_array<rr_float, Params::maxn>& rho_predict, // half step for density
+	const heap_array<rr_float, Params::maxn>& u_predict, // half step for internal energy
+	const heap_array<rr_float2, Params::maxn>& v_predict,	// half step for velocities
+	const heap_array<rr_float2, Params::maxn>& av,	// average velocity
+	heap_array<rr_float, Params::maxn>& rho, // density
+	heap_array<rr_float, Params::maxn>& u, // specific internal energy
+	heap_array<rr_float2, Params::maxn>& v,	// velocities
+	heap_array<rr_float2, Params::maxn>& r)	// coordinates of all particles
+{
+	printlog()(__func__)();
+
+	for (rr_uint i = 0; i < ntotal; i++) {
+		u(i) = u_predict(i) + du(i) * Params::dt;
+		u(i) = max(u(i), 0.f);
+
+		if constexpr (Params::summation_density == false) {
+			rho(i) = rho_predict(i) + drho(i) * Params::dt;
+		}
+
+		if (itype(i) > 0) {
+			v(i) = v_predict(i) + a(i) * Params::dt + av(i);
+			r(i) += v(i) * Params::dt;
+		}
+	}
+}
 
 void time_integration(
 	heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
@@ -17,19 +73,29 @@ void time_integration(
 	heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	heap_array<rr_float, Params::maxn>& c,	// sound velocity 
 	heap_array<rr_float, Params::maxn>& e,	// total energy of particles 
-	heap_array<rr_int, Params::maxn>& itype, // material type: 1 - ideal gas, 2 - water, 3 - tnt   
+	heap_array<rr_int, Params::maxn>& itype, // material type: >0: material, <0: virtual
 	const rr_uint ntotal, // total particle number at t = 0
-	const rr_uint nfluid  // fluid particles 
-)
+	const rr_uint nfluid)  // fluid particles 
 {
-	heap_array<rr_float, Params::maxn> u_min, rho_min, du, drho, tdsdt;
-	heap_array<rr_float2, Params::maxn> v_min, a, av;
+	printlog()(__func__)();
+
+	heap_array<rr_float, Params::maxn> u_predict, rho_predict, du, drho, tdsdt;
+	heap_array<rr_float, Params::maxn>* rho_predicted;
+	if constexpr (Params::summation_density) {
+		rho_predicted = &rho;
+	}
+	else {
+		rho_predicted = &rho_predict;
+	}
+
+	heap_array<rr_float2, Params::maxn> v_predict, a, av;
 	rr_float time = 0;
 
 	RR::Timer timer;
 
 	initUtils();
 	for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
+		printlog()("timestep: ")(itimestep)(" / ")(Params::maxtimestep)();
 		timer.start();
 
 		time = itimestep * Params::dt;
@@ -38,49 +104,24 @@ void time_integration(
 			output(r, v, mass, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
 		}
 
-		// it not first time step, then update thermal energy, density and velocity half a time step
-		if (itimestep != 0) {
-			for (rr_uint i = 0; i < nfluid; i++) {
-				u_min(i) = u(i);
-				u(i) += du(i) * Params::dt * 0.5f;
-				if (u(i) < 0) {
-					u(i) = 0;
-				}
-
-				v_min(i) = v(i);
-				v(i) += a(i) * Params::dt * 0.5f;
-			}
-		}
+		predict_half_step(ntotal,
+			rho, drho, 
+			u, du, 
+			v, a, 
+			*rho_predicted, u_predict, v_predict);
 
 		// definition of variables out of the function vector:
-		single_step2(nfluid, ntotal, mass, itype, r, v, u, rho, p,
+		single_step2(nfluid, ntotal, mass, itype, r, v_predict, u_predict, *rho_predicted, p,
 			tdsdt, a, du, drho, av, time);
+
+		correct_step(ntotal,
+			itype,
+			drho, du, a,
+			*rho_predicted, u_predict, v_predict, av,
+			rho, u, v, r);
 
 		if constexpr (Params::nwm) {
 			make_waves(r, v, a, nfluid, ntotal, time);
-		}
-
-		if (itimestep == 0) {
-			for (rr_uint i = 0; i < nfluid; i++) {
-				u(i) += du(i) * Params::dt * 0.5f;
-				if (u(i) < 0) {
-					u(i) = 0;
-				}
-
-				v(i) += a(i) * Params::dt * 0.5f + av(i);
-				r(i) += v(i) * Params::dt;
-			}
-		}
-		else {
-			for (rr_uint i = 0; i < nfluid; i++) {
-				u(i) = du(i) * Params::dt + u_min(i);
-				if (u(i) < 0) {
-					u(i) = 0;
-				}
-
-				v(i) = v_min(i) + a(i) * Params::dt + av(i);
-				r(i) += v(i) * Params::dt;
-			}
 		}
 
 		if constexpr (Params::enable_check_normal) {
