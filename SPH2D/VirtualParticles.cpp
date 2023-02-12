@@ -136,7 +136,7 @@ void dynamic_boundaries(
 
 	rr_float v_x = Params::A * Params::freq * cos(Params::freq * time + phase);
 	for (rr_uint i = left_wall_start; i < left_wall_end; i++) {
-		r(i).x = r(i).x + 0.5f * (v(i).x + v_x) * Params::dt;
+		r(i).x = r(i).x + v_x * Params::dt;
 		v(i).x = v_x;
 	}
 }

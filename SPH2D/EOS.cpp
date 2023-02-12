@@ -16,16 +16,16 @@ void p_art_water(
     if constexpr (Params::eos == 1) {
 
         // Lennard-Jones EOS
-        constexpr rr_float alpha = 3.f;
-        constexpr rr_float beta = 2.f;
+        constexpr rr_uint alpha = 3;
+        constexpr rr_uint beta = 2;
         rr_float K = (rho0 * cSqr) / (alpha + beta);
 
         p = K;
         if (rho >= 2.f * rho0) {
-            p *= pow((rho - rho0) / rho0, alpha) - pow((rho - rho0) / rho0, beta);
+            p *= powun((rho - rho0) / rho0, alpha) - powun((rho - rho0) / rho0, beta);
         }
         else if (rho >= rho0) {
-            p *= pow(rho / rho0, alpha) - pow(rho / rho0, beta);
+            p *= powun(rho / rho0, alpha) - powun(rho / rho0, beta);
         }
         else {
             p = 0.f;
@@ -33,10 +33,10 @@ void p_art_water(
     }
     else {
         // artificial EOS, Form (Monaghan, 1994)
-        static constexpr float gamma = 7.f;
+        static constexpr rr_uint gamma = 7;
         float B = cSqr * rho0 / gamma;
         if (rho > rho0) {
-            p = B * (pow(rho / rho0, gamma) - 1.f);
+            p = B * (powun(rho / rho0, gamma) - 1.f);
         }
         else {
             p = 0.f;

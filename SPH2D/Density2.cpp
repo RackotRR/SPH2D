@@ -60,11 +60,9 @@ void sum_density(
 static void density_normalization(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
 	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	const heap_array<rr_float, Params::maxn>& rho,	// density of particles
 	heap_array<rr_float, Params::maxn>& normrho) // out, density normalization coef
 {
@@ -85,11 +83,9 @@ static void density_normalization(
 static void density_summation(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
 	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& rho)	// out, density of particles
 {
 #pragma omp parallel for
@@ -109,11 +105,9 @@ static void density_summation(
 void sum_density2(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
 	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& rho) // out, density
 {
 	// normrho(maxn) --- integration of the kernel itself
@@ -122,11 +116,9 @@ void sum_density2(
 		density_normalization(
 			ntotal,
 			mass,
-			r,
 			neighbours_count,
 			neighbours,
 			w,
-			dwdr,
 			rho,
 			normrho);
 	}
@@ -135,17 +127,41 @@ void sum_density2(
 	density_summation(
 		ntotal,
 		mass,
-		r,
 		neighbours_count,
 		neighbours,
 		w,
-		dwdr,
 		rho);
 
 	// calculate the normalized rho, rho = sum(rho)/sum(w)
 	if constexpr (Params::nor_density) {
 		for (rr_uint k = 0; k < ntotal; k++) {
 			rho(k) /= normrho(k);
+		}
+	}
+}
+
+// calculate the density with SPH continuity approach
+void con_density2(
+	const rr_uint ntotal,	// number of particles 
+	const heap_array<rr_float, Params::maxn>& mass,// particle masses
+	const heap_array<rr_float2, Params::maxn>& v,// velocity of all particles 
+	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel
+	const heap_array<rr_float, Params::maxn>& rho,	// density  
+	heap_array<rr_float, Params::maxn>& drhodt) // out, density change rate of each particle
+{
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+		drhodt(j) = 0.f;
+
+		rr_uint nc = neighbours_count(j);
+		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
+			rr_uint i = neighbours(n, j); // particle near
+
+			rr_float2 dvx = v(i) - v(j);
+			rr_float vcc = reduce(dvx * dwdr(n, j));
+			drhodt(j) += mass(i) * vcc;
 		}
 	}
 }
@@ -176,7 +192,7 @@ void con_density(
 
 		rr_float2 dvx = v(i) - v(j);
 		rr_float vcc = reduce(dvx * dwdx(k));
-		
+
 		drhodt(i) += mass(j) * vcc;
 		drhodt(j) += mass(i) * vcc;
 	}

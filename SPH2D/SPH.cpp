@@ -7,26 +7,6 @@
 #include "Output.h"
 #include "TimeIntegration.h" 
 
-rr_float sqr(rr_float value) { 
-	return value * value;
-}
-rr_float pow(rr_float value, rr_int power) {
-	rr_float result{ 1 };
-	for (rr_int i{ power }; i > 0; i--) {
-		result *= value;
-	}
-	for (rr_int i{ power }; i < 0; i++) {
-		result /= value;
-	}
-	return result;
-}
-rr_float pow(rr_float value, rr_uint power) {
-	rr_float result{ 1 };
-	for (rr_uint i{ power }; i > 0; i--) {
-		result *= value;
-	}
-	return result;
-}
 
 void sph() {
 	heap_array<rr_float, Params::maxn> mass; // particle masses

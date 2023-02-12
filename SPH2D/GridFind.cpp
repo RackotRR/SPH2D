@@ -249,7 +249,7 @@ void grid_find2(
 	make_grid(ntotal, r, grid, cell_starts_in_grid);
 
 	constexpr rr_float scale_k = get_scale_k();
-	const rr_float max_dist = scale_k * Params::hsml;
+	constexpr rr_float max_dist = sqr(scale_k * Params::hsml);
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
@@ -271,13 +271,13 @@ void grid_find2(
 				if (i == j) continue;
 
 				rr_float2 diff = r(i) - r(j);
-				rr_float dist = length(diff);
+				rr_float dist_sqr = length_sqr(diff);
 
-				if (dist < max_dist) {
+				if (dist_sqr < max_dist) {
 					rr_uint neighbour_id = neighbours_count(j)++;
 					neighbours(neighbour_id, j) = i;
 
-					kernel(dist, diff, w(neighbour_id, j), dwdr(neighbour_id, j));
+					kernel(sqrtf(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j));
 				}
 			} // grid_i
 		} // cell_i

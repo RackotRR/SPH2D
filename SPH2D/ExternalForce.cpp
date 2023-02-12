@@ -32,7 +32,7 @@ void ext_force_part(
 			const rr_float D = 5 * Params::g * Params::d;
 			constexpr rr_uint p1 = 12;
 			constexpr rr_uint p2 = 4;
-			rr_float f = D * (pow(rr0 / rr, p1) - pow(rr0 / rr, p2)) / sqr(rr);
+			rr_float f = D * (powun(rr0 / rr, p1) - powun(rr0 / rr, p2)) / sqr(rr);
 
 			// applying force to material particle
 			a(self) += dr * f;
@@ -82,7 +82,7 @@ void ext_force2(
 
 				if (rr < rr0) {
 					// calculating force
-					rr_float f = D * (pow(rr0 / rr, p1) - pow(rr0 / rr, p2)) / sqr(rr);
+					rr_float f = D * (powun(rr0 / rr, p1) - powun(rr0 / rr, p2)) / sqr(rr);
 
 					// applying force to material particle
 					a(j) += dr * f;
@@ -121,7 +121,7 @@ static void boundary_forces(
 
 			if (rr < rr0) {
 				// calculating force
-				rr_float f = D * (pow(rr0 / rr, p1) - pow(rr0 / rr, p2)) / sqr(rr);
+				rr_float f = D * (powun(rr0 / rr, p1) - powun(rr0 / rr, p2)) / sqr(rr);
 
 				// applying force to material particle
 				a(i) += dr * f;

@@ -47,14 +47,24 @@ void single_step2(
 		w,
 		dwdr);
 
-	sum_density2(ntotal, 
-		mass, 
-		r, 
-		neighbours_count,
-		neighbours,
-		w,
-		dwdr, 
-		rho);
+	if constexpr (Params::summation_density) {
+		sum_density2(ntotal,
+			mass,
+			neighbours_count,
+			neighbours,
+			w,
+			rho);
+	}
+	else {
+		con_density2(ntotal,
+			mass,
+			v,
+			neighbours_count,
+			neighbours,
+			dwdr,
+			rho,
+			drho);
+	}
 
 	int_force2(ntotal, 
 		mass, 
