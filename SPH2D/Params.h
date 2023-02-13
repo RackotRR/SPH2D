@@ -6,9 +6,8 @@ namespace Params {
 	constexpr int dim{ 2 };
 
 	constexpr unsigned maxn{ 50'000 }; // maximum number of particles
-	constexpr unsigned max_interaction{ 50 * maxn }; // maximum number of interaction pairs
-	constexpr unsigned max_cells{ max_interaction }; // maximum number of cells in grid
-	constexpr unsigned max_neighbours{ 50 }; 
+	constexpr unsigned max_neighbours{ 50 };
+	constexpr unsigned max_cells{ 60 * maxn }; // maximum number of cells in grid
 
 	inline float x_maxgeom;
 	inline float x_mingeom;
@@ -40,8 +39,12 @@ namespace Params {
 	inline float k;
 	inline float beachX;
 
+	inline unsigned left_wall_start;
+	inline unsigned left_wall_end;
+	inline float generator_time_wait;
+
 	inline float dt;
-	inline float simulationTime;
+	inline float simulation_time;
 
 	// form of eos
 	// eos = 1 : Lennard-Jones

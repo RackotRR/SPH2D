@@ -23,3 +23,5 @@ void generateParticles(
 	heap_array<rr_float, Params::maxn>& u,	 // particle internal energy
 	heap_array<rr_int, Params::maxn>& itype,	 // particle material type
 	rr_uint& nfluid); // total fluid particles
+
+void initConsts();

@@ -1,9 +1,6 @@
 #include "CommonIncl.h"
 #include "EOS.h"
 
-static rr_uint left_wall_start;
-static rr_uint left_wall_end;
-
 static rr_uint get_boundary_particles_y();
 static rr_uint get_boundary_particles_x();
 
@@ -80,7 +77,7 @@ void left_wall(
 	rr_float x = Params::x_boundary_min;
 	rr_uint y_particles = get_boundary_particles_y();
 
-	left_wall_start = ntotal + nvirt;
+	Params::left_wall_start = ntotal + nvirt;
 	for (rr_uint y_i = 0; y_i < y_particles; ++y_i) {
 		rr_uint i = ntotal + nvirt;
 		// place particles in chess order
@@ -90,7 +87,7 @@ void left_wall(
 		r(i + 1ull).y = Params::y_boundary_min + (y_i + 0.5f) * Params::boundary_delta;
 		nvirt += 2;
 	}
-	left_wall_end = ntotal + nvirt;
+	Params::left_wall_end = ntotal + nvirt;
 }
 
 void right_wall(
@@ -142,19 +139,18 @@ void dynamic_boundaries(
 {
 	printlog(__func__)();
 
-	constexpr rr_float wait_for = 0.f;
-	if (time < wait_for) {
+	if (time < Params::generator_time_wait) {
 		return;
 	}
-	rr_float phase = -Params::freq * wait_for;
+	rr_float phase = -Params::freq * Params::generator_time_wait;
 	rr_float v_x = Params::A * Params::freq * cos(Params::freq * time + phase);
 
-	for (rr_uint i = left_wall_start; i < left_wall_end; i++) {
+	for (rr_uint i = Params::left_wall_start; i < Params::left_wall_end; i++) {
 		r(i).x = r(i).x + v_x * Params::dt;
 		v(i).x = v_x;
 	}
 
-	printlog("r.x: ")(r(left_wall_start).x)();
+	printlog("r.x: ")(r(Params::left_wall_start).x)();
 	printlog("v.x: ")(v_x)();
 }
 

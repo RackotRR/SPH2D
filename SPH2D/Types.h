@@ -1,6 +1,9 @@
-#pragma once
+#ifndef SPH_TYPES_H
+#define SPH_TYPES_H
 
-#ifndef CL_TARGET_OPENCL_VERSION
+
+#if !defined(KERNEL_INCLUDE) || !defined(KERNEL_BUILD)
+#include <cmath>
 
 struct float3 {
     float x, y, z;
@@ -68,40 +71,46 @@ struct float3 {
 
 struct float2 {
     float x, y;
+
+    float2() : x{ 0.f }, y{ 0.f } {}
+    float2(float v) : x{ v }, y{ v } {}
+    float2(float v1, float v2) : x{ v1 }, y{ v2 } {}
+    float2(const float2& v) : x{ v.x }, y{ v.y } {}
+
     auto operator-(const float2& v2) const {
         return float2{
-            .x = x - v2.x,
-            .y = y - v2.y
+            x - v2.x,
+            y - v2.y
         };
     }
     auto operator+(const float2& v2) const {
         return float2{
-            .x = x + v2.x,
-            .y = y + v2.y
+            x + v2.x,
+            y + v2.y
         };
     }
     auto operator*(const float2& v2) const {
         return float2{
-            .x = x * v2.x,
-            .y = y * v2.y
+            x * v2.x,
+            y * v2.y
         };
     }
     auto operator*(float v) const {
         return float2{
-            .x = x * v,
-            .y = y * v
+            x * v,
+            y * v
         };
     }
     auto operator/(float v) const {
         return float2{
-            .x = x / v,
-            .y = y / v
+            x / v,
+            y / v
         };
     }
     auto operator-() const {
         return float2{
-            .x = -x,
-            .y = -y
+            -x,
+            -y
         };
     }
     auto& operator+=(const float2& v2) {
@@ -127,7 +136,7 @@ typedef unsigned int rr_uint;
 typedef int rr_int;
 typedef int rr_iter;
 
-#include <cmath>
+
 inline float length_sqr(float3 vec) {
     return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
@@ -174,17 +183,8 @@ inline rr_uint max(rr_float a, rr_float b) {
 inline rr_uint min(rr_float a, rr_float b) {
     return std::min(a, b);
 }
-#else
-#define rr_float2 cl_float2
-#define rr_float cl_float
-#define rr_uint cl_uint
-#define rr_int cl_int
-#endif // !CL_TARGET_OPENCL_VERSION
-
-
-#ifdef KERNEL_INCLUDE
-#define rr_float float
-#define rr_uint uint
-#define rr_int int
-#define rr_float2 float2
 #endif
+
+
+#endif // !SPH_TYPES_H
+

@@ -1,0 +1,48 @@
+#include "CLCommon.h"
+#include "Test.h"
+#include "Kernel.h"
+
+static auto cpu_kernel(rr_float dist, rr_float2 diff) {
+    rr_float w;
+    rr_float2 dwdr;
+    kernel(dist, diff, w, dwdr);
+    return std::make_pair(w, dwdr);
+}
+
+static auto gpu_kernel(rr_float dist, rr_float2 diff) {
+    const char* code = R"(
+        #include "SmoothingKernel.cl"
+        __kernel void test_cl_smoothing_kernel(rr_float2 diff, __global rr_float* w, __global rr_float2* dwdr) {
+            rr_float _w;
+            rr_float2 _dwdr;
+            smoothing_kernel(length(diff), diff, &_w, &_dwdr);
+            *w = _w;
+            *dwdr = _dwdr;
+        }
+    )";
+
+    RRKernel kernel(makeProgramFromSource(code), "test_cl_smoothing_kernel");
+
+    auto w_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY);
+    auto dwdr_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY);
+    
+    kernel(diff, w_, dwdr_)
+        .execute({ 1 }, { 1 });
+
+    rr_float w;
+    rr_float2 dwdr;
+    cl::copy(w_, &w, &w + 1);
+    cl::copy(dwdr_, &dwdr, &dwdr + 1);
+
+    return std::make_pair(w, dwdr);
+}
+
+bool Test::test_smoothing_kernel() {
+    rr_float2 diff = rr_float2{ 0.5f, 0.25f } * Params::hsml;
+    rr_float dist = length(diff);
+
+    auto [w, dwdr] = cpu_kernel(dist, diff);
+    auto [wcl, dwdrcl] = gpu_kernel(dist, diff);
+
+    return Test::equals(w, wcl) && Test::equals(dwdr, dwdrcl);
+}

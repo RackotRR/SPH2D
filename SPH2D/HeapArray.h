@@ -56,6 +56,13 @@ public:
 	const T* data() const {
 		return ptr;
 	}
+	T* begin() {
+		return ptr;
+	}
+	T* end() {
+		size_t count{ dimensions * size };
+		return ptr + count;
+	}
 
 	void fill(const T& value) {
 		size_t count{ dimensions * size };
@@ -119,6 +126,12 @@ public:
 	}
 	const T* data() const {
 		return ptr;
+	}
+	T* begin() {
+		return ptr;
+	}
+	T* end() {
+		return ptr + size;
 	}
 
 	void fill(const T& value) {

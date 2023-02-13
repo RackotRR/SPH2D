@@ -39,7 +39,7 @@ void printParams() {
 		{"dy", Params::delta},
 		{"dt", Params::dt},
 		{"hsml", Params::hsml},
-		{"simulation_time", Params::simulationTime},
+		{"simulation_time", Params::simulation_time},
 		{"save_step", Params::save_step},
 		{"wave_length", Params::L },
 		{"depth", Params::d},
@@ -65,7 +65,8 @@ void setupOutput() {
 	std::filesystem::create_directory(std::filesystem::current_path().append(::dataOutputRelativePath));
 	std::filesystem::create_directory(std::filesystem::current_path().append(analysisResultsPath));
 
-	init_logger(Params::experimentName);
+	init_logger();
+	//init_logger(Params::experimentName);
 }
 
 // save particle information to external disk file
@@ -77,6 +78,23 @@ void output(
 	const heap_array<rr_float, Params::maxn>& p,	// pressure
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
+	const heap_array<rr_int, Params::maxn>& itype,	// material type 
+	const rr_uint ntotal,	// number of particles
+	const rr_uint itimestep,// current time step
+	const long long timePassedTotal,
+	const long long timeEstimates)
+{
+	printlog()(__func__)();
+
+	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
+	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
+
+	std::thread(printFast, r.copy(), itype.copy(), ntotal, itimestep).detach();
+}
+
+
+void fast_output(
+	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
 	const rr_uint itimestep,// current time step
