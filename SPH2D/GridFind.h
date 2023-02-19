@@ -27,3 +27,13 @@ void make_grid(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_uint, Params::maxn>& grid,
 	heap_array<rr_uint, Params::max_cells>& cells_start_in_grid); // grid index of particle
+
+// test
+void find_neighbours_gpu(rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& r, // coordinates of all particles
+	const heap_array<rr_uint, Params::maxn>& grid,
+	const heap_array<rr_uint, Params::max_cells>& cells_start_in_grid,
+	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr); // precomputed kernel derivative

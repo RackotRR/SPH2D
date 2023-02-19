@@ -1,29 +1,6 @@
 #include "CommonIncl.h"
 #include "Kernel.h"
 
-
-void av_vel_part(
-	const rr_uint self,
-	const rr_uint other,
-	const heap_array<rr_float, Params::maxn>& mass, // particle masses 
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
-	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-	const heap_array<rr_float, Params::maxn>& rho,	// density 
-	heap_array<rr_float2, Params::maxn>& av) // average velocity of each particle
-{
-	// epsilon for incompressible flow
-	static constexpr rr_float epsilon = 0.3f;
-
-	av(self) = { 0.f };
-
-	rr_float wij;
-	rr_float2 dwdr;
-	kernel(r(other), r(self), wij, dwdr);
-
-	rr_float2 dvx = v(other) - v(self);
-	av(self) += dvx * mass(other) / (rho(other) + rho(self)) * wij * 2.f * epsilon;
-}
-
 // calculate the average velocity to correct velocite for preventing penetration (Monaghan, 1992)
 void av_vel2(
 	const rr_uint ntotal, // number of particles

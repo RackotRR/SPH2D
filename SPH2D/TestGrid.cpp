@@ -3,7 +3,7 @@
 #include "GridFind.h"
 #include "Input.h"
 
-static void find_neighbours_gpu(rr_uint ntotal,
+void find_neighbours_gpu(rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r, // coordinates of all particles
 	const heap_array<rr_uint, Params::maxn>& grid,
 	const heap_array<rr_uint, Params::max_cells>& cells_start_in_grid,
@@ -24,7 +24,7 @@ static void find_neighbours_gpu(rr_uint ntotal,
 
 	kernel(r_, grid_, cells_, 
 		neighbours_count_, neighbours_, w_, dwdr_)
-		.execute(ntotal, 128);
+		.execute(ntotal, Params::localThreads);
 
 	cl::copy(neighbours_count_, neighbours_count.begin(), neighbours_count.end());
 	cl::copy(neighbours_, neighbours.begin(), neighbours.end());

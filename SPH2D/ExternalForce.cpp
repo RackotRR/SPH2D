@@ -1,45 +1,5 @@
 #include "CommonIncl.h"
 
-void ext_force_part(
-	const rr_uint self,
-	const rr_uint other,
-	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
-	const heap_array<rr_int, Params::maxn>& itype,	// type of particles 
-	heap_array<rr_float2, Params::maxn>& a) // out, acceleration with respect to x, y, z
-{
-	a(self).x = 0;
-	if constexpr (Params::self_gravity) {
-		a(self).y = -Params::g;
-	}
-	else {
-		a(self).y = 0;
-	}
-
-	// boundary particle force and penalty anti-penetration force
-	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
-	if (itype(self) > 0 && itype(other) < 0) {
-		// type > 0 --- material particle
-		// type < 0 --- virtual particle   
-
-		// rr --- distance between particles
-		rr_float2 dr = r(self) - r(other);
-		rr_float rr = length(dr);
-
-		const rr_float rr0 = Params::hsml;
-		if (rr < rr0) {
-			// calculating force
-			const rr_float D = 5 * Params::g * Params::d;
-			constexpr rr_uint p1 = 12;
-			constexpr rr_uint p2 = 4;
-			rr_float f = D * (powun(rr0 / rr, p1) - powun(rr0 / rr, p2)) / sqr(rr);
-
-			// applying force to material particle
-			a(self) += dr * f;
-		}
-	}
-}
-
 // calculate the external forces, e.g. gravitational forces.
 // the forces from the interactions with boundary virtual particles are alse calculated here as external forces
 void ext_force2(

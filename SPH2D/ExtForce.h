@@ -12,10 +12,11 @@ void ext_force2(
 	const heap_array<rr_int, Params::maxn>& itype,	// type of particles 
 	heap_array<rr_float2, Params::maxn>& a); // out, acceleration with respect to x, y, z
 
-void ext_force_part(
-	const rr_uint self,
-	const rr_uint other,
-	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
-	const heap_array<rr_int, Params::maxn>& itype,	// type of particles 
-	heap_array<rr_float2, Params::maxn>& a); // out, acceleration with respect to x, y, z
+// test
+void external_force_gpu(rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& mass_cl,
+	const heap_array<rr_float2, Params::maxn>& r_cl,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
+	const heap_array<rr_int, Params::maxn>& itype_cl,
+	heap_array<rr_float2, Params::maxn>& a_cl);

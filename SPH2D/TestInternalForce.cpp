@@ -69,20 +69,26 @@ namespace {
 }
 
 #pragma region FIND_STRESS_TENSOR
-static void find_stress_tensor_gpu(const rr_uint ntotal,
-	heap_array<rr_float, Params::maxn>& vcc,
-	heap_array<rr_float, Params::maxn>& txx,
-	heap_array<rr_float, Params::maxn>& txy,
-	heap_array<rr_float, Params::maxn>& tyy)
+void find_stress_tensor_gpu(const rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& v_cl,
+	const heap_array<rr_float, Params::maxn>& mass_cl,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
+	heap_array<rr_float, Params::maxn>& vcc_cl,
+	heap_array<rr_float, Params::maxn>& txx_cl,
+	heap_array<rr_float, Params::maxn>& txy_cl,
+	heap_array<rr_float, Params::maxn>& tyy_cl)
 {
 	RRKernel kernel(makeProgram("InternalForce.cl"), "find_stress_tensor");
 
-	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v);
-	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
-	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
-	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr);
+	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
+	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count_cl);
+	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
+	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr_cl);
 
 	size_t elements = Params::maxn;
 	auto vcc_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
@@ -101,12 +107,12 @@ static void find_stress_tensor_gpu(const rr_uint ntotal,
 		txx_,
 		txy_,
 		tyy_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
-	cl::copy(vcc_, vcc.begin(), vcc.end());
-	cl::copy(txx_, txx.begin(), txx.end());
-	cl::copy(txy_, txy.begin(), txy.end());
-	cl::copy(tyy_, tyy.begin(), tyy.end());
+	cl::copy(vcc_, vcc_cl.begin(), vcc_cl.end());
+	cl::copy(txx_, txx_cl.begin(), txx_cl.end());
+	cl::copy(txy_, txy_cl.begin(), txy_cl.end());
+	cl::copy(tyy_, tyy_cl.begin(), tyy_cl.end());
 }
 bool Test::test_find_stress_tensor() {
 	init_once();
@@ -126,10 +132,13 @@ bool Test::test_find_stress_tensor() {
 	heap_array<rr_float, Params::maxn> txy_cl;
 	heap_array<rr_float, Params::maxn> tyy_cl;
 	find_stress_tensor_gpu(ntotal,
-		vcc_cl,
-		txx_cl,
-		txy_cl,
-		tyy_cl);
+		v,
+		mass,
+		rho,
+		neighbours_count,
+		neighbours,
+		dwdr,
+		vcc_cl, txx_cl, txy_cl, tyy_cl);
 
 	rr_uint err_count = 0;
 	err_count += difference("vcc", vcc, vcc_cl, ntotal);
@@ -141,23 +150,24 @@ bool Test::test_find_stress_tensor() {
 #pragma endregion
 
 #pragma region UPDATE_INTERNAL_STATE
-static void update_internal_state_gpu(const rr_uint ntotal,
-	heap_array<rr_float, Params::maxn>& eta,
-	heap_array<rr_float, Params::maxn>& tdsdt,
-	heap_array<rr_float, Params::maxn>& p,
-	heap_array<rr_float, Params::maxn>& c)
+void update_internal_state_gpu(const rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_float, Params::maxn>& u_cl,
+	const heap_array<rr_float, Params::maxn>& txx_cl,
+	const heap_array<rr_float, Params::maxn>& txy_cl,
+	const heap_array<rr_float, Params::maxn>& tyy_cl,
+	heap_array<rr_float, Params::maxn>& eta_cl,
+	heap_array<rr_float, Params::maxn>& tdsdt_cl,
+	heap_array<rr_float, Params::maxn>& p_cl,
+	heap_array<rr_float, Params::maxn>& c_cl)
 {
 	RRKernel kernel(makeProgram("InternalForce.cl"), "update_internal_state");
 
-	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
-	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
-	auto w_ = makeBufferCopyHost(CL_MEM_READ_ONLY, w);
-	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx);
-	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy);
-	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
-	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u);
+	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx_cl);
+	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy_cl);
+	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u_cl);
 
 	size_t elements = Params::maxn;
 	auto eta_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
@@ -166,18 +176,15 @@ static void update_internal_state_gpu(const rr_uint ntotal,
 	auto c_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
 
 	kernel(
-		mass_,
-		neighbours_count_, neighbours_, w_,
+		rho_, u_,
 		txx_, txy_, tyy_,
-		rho_,
-		u_,
 		eta_, tdsdt_, p_, c_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
-	cl::copy(eta_, eta.begin(), eta.end());
-	cl::copy(tdsdt_, tdsdt.begin(), tdsdt.end());
-	cl::copy(p_, p.begin(), p.end());
-	cl::copy(c_, c.begin(), c.end());
+	cl::copy(eta_, eta_cl.begin(), eta_cl.end());
+	cl::copy(tdsdt_, tdsdt_cl.begin(), tdsdt_cl.end());
+	cl::copy(p_, p_cl.begin(), p_cl.end());
+	cl::copy(c_, c_cl.begin(), c_cl.end());
 }
 bool Test::test_update_internal_state() {
 	init_once();
@@ -200,10 +207,9 @@ bool Test::test_update_internal_state() {
 	heap_array<rr_float, Params::maxn> p_cl;
 	heap_array<rr_float, Params::maxn> c_cl;
 	update_internal_state_gpu(ntotal,
-		eta_cl,
-		tdsdt_cl,
-		p_cl,
-		c_cl);
+		rho, u,
+		txx, txy, tyy,
+		eta_cl, tdsdt_cl, p_cl, c_cl);
 
 	rr_uint err_count = 0;
 	err_count += difference("eta", eta, eta_cl, ntotal);
@@ -215,26 +221,40 @@ bool Test::test_update_internal_state() {
 #pragma endregion
 
 #pragma region FIND_INTERNAL_CHANGES_Pij_d_RHOij
-static void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
+void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& v_cl,
+	const heap_array<rr_float, Params::maxn>& mass_cl,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_float, Params::maxn>& eta_cl,
+	const heap_array<rr_float, Params::maxn>& u_cl,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
+	const heap_array<rr_float, Params::maxn>& vcc_cl,
+	const heap_array<rr_float, Params::maxn>& txx_cl,
+	const heap_array<rr_float, Params::maxn>& txy_cl,
+	const heap_array<rr_float, Params::maxn>& tyy_cl,
+	const heap_array<rr_float, Params::maxn>& p_cl,
+	const heap_array<rr_float, Params::maxn>& tdsdt_cl,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl)
 {
 	RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pij_d_rhoij");
 
-	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v);
-	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
-	auto eta_ = makeBufferCopyHost(CL_MEM_READ_ONLY, eta);
-	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
-	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
-	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr);
-	auto vcc_ = makeBufferCopyHost(CL_MEM_READ_ONLY, vcc);
-	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx);
-	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy);
-	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy);
-	auto p_ = makeBufferCopyHost(CL_MEM_READ_ONLY, p);
-	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt);
+	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
+	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto eta_ = makeBufferCopyHost(CL_MEM_READ_ONLY, eta_cl);
+	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u_cl);
+	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count_cl);
+	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
+	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr_cl);
+	auto vcc_ = makeBufferCopyHost(CL_MEM_READ_ONLY, vcc_cl);
+	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx_cl);
+	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy_cl);
+	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy_cl);
+	auto p_ = makeBufferCopyHost(CL_MEM_READ_ONLY, p_cl);
+	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt_cl);
 
 	size_t elements = Params::maxn;
 	auto a_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
@@ -246,7 +266,7 @@ static void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 		vcc_, txx_, txy_, tyy_,
 		p_, tdsdt_,
 		a_, dedt_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end());
@@ -277,8 +297,11 @@ bool Test::test_find_internal_changes_pij_d_rhoij() {
 	heap_array<rr_float2, Params::maxn> a_cl;
 	heap_array<rr_float, Params::maxn> dedt_cl;
 	find_internal_changes_pij_d_rhoij_gpu(ntotal,
-		a_cl,
-		dedt_cl);
+		v, mass, rho, eta, u,
+		neighbours_count, neighbours, dwdr,
+		vcc, txx, txy, tyy,
+		p, tdsdt,
+		a_cl, dedt_cl);
 
 	rr_uint err_count = 0;
 	err_count += difference("a", a, a_cl, ntotal);
@@ -288,26 +311,40 @@ bool Test::test_find_internal_changes_pij_d_rhoij() {
 #pragma endregion
 
 #pragma region FIND_INTERNAL_CHANGES_PiRHO2i_PiRHO2j
-static void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
+void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& v_cl,
+	const heap_array<rr_float, Params::maxn>& mass_cl,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_float, Params::maxn>& eta_cl,
+	const heap_array<rr_float, Params::maxn>& u_cl,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
+	const heap_array<rr_float, Params::maxn>& vcc_cl,
+	const heap_array<rr_float, Params::maxn>& txx_cl,
+	const heap_array<rr_float, Params::maxn>& txy_cl,
+	const heap_array<rr_float, Params::maxn>& tyy_cl,
+	const heap_array<rr_float, Params::maxn>& p_cl,
+	const heap_array<rr_float, Params::maxn>& tdsdt_cl,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl)
 {
 	RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pidrho2i_pjdrho2j");
 
-	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v);
-	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
-	auto eta_ = makeBufferCopyHost(CL_MEM_READ_ONLY, eta);
-	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
-	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
-	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr);
-	auto vcc_ = makeBufferCopyHost(CL_MEM_READ_ONLY, vcc);
-	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx);
-	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy);
-	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy);
-	auto p_ = makeBufferCopyHost(CL_MEM_READ_ONLY, p);
-	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt);
+	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
+	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto eta_ = makeBufferCopyHost(CL_MEM_READ_ONLY, eta_cl);
+	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u_cl);
+	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count_cl);
+	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
+	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr_cl);
+	auto vcc_ = makeBufferCopyHost(CL_MEM_READ_ONLY, vcc_cl);
+	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx_cl);
+	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy_cl);
+	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy_cl);
+	auto p_ = makeBufferCopyHost(CL_MEM_READ_ONLY, p_cl);
+	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt_cl);
 
 	size_t elements = Params::maxn;
 	auto a_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
@@ -319,7 +356,7 @@ static void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 		vcc_, txx_, txy_, tyy_,
 		p_, tdsdt_,
 		a_, dedt_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end()); 
@@ -350,8 +387,11 @@ bool Test::test_find_internal_changes_pidrho2i_pjdrho2j() {
 	heap_array<rr_float2, Params::maxn> a_cl;
 	heap_array<rr_float, Params::maxn> dedt_cl;
 	find_internal_changes_pidrho2i_pjdrho2j_gpu(ntotal,
-		a_cl,
-		dedt_cl);
+		v, mass, rho, eta, u,
+		neighbours_count, neighbours, dwdr,
+		vcc, txx, txy, tyy,
+		p, tdsdt,
+		a_cl, dedt_cl);
 
 	rr_uint err_count = 0;
 	err_count += difference("a", a, a_cl, ntotal);

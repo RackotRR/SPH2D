@@ -4,7 +4,7 @@
 #include "Input.h"
 #include "Density.h"
 
-static void sum_density_gpu(const rr_uint ntotal,
+void sum_density_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
@@ -26,7 +26,7 @@ static void sum_density_gpu(const rr_uint ntotal,
 		neighbours_, 
 		w_,
 		rho_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
 	cl::copy(rho_, rho.begin(), rho.end());
 }

@@ -74,20 +74,28 @@ namespace {
 	}
 }
 
-static void artificial_viscosity_gpu(
+void artificial_viscosity_gpu(rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& mass_cl,
+	const heap_array<rr_float2, Params::maxn>& r_cl,
+	const heap_array<rr_float2, Params::maxn>& v_cl,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_float, Params::maxn>& c_cl,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl) 
 {
 	RRKernel kernel(makeProgram("ArtificialViscosity.cl"), "artificial_viscosity");
 
-	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r);
-	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v);
-	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
-	auto c_ = makeBufferCopyHost(CL_MEM_READ_ONLY, c);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
-	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
-	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr);
+	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
+	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
+	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto c_ = makeBufferCopyHost(CL_MEM_READ_ONLY, c_cl);
+	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count_cl);
+	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
+	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr_cl);
 
 	size_t elements = Params::maxn;
 	auto a_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
@@ -96,9 +104,9 @@ static void artificial_viscosity_gpu(
 	kernel(
 		r_, v_,
 		mass_, rho_, c_,
-		neighbours_count_, neighbours_, dwdr_, 
+		neighbours_count_, neighbours_, dwdr_,
 		a_, dedt_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end());
@@ -116,7 +124,11 @@ bool Test::test_artificial_viscosity() {
 
 	heap_array<rr_float2, Params::maxn> a_cl;
 	heap_array<rr_float, Params::maxn> dedt_cl;
-	artificial_viscosity_gpu(a_cl, dedt_cl);
+	artificial_viscosity_gpu(ntotal,
+		mass, r, v, rho, c,
+		neighbours_count, neighbours,
+		dwdr, 
+		a_cl, dedt_cl);
 
 	rr_uint err_count = 0;
 	err_count += difference("a", a, a_cl, ntotal);

@@ -151,15 +151,11 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
 }
 
 __kernel void update_internal_state(
-    __global const rr_float* mass,
-    __global const rr_uint* neighbours_count,
-    __global const rr_uint* neighbours,
-    __global const rr_float* w,
+    __global const rr_float* rho,
+    __global const rr_float* u,
     __global const rr_float* txx,
     __global const rr_float* txy,
     __global const rr_float* tyy,
-    __global const rr_float* rho,
-    __global const rr_float* u,
 
     __global rr_float* eta,
     __global rr_float* tdsdt,

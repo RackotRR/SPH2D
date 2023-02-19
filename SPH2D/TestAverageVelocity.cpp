@@ -74,16 +74,25 @@ namespace {
 	}
 }
 
-static void average_velocity_gpu(heap_array<rr_float2, Params::maxn>& av_cl) {
+void average_velocity_gpu(rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& mass_cl,
+	const heap_array<rr_float2, Params::maxn>& r_cl,
+	const heap_array<rr_float2, Params::maxn>& v_cl,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
+	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w_cl,
+	heap_array<rr_float2, Params::maxn>& av_cl) 
+{
 	RRKernel kernel(makeProgram("AverageVelocity.cl"), "average_velocity");
 
-	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r);
-	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v);
-	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
-	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
-	auto w_ = makeBufferCopyHost(CL_MEM_READ_ONLY, w);
+	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
+	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
+	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count_cl);
+	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
+	auto w_ = makeBufferCopyHost(CL_MEM_READ_ONLY, w_cl);
 
 	size_t elements = Params::maxn;
 	auto av_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
@@ -93,7 +102,7 @@ static void average_velocity_gpu(heap_array<rr_float2, Params::maxn>& av_cl) {
 		mass_, rho_,
 		neighbours_count_, neighbours_, w_,
 		av_
-	).execute(ntotal, 128);
+	).execute(ntotal, Params::localThreads);
 
 	cl::copy(av_, av_cl.begin(), av_cl.end());
 }
@@ -109,7 +118,10 @@ bool Test::test_average_velocity() {
 		neighbours_count, neighbours, w,
 		av);
 
-	average_velocity_gpu(av_cl);
+	average_velocity_gpu(ntotal,
+		mass, r, v, rho,
+		neighbours_count, neighbours, w,
+		av_cl);
 
 	return difference("av", av, av_cl, ntotal) == 0;
 }
