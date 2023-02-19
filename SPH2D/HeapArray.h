@@ -2,12 +2,12 @@
 #include <utility>
 #include <array>
  
-template <typename T, size_t dimensions, size_t size>
+template <typename T, size_t dimensions, size_t size_in_dim>
 class heap_array_md {
 private:
 	T* ptr;
 	void create(T initValue) {
-		ptr = new T[dimensions * size]{ initValue }; 
+		ptr = new T[dimensions * size_in_dim]{ initValue }; 
 	}
 public:
 	~heap_array_md() { 
@@ -36,8 +36,7 @@ public:
 
 	auto copy() const {
 		heap_array_md arr;
-		size_t count{ dimensions * size };
-		for (size_t i{}; i < count; i++) {
+		for (size_t i{}; i < size(); i++) {
 			arr.ptr[i] = ptr[i];
 		}
 		return arr;
@@ -48,6 +47,12 @@ public:
 	}
 	T& operator() (size_t i, size_t j) {
 		return ptr[i + dimensions * j];
+	}
+	const T& operator[] (size_t k) const {
+		return ptr[k];
+	}
+	T& operator[] (size_t k) {
+		return ptr[k];
 	}
 
 	T* data() {
@@ -60,25 +65,26 @@ public:
 		return ptr;
 	}
 	T* end() {
-		size_t count{ dimensions * size };
-		return ptr + count;
+		return ptr + size();
+	}
+	constexpr size_t size() const {
+		return dimensions * size_in_dim;
 	}
 
 	void fill(const T& value) {
-		size_t count{ dimensions * size };
-		for (size_t i = 0; i < count; ++i) {
+		for (size_t i = 0; i < size(); ++i) {
 			ptr[i] = value;
 		}
 	}
 };
 
-template<typename T, size_t size>
+template<typename T, size_t elements>
 class heap_array {
 private:
 	T* ptr;
 	void create(T initValue) {
-		ptr = new T[size];
-		for (size_t i{}; i < size; i++) {
+		ptr = new T[elements];
+		for (size_t i{}; i < elements; i++) {
 			ptr[i] = initValue;
 		}
 	}
@@ -100,7 +106,7 @@ public:
 
 	auto copy() const {
 		heap_array arr;
-		for (size_t i{}; i < size; i++) {
+		for (size_t i{}; i < elements; i++) {
 			arr.ptr[i] = ptr[i];
 		}
 		return arr;
@@ -120,6 +126,12 @@ public:
 	T& operator() (size_t i) {
 		return ptr[i];
 	}
+	const T& operator[] (size_t k) const {
+		return ptr[k];
+	}
+	T& operator[] (size_t k) {
+		return ptr[k];
+	}
 
 	T* data() {
 		return ptr;
@@ -131,11 +143,14 @@ public:
 		return ptr;
 	}
 	T* end() {
-		return ptr + size;
+		return ptr + elements;
+	}
+	constexpr size_t size() const {
+		return elements;
 	}
 
 	void fill(const T& value) {
-		for (size_t i = 0; i < size; ++i) {
+		for (size_t i = 0; i < elements; ++i) {
 			ptr[i] = value;
 		}
 	}

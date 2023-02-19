@@ -38,11 +38,21 @@ static auto gpu_kernel(rr_float dist, rr_float2 diff) {
 }
 
 bool Test::test_smoothing_kernel() {
-    rr_float2 diff = rr_float2{ 0.5f, 0.25f } * Params::hsml;
+    rr_float2 diff = rr_float2{ 1.5f, 1.05f } * Params::hsml;
     rr_float dist = length(diff);
 
     auto [w, dwdr] = cpu_kernel(dist, diff);
     auto [wcl, dwdrcl] = gpu_kernel(dist, diff);
 
-    return Test::equals(w, wcl) && Test::equals(dwdr, dwdrcl);
+    if (!Test::equals(w, wcl)) {
+        std::cout << "w: ";
+        showDifference(w, wcl);
+        return false;
+    }
+    if (!Test::equals(dwdr, dwdrcl)) {
+        std::cout << "dwdr: ";
+        showDifference(dwdr, dwdrcl);
+        return false;
+    }
+    return true;
 }

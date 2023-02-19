@@ -8,6 +8,8 @@
 #include "ArtificialHeat.h"
 #include "AverageVelocity.h"
 
+#include <iostream>
+
 // determine the right hand side of a differential equation
 // in a single step for performing integration
 void single_step2(
@@ -20,17 +22,16 @@ void single_step2(
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy 
 	heap_array<rr_float, Params::maxn>& rho,	// out, density
 	heap_array<rr_float, Params::maxn>& p,	// out, pressure 
-	heap_array<rr_float, Params::maxn>& tdsdt,// out, production of viscous entropy t * ds/dt
+	heap_array<rr_float, Params::maxn>& c,	// out, sound velocity
 	heap_array<rr_float2, Params::maxn>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
 	heap_array<rr_float, Params::maxn>& du,	// out, du = d(u)/dt
 	heap_array<rr_float, Params::maxn>& drho,	// out, drho = d(rho)/dt
-	heap_array<rr_float2, Params::maxn>& av, // out, Monaghan average velocity
-	const rr_float time)
+	heap_array<rr_float2, Params::maxn>& av) // out, Monaghan average velocity
 {
 	printlog()(__func__)();
 
 	static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
-	static heap_array<rr_float, Params::maxn> c, avdudt, ahdudt, eta;
+	static heap_array<rr_float, Params::maxn> avdudt, ahdudt;
 
 	static heap_array<rr_uint, Params::maxn> neighbours_count;
 	static heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours;
@@ -73,11 +74,9 @@ void single_step2(
 		neighbours,
 		w,
 		dwdr,
-		eta,
 		c, 
 		p, 
 		indvxdt, 
-		tdsdt, 
 		du);
 
 	if constexpr (Params::visc_artificial) {
@@ -135,5 +134,8 @@ void single_step2(
 	for (rr_uint i = 0; i < nfluid; i++) {
 		a(i) = indvxdt(i) + exdvxdt(i) + arvdvxdt(i);
 		du(i) += avdudt(i) + ahdudt(i);
+
+		//a(i) = indvxdt(i);
 	}
+
 }

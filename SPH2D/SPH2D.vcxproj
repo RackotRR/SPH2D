@@ -96,7 +96,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);CL_HPP_ENABLE_EXCEPTIONS;CL_HPP_TARGET_OPENCL_VERSION=200</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
@@ -114,7 +114,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);CL_HPP_ENABLE_EXCEPTIONS;CL_HPP_TARGET_OPENCL_VERSION=200</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
@@ -132,7 +132,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);CL_HPP_ENABLE_EXCEPTIONS;CL_HPP_TARGET_OPENCL_VERSION=200</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
@@ -150,7 +150,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);CL_HPP_ENABLE_EXCEPTIONS;CL_HPP_TARGET_OPENCL_VERSION=200</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
@@ -168,6 +168,11 @@
     <ClInclude Include="ArtificialHeat.h" />
     <ClInclude Include="ArtificialViscosity.h" />
     <ClInclude Include="AverageVelocity.h" />
+    <ClInclude Include="CLAdapter.h" />
+    <ClInclude Include="CLCommon.h" />
+    <ClInclude Include="cl\clparams.h" />
+    <ClInclude Include="cl\common.h" />
+    <ClInclude Include="cl\GridUtils.h" />
     <ClInclude Include="CommonIncl.h" />
     <ClInclude Include="Density.h" />
     <ClInclude Include="EOS.h" />
@@ -183,6 +188,7 @@
     <ClInclude Include="Output.h" />
     <ClInclude Include="Params.h" />
     <ClInclude Include="SingleStep.h" />
+    <ClInclude Include="Test.h" />
     <ClInclude Include="TimeIntegration.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="VirtualParticles.h" />
@@ -192,11 +198,13 @@
     <ClCompile Include="ArtificialHeat.cpp" />
     <ClCompile Include="ArtificialViscosity.cpp" />
     <ClCompile Include="AverageVelocity2.cpp" />
+    <ClCompile Include="CLCommon.cpp" />
     <ClCompile Include="Density2.cpp" />
     <ClCompile Include="EOS.cpp" />
     <ClCompile Include="ExternalForce.cpp" />
     <ClCompile Include="GridFind.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="IntegrationTest.cpp" />
     <ClCompile Include="InternalForce2.cpp" />
     <ClCompile Include="IsNormalCheck.cpp" />
     <ClCompile Include="Kernel.cpp" />
@@ -204,12 +212,32 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="SingleStep2.cpp" />
     <ClCompile Include="SPH.cpp" />
+    <ClCompile Include="Test.cpp" />
+    <ClCompile Include="TestArtificialViscosity.cpp" />
+    <ClCompile Include="TestAverageVelocity.cpp" />
+    <ClCompile Include="TestDensity.cpp" />
+    <ClCompile Include="TestEOS.cpp" />
+    <ClCompile Include="TestExternalForce.cpp" />
+    <ClCompile Include="TestGrid.cpp" />
+    <ClCompile Include="TestInternalForce.cpp" />
+    <ClCompile Include="TestKernel.cpp" />
+    <ClCompile Include="TestSingleStep.cpp" />
+    <ClCompile Include="TestTimeIntegration.cpp" />
     <ClCompile Include="TimeIntegration.cpp" />
     <ClCompile Include="VirtualParticles.cpp" />
     <ClCompile Include="WaveMaker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.gitignore" />
+    <None Include="cl\ArtificialViscosity.cl" />
+    <None Include="cl\AverageVelocity.cl" />
+    <None Include="cl\Density.cl" />
+    <None Include="cl\EOS.cl" />
+    <None Include="cl\ExternalForce.cl" />
+    <None Include="cl\GridFind.cl" />
+    <None Include="cl\InternalForce.cl" />
+    <None Include="cl\SmoothingKernel.cl" />
+    <None Include="cl\TimeIntegration.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

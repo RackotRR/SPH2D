@@ -17,8 +17,8 @@ bool check_finite(
 	bool is_finite = true;
 
 	for (rr_uint i = 0; i < ntotal; ++i) {
-		if (!isfinite(r(i)) || 
-			!isfinite(v(i))) {
+		if (!isfinite(r(i).x) || !isfinite(r(i).y) ||
+			!isfinite(v(i).x) || !isfinite(v(i).y)) {
 			is_finite = false;
 		}
 		if (!isfinite(rho(i)) ||

@@ -24,6 +24,28 @@ namespace {
 			stream << itype(i) << std::endl;
 		}
 	}
+	void printFull(
+		const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+		const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+		const heap_array<rr_float, Params::maxn>& rho,// density
+		const heap_array<rr_float, Params::maxn>& p,	// pressure
+		const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
+		const heap_array<rr_float, Params::maxn>& c,	// sound velocity
+		const heap_array<rr_int, Params::maxn>& itype,	// material type 
+		const rr_uint ntotal,	// number of particles
+		const rr_uint itimestep) // current time step
+	{
+		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
+		stream << ntotal << std::endl;
+		for (rr_uint i = 0; i < ntotal; i++) {
+			stream << r(i).x << std::endl << r(i).y << std::endl;
+			stream << v(i).x << std::endl << v(i).y << std::endl;
+			stream << rho(i) << std::endl;
+			stream << p(i) << std::endl;
+			stream << c(i) << std::endl;
+			stream << itype(i) << std::endl;
+		}
+	}
 }
 
 // params and other things
@@ -65,15 +87,14 @@ void setupOutput() {
 	std::filesystem::create_directory(std::filesystem::current_path().append(::dataOutputRelativePath));
 	std::filesystem::create_directory(std::filesystem::current_path().append(analysisResultsPath));
 
-	init_logger();
-	//init_logger(Params::experimentName);
+	//init_logger();
+	init_logger(Params::experimentName);
 }
 
 // save particle information to external disk file
 void output(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,// density
 	const heap_array<rr_float, Params::maxn>& p,	// pressure
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
@@ -89,7 +110,16 @@ void output(
 	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
 	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
 
-	std::thread(printFast, r.copy(), itype.copy(), ntotal, itimestep).detach();
+	std::thread(printFull, 
+		r.copy(), 
+		v.copy(),
+		rho.copy(),
+		p.copy(),
+		u.copy(),
+		c.copy(),
+		itype.copy(), 
+		ntotal, 
+		itimestep).detach();
 }
 
 

@@ -6,7 +6,7 @@
 
 #include <stdexcept>
 
-static void initConsts() {
+void initConsts() {
 	printlog()(__func__)();
 
 	constexpr rr_float H = 0.1f;
@@ -62,18 +62,21 @@ static void initConsts() {
 
 	Params::normal_check_step = 500;
 	Params::save_step = 250;
-	Params::simulationTime = 2.f;
+	Params::simulation_time = 5.f;
 	Params::dt = 1e-4f;
-	rr_float steps = Params::simulationTime / Params::dt;
+	rr_float steps = Params::simulation_time / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
 	}
 	Params::maxtimestep = static_cast<size_t>(steps);
 	printlog("check normal step: ")(Params::normal_check_step)();
 	printlog("save step: ")(Params::save_step)();
-	printlog("simulation time: ")(Params::simulationTime)();
+	printlog("simulation time: ")(Params::simulation_time)();
 	printlog("dt: ")(Params::dt)();
 	printlog("maxtimestep: ")(Params::maxtimestep)();
+
+	Params::generator_time_wait = 0.f;
+	printlog("generator time wait: ")(Params::generator_time_wait)();
 }
 
 // loading or generating initial particle information

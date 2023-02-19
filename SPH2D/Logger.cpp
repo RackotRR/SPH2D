@@ -36,13 +36,16 @@ PrintLog& PrintLog::operator()(int value) {
 	return *this;
 }
 
-static std::unique_ptr<std::ostream> log_stream;
+static std::unique_ptr<std::ofstream> log_file;
+static std::ostream* log_stream;
+
 void PrintLog::init(const std::string& experimentName) {
 	std::string filename = experimentName + "\\" + "log.txt";
-	log_stream = std::make_unique<std::ofstream>(filename);
+	log_file = std::make_unique<std::ofstream>(filename);
+	log_stream = log_file.get();
 }
 void PrintLog::init_stdout() {
-	log_stream = std::unique_ptr<std::ostream>(&std::cout);
+	log_stream = &std::cout;
 }
 void PrintLog::printlog_part(const std::string& line_part) {
 	*log_stream << line_part;

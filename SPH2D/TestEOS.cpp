@@ -42,11 +42,16 @@ bool Test::test_eos() {
 
     auto [p, c] = cpu_eos(rho, u);
     auto [p_cl, c_cl] = gpu_eos(rho, u);
-    
-    //std::cout << "p " << p << std::endl;
-    //std::cout << "p_cl " << p_cl << std::endl;
-    //std::cout << "c " << c << std::endl;
-    //std::cout << "c_cl " << c_cl << std::endl;
 
-    return Test::equals(p, p_cl) && Test::equals(c, c_cl);
+    if (!Test::equals(p, p_cl)) {
+        std::cout << "p: ";
+        showDifference(p, p_cl);
+        return false;
+    }
+    if (!Test::equals(c, c_cl)) {
+        std::cout << "c: ";
+        showDifference(c, c_cl);
+        return false;
+    }
+    return true;
 }

@@ -46,6 +46,8 @@ namespace Params {
 	inline float dt;
 	inline float simulation_time;
 
+	constexpr unsigned localThreads{ 128 };
+
 	// form of eos
 	// eos = 1 : Lennard-Jones
 	//		 2 : Monaghan 1994
@@ -96,7 +98,7 @@ namespace Params {
 	constexpr bool average_velocity{ true }; // Liu G.R. (eq 4.92)
 
 	// viscosity on?
-	constexpr bool visc{ true };
+	constexpr bool visc{ false };
 
 	// external force on?
 	constexpr bool ex_force{ true };

@@ -2,7 +2,9 @@
 #include "EOS.h"
 #include "Kernel.h"
 
-static void find_stress_tensor(
+#include <iostream>
+
+void find_stress_tensor(
 	const rr_uint ntotal, // number of particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
@@ -50,7 +52,7 @@ static void find_stress_tensor(
 }
 
 
-static void find_internal_changes_pij_d_rhoij(
+void find_internal_changes_pij_d_rhoij(
 	const rr_uint ntotal, // number of particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
@@ -65,8 +67,8 @@ static void find_internal_changes_pij_d_rhoij(
 	const heap_array<rr_float, Params::maxn>& txy,
 	const heap_array<rr_float, Params::maxn>& tyy,
 	const heap_array<rr_float, Params::maxn>& p,	// particle pressure
+	const heap_array<rr_float, Params::maxn>& tdsdt,	// production of viscous entropy
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
-	heap_array<rr_float, Params::maxn>& tdsdt,	// production of viscous entropy
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
 	printlog(__func__)();
@@ -103,7 +105,7 @@ static void find_internal_changes_pij_d_rhoij(
 		dedt(j) = 0.5f * dedt(j) + tdsdt(j);
 	}
 }
-static void find_internal_changes_pidrho2i_pjdrho2j(
+void find_internal_changes_pidrho2i_pjdrho2j(
 	const rr_uint ntotal, // number of particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
@@ -118,8 +120,8 @@ static void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_array<rr_float, Params::maxn>& txy,
 	const heap_array<rr_float, Params::maxn>& tyy,
 	const heap_array<rr_float, Params::maxn>& p,	// particle pressure
+	const heap_array<rr_float, Params::maxn>& tdsdt,	// production of viscous entropy
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
-	heap_array<rr_float, Params::maxn>& tdsdt,	// production of viscous entropy
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
 	printlog(__func__)();
@@ -156,6 +158,30 @@ static void find_internal_changes_pidrho2i_pjdrho2j(
 	}
 }
 
+void update_internal_state(
+	const rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& rho,	// density
+	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
+	const heap_array<rr_float, Params::maxn>& txx,
+	const heap_array<rr_float, Params::maxn>& txy,	
+	const heap_array<rr_float, Params::maxn>& tyy,	
+	heap_array<rr_float, Params::maxn>& eta,	// dynamic viscosity
+	heap_array<rr_float, Params::maxn>& tdsdt,	// production of viscous entropy
+	heap_array<rr_float, Params::maxn>& c,	// particle sound speed
+	heap_array<rr_float, Params::maxn>& p)	// particle pressure
+{
+	for (rr_uint i = 0; i < ntotal; i++) {
+		if constexpr (Params::visc) { // viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
+			eta(i) = 1.e-3f; // water
+			tdsdt(i) = sqr(txx(i)) + 2.f * sqr(txy(i)) + sqr(tyy(i));
+			tdsdt(i) *= 0.5f * eta(i) / rho(i);
+		}
+
+		// pressure from equation of state 
+		p_art_water(rho(i), u(i), p(i), c(i));
+	}
+}
+
 // 144 page, 4.38; 4.41; 4.59; 4.58 equations 
 /*	Calculate the internal forces on the rigth hand side of the Navier-Stokes equations,
 *	i.e  the pressure gradient and the gradient of the viscous stress tensor, used by the time integration.
@@ -173,11 +199,9 @@ void int_force2(
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
-	heap_array<rr_float, Params::maxn>& eta,	// dynamic viscosity
 	heap_array<rr_float, Params::maxn>& c,	// particle sound speed
 	heap_array<rr_float, Params::maxn>& p,	// particle pressure
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
-	heap_array<rr_float, Params::maxn>& tdsdt,	// production of viscous entropy
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
 	printlog(__func__)();
@@ -186,6 +210,8 @@ void int_force2(
 	static heap_array<rr_float, Params::maxn> txx;
 	static heap_array<rr_float, Params::maxn> tyy;
 	static heap_array<rr_float, Params::maxn> txy;
+	static heap_array<rr_float, Params::maxn> tdsdt; // production of viscous entropy
+	static heap_array<rr_float, Params::maxn> eta; // dynamic viscosity
 
 	// shear tensor, velocity divergence, viscous energy, internal energy, acceleration
 
@@ -194,25 +220,15 @@ void int_force2(
 			v,
 			mass,
 			rho,
-			neighbours_count,
-			neighbours,
-			dwdr,
-			vcc,
-			txx,
-			txy,
-			tyy);
+			neighbours_count, neighbours, dwdr,
+			vcc, txx, txy, tyy);
 	}
 
-	for (rr_uint i = 0; i < ntotal; i++) {		
-		if constexpr (Params::visc) { // viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
-			eta(i) = 1.e-3f; // water
-			tdsdt(i) = sqr(txx(i)) + 2.f * sqr(txy(i)) + sqr(tyy(i));
-			tdsdt(i) *= 0.5f * eta(i) / rho(i);
-		}
-
-		// pressure from equation of state 
-		p_art_water(rho(i), u(i), p(i), c(i));
-	}
+	update_internal_state(ntotal,
+		rho,
+		u,
+		txx, txy, tyy,
+		eta, tdsdt, c, p);
 
 	if constexpr (Params::pa_sph == 1) {
 		find_internal_changes_pij_d_rhoij(ntotal,
@@ -221,16 +237,10 @@ void int_force2(
 			rho,
 			eta,
 			u,
-			neighbours_count,
-			neighbours,
-			dwdr,
-			vcc,
-			txx,
-			txy,
-			tyy,
-			p,
-			a, tdsdt,
-			dedt);
+			neighbours_count, neighbours, dwdr,
+			vcc, txx, txy, tyy,
+			p, tdsdt, 
+			a, dedt);
 	}
 	else {
 		find_internal_changes_pidrho2i_pjdrho2j(ntotal,
@@ -239,15 +249,9 @@ void int_force2(
 			rho,
 			eta,
 			u,
-			neighbours_count,
-			neighbours,
-			dwdr,
-			vcc,
-			txx,
-			txy,
-			tyy,
-			p,
-			a, tdsdt,
-			dedt);
+			neighbours_count, neighbours, dwdr, 
+			vcc, txx, txy, tyy,
+			p, tdsdt, 
+			a, dedt);
 	}
 }

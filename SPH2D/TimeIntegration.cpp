@@ -5,7 +5,7 @@
 #include "IsNormalCheck.h"
 #include "WaveMaker.h"
 
-#include <RRTime/Timer.h>
+#include <RR/Time/Timer.h>
 
 void predict_half_step(
 	const rr_uint ntotal,
@@ -23,7 +23,7 @@ void predict_half_step(
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		u_predict(i) = u(i) + du(i) * Params::dt * 0.5f;
-		u_predict(i) = max(u_predict(i), 0.f);
+		u_predict(i) = std::max(u_predict(i), 0.f);
 
 		if constexpr (Params::summation_density == false) {
 			rho_predict(i) = rho(i) + drho(i) * Params::dt * 0.5f;
@@ -51,7 +51,7 @@ void correct_step(
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		u(i) = u_predict(i) + du(i) * Params::dt;
-		u(i) = max(u(i), 0.f);
+		u(i) = std::max(u(i), 0.f);
 
 		if constexpr (Params::summation_density == false) {
 			rho(i) = rho_predict(i) + drho(i) * Params::dt;
@@ -72,14 +72,13 @@ void time_integration(
 	heap_array<rr_float, Params::maxn>& p,	// out, pressure
 	heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	heap_array<rr_float, Params::maxn>& c,	// sound velocity 
-	heap_array<rr_float, Params::maxn>& e,	// total energy of particles 
 	heap_array<rr_int, Params::maxn>& itype, // material type: >0: material, <0: virtual
 	const rr_uint ntotal, // total particle number at t = 0
 	const rr_uint nfluid)  // fluid particles 
 {
 	printlog()(__func__)();
 
-	heap_array<rr_float, Params::maxn> u_predict, rho_predict, du, drho, tdsdt;
+	heap_array<rr_float, Params::maxn> u_predict, rho_predict, du, drho;
 	heap_array<rr_float, Params::maxn>* rho_predicted;
 	if constexpr (Params::summation_density) {
 		rho_predicted = &rho;
@@ -101,7 +100,8 @@ void time_integration(
 		time = itimestep * Params::dt;
 		if (itimestep % Params::save_step == 0) {
 			long long timeEstimate = static_cast<long long>(timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.);
-			output(r, v, mass, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+			//output(r, v, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+			fast_output(r, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
 		}
 
 		predict_half_step(ntotal,
@@ -111,8 +111,9 @@ void time_integration(
 			*rho_predicted, u_predict, v_predict);
 
 		// definition of variables out of the function vector:
-		single_step2(nfluid, ntotal, mass, itype, r, v_predict, u_predict, *rho_predicted, p,
-			tdsdt, a, du, drho, av, time);
+		single_step2(nfluid, ntotal, mass, itype, r, 
+			v_predict, u_predict, *rho_predicted, 
+			p, c, a, du, drho, av);
 
 		correct_step(ntotal,
 			itype,

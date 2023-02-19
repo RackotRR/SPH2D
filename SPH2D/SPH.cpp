@@ -1,17 +1,18 @@
+#include "CLAdapter.h"
 #include <iostream>
 #include <string>
-#include <RRTime/Timer.h>
+#include <RR/Time/Timer.h>
 
 #include "CommonIncl.h"
 #include "Input.h"
 #include "Output.h"
 #include "TimeIntegration.h" 
-
+#include "Test.h"
 
 void sph() {
-	heap_array<rr_float, Params::maxn> mass; // particle masses
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
+	heap_array<rr_float, Params::maxn> mass; // particle masses
 	heap_array<rr_int, Params::maxn> itype;// material type of particles
 	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
 	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
@@ -19,14 +20,24 @@ void sph() {
 	heap_array<rr_float, Params::maxn> p;	// pressure
 	heap_array<rr_float, Params::maxn> u;	// specific internal energy
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
-	heap_array<rr_float, Params::maxn> e;	// total energy of particles
 
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-	time_integration(r, v, mass, rho, p, u, c, e, itype, ntotal, nfluid);
+	time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
+	//cl_time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 }
- 
 
-int main(int arc, const char* argv[]) {
+void testing() {
+	try {
+		init_logger();
+		initConsts();
+		Test{};
+	}
+	catch (const std::exception& ex) {
+		std::cerr << "error at " << ex.what() << std::endl;
+	}
+}
+
+void simulation() {
 	std::cout << "Experiment name: ";
 	std::getline(std::cin, Params::experimentName);
 	setupOutput();
@@ -40,11 +51,17 @@ int main(int arc, const char* argv[]) {
 		sph();
 		timer.finish();
 
-		printlog("total time in seconds: ")(timer.value<std::chrono::seconds>());
+		std::cout << "total time in seconds: " << timer.value<std::chrono::seconds>() << std::endl;
 	}
 	catch (const std::exception& ex) {
 		printlog("catch exception: ")(ex.what())();
 	}
+
 	system("pause");
+}
+
+int main(int arc, const char* argv[]) {
+	//testing();
+	simulation();
 	return 0;
 }

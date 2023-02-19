@@ -10,10 +10,10 @@ inline float CELL_SIZE;
 namespace {
 
     // skale_k depends on the smoothing kernel function
-    constexpr int get_scale_k() {
+    constexpr float get_scale_k() {
         static_assert(Params::skf > 0 && Params::skf < 4);
 
-        int scale_k;
+        float scale_k;
         switch (Params::skf)
         {
         case 1:
@@ -67,7 +67,7 @@ namespace {
         return (unsigned)((Y_MIN + y) / CELL_SIZE);
     }
     unsigned get_cell_idx(float x, float y) {
-        return get_cell_idx(get_cell_x_from_coordinate(x), get_cell_y_from_coordinate(x));
+        return get_cell_idx(get_cell_x_from_coordinate(x), get_cell_y_from_coordinate(y));
     }
     unsigned get_cell_idx(rr_float2 r) {
         return get_cell_idx(r.x, r.y);
@@ -92,22 +92,24 @@ namespace {
         unsigned x = get_cell_x(idx);
         unsigned y = get_cell_y(idx);
 
+        static constexpr unsigned INVALID_CELL = static_cast<unsigned>(-1);
+
         cells[0] = idx;
-        unsigned top = get_cell_idx(x, max(y, y + 1));
-        cells[1] = (top == idx) ? Params::max_cells : top;
-        unsigned bottom = get_cell_idx(x, min(y, y - 1));
-        cells[2] = (bottom == idx) ? Params::max_cells : bottom;
-        unsigned left = get_cell_idx(min(x, x - 1), y);
-        cells[3] = (left == idx) ? Params::max_cells : left;
-        unsigned right = get_cell_idx(max(x, x + 1), y);
-        cells[4] = (right == idx) ? Params::max_cells : right;                
-        unsigned top_left = get_cell_idx(min(x, x - 1), max(y, y + 1)); 
-        cells[5] = (top_left == left || top_left == top || top_left == idx) ? Params::max_cells : top_left;
-        unsigned top_right = get_cell_idx(max(x, x + 1), max(y, y + 1));
-        cells[6] = (top_right == right || top_right == top || top_right == idx) ? Params::max_cells : top_right;
-        unsigned bottom_left = get_cell_idx(min(x, x - 1), min(y, y - 1));
-        cells[7] = (bottom_left == left || bottom_left == bottom || bottom_left == idx) ? Params::max_cells : bottom_left;
-        unsigned bottom_right = get_cell_idx(max(x, x + 1), min(y, y - 1));
-        cells[8] = (bottom_right == right || bottom_right == bottom || bottom_right == idx) ? Params::max_cells : bottom_right;
+        unsigned top = get_cell_idx(x, std::max(y, y + 1));
+        cells[1] = (top == idx) ? INVALID_CELL : top;
+        unsigned bottom = get_cell_idx(x, std::min(y, y - 1));
+        cells[2] = (bottom == idx) ? INVALID_CELL : bottom;
+        unsigned left = get_cell_idx(std::min(x, x - 1), y);
+        cells[3] = (left == idx) ? INVALID_CELL : left;
+        unsigned right = get_cell_idx(std::max(x, x + 1), y);
+        cells[4] = (right == idx) ? INVALID_CELL : right;                
+        unsigned top_left = get_cell_idx(std::min(x, x - 1), std::max(y, y + 1)); 
+        cells[5] = (top_left == left || top_left == top || top_left == idx) ? INVALID_CELL : top_left;
+        unsigned top_right = get_cell_idx(std::max(x, x + 1), std::max(y, y + 1));
+        cells[6] = (top_right == right || top_right == top || top_right == idx) ? INVALID_CELL : top_right;
+        unsigned bottom_left = get_cell_idx(std::min(x, x - 1), std::min(y, y - 1));
+        cells[7] = (bottom_left == left || bottom_left == bottom || bottom_left == idx) ? INVALID_CELL : bottom_left;
+        unsigned bottom_right = get_cell_idx(std::max(x, x + 1), std::min(y, y - 1));
+        cells[8] = (bottom_right == right || bottom_right == bottom || bottom_right == idx) ? INVALID_CELL : bottom_right;
     }
 }

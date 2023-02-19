@@ -46,5 +46,5 @@ struct DontPrintLog {
 };
 
 #define init_logger()
-#define printlog(anything) DontPrintLog()()
+#define printlog(...) DontPrintLog()()
 #endif // FULL_STAT_LOGGING

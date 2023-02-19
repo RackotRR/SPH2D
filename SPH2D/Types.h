@@ -161,28 +161,6 @@ inline float reduce(float3 vec) {
 inline float reduce(float2 vec) {
     return vec.x + vec.y;
 }
-inline int isfinite(rr_float value) {
-    return std::isfinite(value);
-}
-inline int isfinite(float3 value) {
-    return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
-}
-inline int isfinite(float2 value) {
-    return std::isfinite(value.x) && std::isfinite(value.y);
-}
-
-inline rr_uint max(rr_uint a, rr_uint b) {
-    return std::max(a, b);
-}
-inline rr_uint min(rr_uint a, rr_uint b) {
-    return std::min(a, b);
-}
-inline rr_uint max(rr_float a, rr_float b) {
-    return std::max(a, b);
-}
-inline rr_uint min(rr_float a, rr_float b) {
-    return std::min(a, b);
-}
 #endif
 
 

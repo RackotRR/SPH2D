@@ -5,7 +5,6 @@
 void output(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,// density
 	const heap_array<rr_float, Params::maxn>& p,	// pressure
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy

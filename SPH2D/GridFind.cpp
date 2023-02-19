@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-static void make_grid(
+void make_grid(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_uint, Params::maxn>& grid,
@@ -37,7 +37,8 @@ static void make_grid(
 		cells_start_in_grid(i) += cells_start_in_grid(i - 1ull);
 	}
 
-	for (rr_uint i = ntotal; i > 0; --i) {
+//#pragma omp parallel for
+	for (rr_iter i = ntotal; i > 0; --i) {
 		rr_uint j = i - 1;
 
 		unsigned cell_idx = unsorted_grid(j);
@@ -46,7 +47,7 @@ static void make_grid(
 	}
 }
 
-static void find_neighbours(
+void find_neighbours(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,
 	const heap_array<rr_uint, Params::maxn>& grid,
@@ -72,7 +73,7 @@ static void find_neighbours(
 		get_neighbouring_cells(center_cell_idx, neighbour_cells);
 		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
 			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == Params::max_cells) continue; // invalid cell
+			if (cell_idx == -1) continue; // invalid cell
 
 			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
 				grid_i < cell_starts_in_grid(cell_idx + 1ull);
