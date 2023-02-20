@@ -30,11 +30,14 @@ public:
 
     void execute(cl::NDRange global, cl::NDRange local) {
         auto command_queue = cl::CommandQueue::getDefault();
-        command_queue.enqueueNDRangeKernel(
+        cl_int err = command_queue.enqueueNDRangeKernel(
             kernel,
             cl::NDRange{ 0 },
             global,
             local);
+        if (err != CL_SUCCESS) {
+            throw std::runtime_error{ "enqueueNDRangeKernel error: " + std::to_string(err) };
+        }
     }
 private:
     cl::Kernel kernel;

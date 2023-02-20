@@ -18,3 +18,22 @@ void single_step2(
 	heap_array<rr_float, Params::maxn>& du,	// out, du = d(u)/dt
 	heap_array<rr_float, Params::maxn>& drho,	// out, drho = d(rho)/dt
 	heap_array<rr_float2, Params::maxn>& av); // out, Monaghan average velocity
+
+void update_change_rate(rr_uint nfluid,
+	const heap_array<rr_float2, Params::maxn>& indvxdt,
+	const heap_array<rr_float2, Params::maxn>& exdvxdt,
+	const heap_array<rr_float2, Params::maxn>& arvdvxdt,
+	const heap_array<rr_float, Params::maxn>& arvdudt,
+	const heap_array<rr_float, Params::maxn>& ahdudt,
+	heap_array<rr_float2, Params::maxn>& a,
+	heap_array<rr_float, Params::maxn>& dudt);
+
+// test
+void update_change_rate_gpu(rr_uint nfluid,
+	const heap_array<rr_float2, Params::maxn>& indvxdt_cl,
+	const heap_array<rr_float2, Params::maxn>& exdvxdt_cl,
+	const heap_array<rr_float2, Params::maxn>& arvdvxdt_cl,
+	const heap_array<rr_float, Params::maxn>& arvdudt_cl,
+	const heap_array<rr_float, Params::maxn>& ahdudt_cl,
+	heap_array<rr_float2, Params::maxn>& a_cl,
+	heap_array<rr_float, Params::maxn>& dudt_cl);

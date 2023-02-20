@@ -115,7 +115,7 @@ void artificial_viscosity_gpu(rr_uint ntotal,
 bool Test::test_artificial_viscosity() {
 	init_once();
 
-	art_visc2(ntotal,
+	artificial_viscosity(ntotal,
 		mass, r, v, rho, c,
 		neighbours_count, neighbours,
 		dwdr, 

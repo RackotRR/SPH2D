@@ -2,7 +2,7 @@
 
 // calculate the external forces, e.g. gravitational forces.
 // the forces from the interactions with boundary virtual particles are alse calculated here as external forces
-void ext_force2(
+void external_force(
 	const rr_uint ntotal, // number of particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 

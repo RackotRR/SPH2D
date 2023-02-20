@@ -1,6 +1,7 @@
 #include "CommonIncl.h"
 #include "EOS.h"
 #include "Kernel.h"
+#include "InternalForce.h"
 
 #include <iostream>
 
@@ -224,7 +225,7 @@ void int_force2(
 			vcc, txx, txy, tyy);
 	}
 
-	update_internal_state(ntotal,
+	update_internal_state_gpu(ntotal,
 		rho,
 		u,
 		txx, txy, tyy,

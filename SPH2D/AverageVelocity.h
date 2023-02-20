@@ -3,7 +3,7 @@
 
 
 // calculate the average velocity to correct velocite for preventing penetration (Monaghan, 1992)
-void av_vel2(
+void average_velocity(
 	const rr_uint ntotal, // number of particles
 	const heap_array<rr_float, Params::maxn>& mass, // particle masses 
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles

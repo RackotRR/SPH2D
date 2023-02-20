@@ -107,13 +107,13 @@
     <ClCompile Include="Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InternalForce2.cpp">
+    <ClCompile Include="InternalForce.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Kernel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SingleStep2.cpp">
+    <ClCompile Include="SingleStep.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SPH.cpp">
@@ -131,7 +131,7 @@
     <ClCompile Include="ArtificialViscosity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AverageVelocity2.cpp">
+    <ClCompile Include="AverageVelocity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Density2.cpp">

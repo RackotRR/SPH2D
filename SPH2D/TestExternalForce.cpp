@@ -93,7 +93,7 @@ void external_force_gpu(rr_uint ntotal,
 bool Test::test_external_force() {
 	init_once();
 
-	ext_force2(ntotal,
+	external_force(ntotal,
 		mass, r,
 		neighbours_count, neighbours,
 		itype,

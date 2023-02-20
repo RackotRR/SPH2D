@@ -2,7 +2,7 @@
 #include "Kernel.h"
 
 // calculate the artificial viscosity (Monaghan, 1992)
-void art_visc2(
+void artificial_viscosity(
 	const rr_uint ntotal,	// number of particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles

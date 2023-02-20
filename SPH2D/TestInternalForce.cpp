@@ -158,27 +158,29 @@ void update_internal_state_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& tyy_cl,
 	heap_array<rr_float, Params::maxn>& eta_cl,
 	heap_array<rr_float, Params::maxn>& tdsdt_cl,
-	heap_array<rr_float, Params::maxn>& p_cl,
-	heap_array<rr_float, Params::maxn>& c_cl)
+	heap_array<rr_float, Params::maxn>& c_cl,
+	heap_array<rr_float, Params::maxn>& p_cl)
 {
 	RRKernel kernel(makeProgram("InternalForce.cl"), "update_internal_state");
+	heap_array<rr_float, Params::maxn> zeros;
 
-	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx_cl);
-	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy_cl);
-	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy_cl);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
-	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u_cl);
+	auto txx_ = makeBufferCopyHost(CL_MEM_READ_WRITE, txx_cl);
+	auto txy_ = makeBufferCopyHost(CL_MEM_READ_WRITE, txy_cl);
+	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_WRITE, tyy_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_WRITE, rho_cl);
+	auto u_ = makeBufferCopyHost(CL_MEM_READ_WRITE, u_cl);
 
 	size_t elements = Params::maxn;
-	auto eta_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto tdsdt_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto p_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto c_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
+	auto eta_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
+	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
+	auto p_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
+	auto c_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
 
 	kernel(
 		rho_, u_,
-		txx_, txy_, tyy_,
-		eta_, tdsdt_, p_, c_
+		//txx_, txy_, tyy_,
+		//eta_, tdsdt_, 
+		p_, c_
 	).execute(ntotal, Params::localThreads);
 
 	cl::copy(eta_, eta_cl.begin(), eta_cl.end());
@@ -209,7 +211,7 @@ bool Test::test_update_internal_state() {
 	update_internal_state_gpu(ntotal,
 		rho, u,
 		txx, txy, tyy,
-		eta_cl, tdsdt_cl, p_cl, c_cl);
+		eta_cl, tdsdt_cl, c_cl, p_cl);
 
 	rr_uint err_count = 0;
 	err_count += difference("eta", eta, eta_cl, ntotal);

@@ -113,7 +113,7 @@ bool Test::test_average_velocity() {
 	heap_array<rr_float2, Params::maxn> av;
 	heap_array<rr_float2, Params::maxn> av_cl;
 
-	av_vel2(ntotal,
+	average_velocity(ntotal,
 		mass, r, v, rho,
 		neighbours_count, neighbours, w,
 		av);

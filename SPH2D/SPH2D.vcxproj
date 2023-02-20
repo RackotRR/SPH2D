@@ -150,7 +150,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);CL_HPP_ENABLE_EXCEPTIONS;CL_HPP_TARGET_OPENCL_VERSION=200</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);CL_HPP_TARGET_OPENCL_VERSION=200</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
@@ -197,7 +197,7 @@
   <ItemGroup>
     <ClCompile Include="ArtificialHeat.cpp" />
     <ClCompile Include="ArtificialViscosity.cpp" />
-    <ClCompile Include="AverageVelocity2.cpp" />
+    <ClCompile Include="AverageVelocity.cpp" />
     <ClCompile Include="CLCommon.cpp" />
     <ClCompile Include="Density2.cpp" />
     <ClCompile Include="EOS.cpp" />
@@ -205,12 +205,12 @@
     <ClCompile Include="GridFind.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="IntegrationTest.cpp" />
-    <ClCompile Include="InternalForce2.cpp" />
+    <ClCompile Include="InternalForce.cpp" />
     <ClCompile Include="IsNormalCheck.cpp" />
     <ClCompile Include="Kernel.cpp" />
     <ClCompile Include="Output2.cpp" />
     <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="SingleStep2.cpp" />
+    <ClCompile Include="SingleStep.cpp" />
     <ClCompile Include="SPH.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="TestArtificialViscosity.cpp" />

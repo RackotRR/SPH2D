@@ -7,6 +7,7 @@
 #include "ExtForce.h" 
 #include "ArtificialHeat.h"
 #include "AverageVelocity.h"
+#include "SingleStep.h"
 
 #include <iostream>
 
@@ -80,7 +81,7 @@ void single_step2(
 		du);
 
 	if constexpr (Params::visc_artificial) {
-		art_visc2(ntotal, 
+		artificial_viscosity(ntotal, 
 			mass, 
 			r, 
 			v, 
@@ -94,7 +95,7 @@ void single_step2(
 	}
 
 	if constexpr (Params::ex_force) {
-		ext_force2(ntotal, 
+		external_force(ntotal,
 			mass, 
 			r, 
 			neighbours_count,
@@ -119,7 +120,7 @@ void single_step2(
 
 	// calculating average velocity of each particle for avoiding penetration
 	if constexpr (Params::average_velocity) {
-		av_vel2(nfluid, 
+		average_velocity(nfluid,
 			mass, 
 			r, 
 			v, 
@@ -131,11 +132,26 @@ void single_step2(
 	}
 
 	// convert velocity, force and energy to f and dfdt
+	update_change_rate(nfluid,
+		indvxdt,
+		exdvxdt,
+		arvdvxdt,
+		avdudt,
+		ahdudt,
+		a, du);
+}
+
+void update_change_rate(rr_uint nfluid,
+	const heap_array<rr_float2, Params::maxn>& indvxdt,
+	const heap_array<rr_float2, Params::maxn>& exdvxdt,
+	const heap_array<rr_float2, Params::maxn>& arvdvxdt,
+	const heap_array<rr_float, Params::maxn>& arvdudt,
+	const heap_array<rr_float, Params::maxn>& ahdudt,
+	heap_array<rr_float2, Params::maxn>& a,
+	heap_array<rr_float, Params::maxn>& dudt)
+{
 	for (rr_uint i = 0; i < nfluid; i++) {
 		a(i) = indvxdt(i) + exdvxdt(i) + arvdvxdt(i);
-		du(i) += avdudt(i) + ahdudt(i);
-
-		//a(i) = indvxdt(i);
+		dudt(i) += arvdudt(i) + ahdudt(i);
 	}
-
 }
