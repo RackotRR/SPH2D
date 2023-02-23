@@ -134,7 +134,7 @@
     <ClCompile Include="AverageVelocity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Density2.cpp">
+    <ClCompile Include="Density.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EOS.cpp">
@@ -149,7 +149,7 @@
     <ClCompile Include="WaveMaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Output2.cpp">
+    <ClCompile Include="Output.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IsNormalCheck.cpp">

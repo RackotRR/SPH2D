@@ -98,7 +98,7 @@ namespace Params {
 	constexpr bool average_velocity{ true }; // Liu G.R. (eq 4.92)
 
 	// viscosity on?
-	constexpr bool visc{ false };
+	constexpr bool visc{ true };
 
 	// external force on?
 	constexpr bool ex_force{ true };
@@ -120,10 +120,10 @@ namespace Params {
 
 	/// control parameters for output
 
+	constexpr bool enable_check_consistency{ false };
 	// false - just say
 	// true - stop on not normal
-	constexpr bool inf_stop{ true };
-	constexpr bool enable_check_consistency{ true };
+	constexpr bool inf_stop{ enable_check_consistency && true };
 
 	inline unsigned maxtimestep; // time step to finish
 	inline unsigned normal_check_step; // step for checking boundaries and finite values

@@ -199,7 +199,7 @@
     <ClCompile Include="ArtificialViscosity.cpp" />
     <ClCompile Include="AverageVelocity.cpp" />
     <ClCompile Include="CLCommon.cpp" />
-    <ClCompile Include="Density2.cpp" />
+    <ClCompile Include="Density.cpp" />
     <ClCompile Include="EOS.cpp" />
     <ClCompile Include="ExternalForce.cpp" />
     <ClCompile Include="GridFind.cpp" />
@@ -208,7 +208,7 @@
     <ClCompile Include="InternalForce.cpp" />
     <ClCompile Include="IsNormalCheck.cpp" />
     <ClCompile Include="Kernel.cpp" />
-    <ClCompile Include="Output2.cpp" />
+    <ClCompile Include="Output.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="SingleStep.cpp" />
     <ClCompile Include="SPH.cpp" />

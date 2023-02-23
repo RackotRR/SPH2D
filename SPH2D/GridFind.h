@@ -4,7 +4,7 @@
 // calculate the smoothing function for each particle and the interaction parameters used by SPH algorithm.
 // Interaction pairs are determined by constucting mesh
 // comparing distance with the corresponding smoothing length within nearest blocks of particles
-void grid_find2(
+void grid_find(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,
 	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours

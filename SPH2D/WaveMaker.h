@@ -26,3 +26,11 @@ void make_waves(
 	const rr_uint nfluid,
 	const rr_uint ntotal,
 	const rr_float time);
+
+void make_waves_gpu(
+	heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+	heap_array<rr_float2, Params::maxn>& a,
+	const rr_uint nfluid,
+	const rr_uint ntotal,
+	const rr_float time);

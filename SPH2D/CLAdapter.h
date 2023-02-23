@@ -208,7 +208,7 @@ inline void cl_time_integration(
     auto ardudt_ = makeBuffer<rr_float>(DEVICE_ONLY, Params::maxn);
 
     // average velocity
-    auto av_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, Params::maxn);
+    auto av_ = makeBuffer<rr_float2>(DEVICE_ONLY, Params::maxn);
 
 
     rr_float time = 0;
@@ -220,11 +220,11 @@ inline void cl_time_integration(
         time = itimestep * Params::dt;
         if (itimestep % Params::save_step == 0) {
             long long timeEstimate = static_cast<long long>(timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.);
-            cl::copy(r_, r.begin(), r.end());
-            fast_output(r, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+            
+            heap_array<rr_float2, Params::maxn> r_temp;
+            cl::copy(r_, r_temp.begin(), r_temp.end());
+            fast_output(std::move(r_temp), itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
         }
-
-        cl::finish();
 
         printlog("predict_half_step_kernel")();
         predict_half_step_kernel(
@@ -233,15 +233,11 @@ inline void cl_time_integration(
             rho_predict_, u_predict_, v_predict_
         ).execute(ntotal, Params::localThreads);
 
-        cl::finish();
-
         printlog("make grid")();
         cl::copy(r_, r.begin(), r.end());
         make_grid(ntotal, r, grid, cells);
         cl::enqueueWriteBuffer(grid_, true, 0, sizeof(rr_uint) * Params::maxn, grid.data());
         cl::enqueueWriteBuffer(cells_, true, 0, sizeof(rr_uint) * Params::max_cells, cells.data());
-
-        cl::finish();
 
         printlog("find neighbours")();
         find_neighbours_kernel(
@@ -264,13 +260,12 @@ inline void cl_time_integration(
             v_predict_, mass_, rho_predict_, neighbours_count_, neighbours_, dwdr_,
             vcc_, txx_, txy_, tyy_
         ).execute(ntotal, Params::localThreads);
-        printlog("update internal state")();
 
         cl::finish();
 
+        printlog("update internal state")();
         update_internal_state_kernel(
-            mass_, neighbours_count_, neighbours_, w_,
-            txx_, txy_, tyy_, rho_predict_, u_predict_,
+            rho_predict_, u_predict_, txx_, txy_, tyy_,
             eta_, tdsdt_, p_, c_
         ).execute(ntotal, Params::localThreads);
 
@@ -292,8 +287,6 @@ inline void cl_time_integration(
             exdvxdt_
         ).execute(ntotal, Params::localThreads);
 
-        cl::finish();
-
         printlog("artificial viscosity")();
         artificial_viscosity_kernel(
             r_, v_predict_, mass_, rho_predict_, c_,
@@ -301,16 +294,12 @@ inline void cl_time_integration(
             ardvxdt_, ardudt_
         ).execute(ntotal, Params::localThreads);
 
-        cl::finish();
-
         printlog("average velocity")();
         average_velocity_kernel(
             r_, v_predict_, mass_, rho_predict_,
             neighbours_count_, neighbours_, w_,
             av_
         ).execute(ntotal, Params::localThreads);
-
-        cl::finish();
 
         printlog("single step")();
         single_step_kernel(

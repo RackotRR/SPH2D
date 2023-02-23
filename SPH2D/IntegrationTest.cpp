@@ -186,7 +186,7 @@ bool Test::test_single_step() {
 		u, du,
 		v, a,
 		rho_predict, u_predict, v_predict);
-	single_step2(nfluid, ntotal, mass, itype, r, v_predict, u_predict,
+	single_step(nfluid, ntotal, mass, itype, r, v_predict, u_predict,
 		rho_predict, p, c, a, du, temp, av);
 	correct_step(ntotal, itype, temp, du, a, rho_predict, u_predict, v_predict, av,
 		rho, u, v, r);

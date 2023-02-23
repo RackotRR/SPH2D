@@ -50,7 +50,7 @@ namespace {
 			w,
 			dwdr);
 
-		sum_density2(ntotal,
+		sum_density(ntotal,
 			mass,
 			neighbours_count,
 			neighbours,
@@ -67,7 +67,7 @@ void external_force_gpu(rr_uint ntotal,
 	const heap_array<rr_int, Params::maxn>& itype_cl,
 	heap_array<rr_float2, Params::maxn>& a_cl) 
 {
-	RRKernel kernel(makeProgram("ExternalForce.cl"), "external_force");
+	static RRKernel kernel(makeProgram("ExternalForce.cl"), "external_force");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);

@@ -53,14 +53,14 @@ namespace {
 			w,
 			dwdr);
 
-		sum_density2(ntotal,
+		sum_density(ntotal,
 			mass,
 			neighbours_count,
 			neighbours,
 			w,
 			rho);
 
-		int_force2(ntotal,
+		int_force(ntotal,
 			mass,
 			r,
 			v,
@@ -84,7 +84,7 @@ void average_velocity_gpu(rr_uint ntotal,
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w_cl,
 	heap_array<rr_float2, Params::maxn>& av_cl) 
 {
-	RRKernel kernel(makeProgram("AverageVelocity.cl"), "average_velocity");
+	static RRKernel kernel(makeProgram("AverageVelocity.cl"), "average_velocity");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);

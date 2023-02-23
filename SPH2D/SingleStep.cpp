@@ -13,7 +13,7 @@
 
 // determine the right hand side of a differential equation
 // in a single step for performing integration
-void single_step2(
+void single_step(
 	const rr_uint nfluid, // number of fluid particles
 	const rr_uint ntotal, // number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
@@ -39,7 +39,7 @@ void single_step2(
 	static heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w;
 	static heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr;
 
-	grid_find2(ntotal,
+	grid_find(ntotal,
 		r,
 		neighbours_count,
 		neighbours,
@@ -47,7 +47,7 @@ void single_step2(
 		dwdr);
 
 	if constexpr (Params::summation_density) {
-		sum_density2(ntotal,
+		sum_density(ntotal,
 			mass,
 			neighbours_count,
 			neighbours,
@@ -55,7 +55,7 @@ void single_step2(
 			rho);
 	}
 	else {
-		con_density2(ntotal,
+		con_density(ntotal,
 			mass,
 			v,
 			neighbours_count,
@@ -65,7 +65,7 @@ void single_step2(
 			drho);
 	}
 
-	int_force2(ntotal, 
+	int_force(ntotal, 
 		mass, 
 		r, 
 		v, 

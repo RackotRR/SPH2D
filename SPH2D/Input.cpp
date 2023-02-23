@@ -62,7 +62,7 @@ void initConsts() {
 
 	Params::normal_check_step = 500;
 	Params::save_step = 250;
-	Params::simulation_time = 0.5f;
+	Params::simulation_time = 2.f;
 	Params::dt = 1e-4f;
 	rr_float steps = Params::simulation_time / Params::dt;
 	if (steps < 0) {

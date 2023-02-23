@@ -51,7 +51,7 @@ static void density_summation(
 		}
 	}
 }
-void sum_density2(
+void sum_density(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
@@ -92,7 +92,7 @@ void sum_density2(
 }
 
 // calculate the density with SPH continuity approach
-void con_density2(
+void con_density(
 	const rr_uint ntotal,	// number of particles 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& v,// velocity of all particles 

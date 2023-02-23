@@ -53,14 +53,14 @@ namespace {
 			w,
 			dwdr);
 
-		sum_density2(ntotal,
+		sum_density(ntotal,
 			mass,
 			neighbours_count,
 			neighbours,
 			w,
 			rho);
 
-		int_force2(ntotal,
+		int_force(ntotal,
 			mass,
 			r,
 			v,
@@ -86,7 +86,7 @@ void artificial_viscosity_gpu(rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl) 
 {
-	RRKernel kernel(makeProgram("ArtificialViscosity.cl"), "artificial_viscosity");
+	static RRKernel kernel(makeProgram("ArtificialViscosity.cl"), "artificial_viscosity");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);

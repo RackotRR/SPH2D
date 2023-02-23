@@ -59,7 +59,7 @@ namespace {
 			w,
 			dwdr);
 
-		sum_density2(ntotal,
+		sum_density(ntotal,
 			mass,
 			neighbours_count,
 			neighbours,
@@ -81,7 +81,7 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 	heap_array<rr_float, Params::maxn>& txy_cl,
 	heap_array<rr_float, Params::maxn>& tyy_cl)
 {
-	RRKernel kernel(makeProgram("InternalForce.cl"), "find_stress_tensor");
+	static RRKernel kernel(makeProgram("InternalForce.cl"), "find_stress_tensor");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
@@ -161,25 +161,25 @@ void update_internal_state_gpu(const rr_uint ntotal,
 	heap_array<rr_float, Params::maxn>& c_cl,
 	heap_array<rr_float, Params::maxn>& p_cl)
 {
-	RRKernel kernel(makeProgram("InternalForce.cl"), "update_internal_state");
+	static RRKernel kernel(makeProgram("InternalForce.cl"), "update_internal_state");
 	heap_array<rr_float, Params::maxn> zeros;
 
-	auto txx_ = makeBufferCopyHost(CL_MEM_READ_WRITE, txx_cl);
-	auto txy_ = makeBufferCopyHost(CL_MEM_READ_WRITE, txy_cl);
-	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_WRITE, tyy_cl);
-	auto rho_ = makeBufferCopyHost(CL_MEM_READ_WRITE, rho_cl);
-	auto u_ = makeBufferCopyHost(CL_MEM_READ_WRITE, u_cl);
+	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx_cl);
+	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy_cl);
+	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
+	auto u_ = makeBufferCopyHost(CL_MEM_READ_ONLY, u_cl);
 
 	size_t elements = Params::maxn;
-	auto eta_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
-	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
-	auto p_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
-	auto c_ = makeBufferCopyHost(CL_MEM_READ_WRITE, zeros);
+	auto eta_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
+	auto tdsdt_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
+	auto p_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
+	auto c_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
 
 	kernel(
 		rho_, u_,
-		//txx_, txy_, tyy_,
-		//eta_, tdsdt_, 
+		txx_, txy_, tyy_,
+		eta_, tdsdt_, 
 		p_, c_
 	).execute(ntotal, Params::localThreads);
 
@@ -241,7 +241,7 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl)
 {
-	RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pij_d_rhoij");
+	static RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pij_d_rhoij");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
@@ -331,7 +331,7 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl)
 {
-	RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pidrho2i_pjdrho2j");
+	static RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pidrho2i_pjdrho2j");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
@@ -349,8 +349,8 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt_cl);
 
 	size_t elements = Params::maxn;
-	auto a_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
-	auto dedt_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
+	auto a_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, elements);
+	auto dedt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, elements);
 
 	kernel(
 		v_, mass_, rho_, eta_, u_,

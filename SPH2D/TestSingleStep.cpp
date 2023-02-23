@@ -18,7 +18,7 @@ void update_change_rate_gpu(rr_uint nfluid,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dudt_cl)
 {
-	RRKernel kernel(makeProgram("TimeIntegration.cl"), "single_step");
+	static RRKernel kernel(makeProgram("TimeIntegration.cl"), "single_step");
 
 	auto indvxdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, indvxdt_cl);
 	auto exdvxdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, exdvxdt_cl);

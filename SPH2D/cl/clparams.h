@@ -26,6 +26,7 @@
 #define params_boundary_delta 0.0279999990f
 #define params_summation_density
 #define params_average_velocity
+#define params_visc
 #define params_ex_force
 #define params_self_gravity
 #define params_visc_artificial

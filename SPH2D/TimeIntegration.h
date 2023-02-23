@@ -41,3 +41,29 @@ void correct_step(
 	heap_array<rr_float, Params::maxn>& u, // specific internal energy
 	heap_array<rr_float2, Params::maxn>& v,	// velocities
 	heap_array<rr_float2, Params::maxn>& r); // coordinates of all particles
+
+// test
+void predict_half_step_gpu(rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& rho_cl,
+	const heap_array<rr_float, Params::maxn>& drho_cl,
+	const heap_array<rr_float, Params::maxn>& u_cl,
+	const heap_array<rr_float, Params::maxn>& du_cl,
+	const heap_array<rr_float2, Params::maxn>& v_cl,
+	const heap_array<rr_float2, Params::maxn>& a_cl,
+	heap_array<rr_float, Params::maxn>& u_predict_cl,
+	heap_array<rr_float, Params::maxn>& rho_predict_cl,
+	heap_array<rr_float2, Params::maxn>& v_predict_cl);
+void correct_step_gpu(
+	const rr_uint ntotal,
+	const heap_array<rr_int, Params::maxn>& itype,
+	const heap_array<rr_float, Params::maxn>& drho,
+	const heap_array<rr_float, Params::maxn>& du,
+	const heap_array<rr_float2, Params::maxn>& a,
+	const heap_array<rr_float, Params::maxn>& rho_predict,
+	const heap_array<rr_float, Params::maxn>& u_predict,
+	const heap_array<rr_float2, Params::maxn>& v_predict,
+	const heap_array<rr_float2, Params::maxn>& av,
+	heap_array<rr_float, Params::maxn>& rho,
+	heap_array<rr_float, Params::maxn>& u,
+	heap_array<rr_float2, Params::maxn>& v,
+	heap_array<rr_float2, Params::maxn>& r);

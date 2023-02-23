@@ -4,6 +4,7 @@
 #include "VirtualParticles.h"
 #include "IsNormalCheck.h"
 #include "WaveMaker.h"
+#include "TimeIntegration.h"
 
 #include <RR/Time/Timer.h>
 
@@ -111,7 +112,7 @@ void time_integration(
 			*rho_predicted, u_predict, v_predict);
 
 		// definition of variables out of the function vector:
-		single_step2(nfluid, ntotal, mass, itype, r, 
+		single_step(nfluid, ntotal, mass, itype, r, 
 			v_predict, u_predict, *rho_predicted, 
 			p, c, a, du, drho, av);
 

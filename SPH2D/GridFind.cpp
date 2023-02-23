@@ -14,7 +14,6 @@ void make_grid(
 
 	static heap_array<unsigned, Params::maxn> unsorted_grid;
 
-	unsorted_grid.fill(0);
 	cells_start_in_grid.fill(0);
 
 	for (rr_uint i = 0; i < ntotal; ++i) {
@@ -37,7 +36,7 @@ void make_grid(
 		cells_start_in_grid(i) += cells_start_in_grid(i - 1ull);
 	}
 
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (rr_iter i = ntotal; i > 0; --i) {
 		rr_uint j = i - 1;
 
@@ -118,7 +117,7 @@ void find_neighbours(
 	}
 }
 
-void grid_find2(
+void grid_find(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,
 	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours

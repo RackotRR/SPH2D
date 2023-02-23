@@ -60,7 +60,12 @@ private:
 
 template<typename T>
 cl::Buffer makeBuffer(cl_mem_flags flags, size_t elements) {
-    return cl::Buffer(flags, sizeof(T) * elements);
+    cl_int error = 0;
+    cl::Buffer buffer = cl::Buffer(flags, sizeof(T) * elements, nullptr, &error);
+    if (error != CL_SUCCESS) {
+        throw std::runtime_error{ "makeBuffer error: " + std::to_string(error) };
+    }
+    return buffer;
 }
 template<typename T>
 cl::Buffer makeBuffer(cl_mem_flags flags) {
@@ -69,7 +74,10 @@ cl::Buffer makeBuffer(cl_mem_flags flags) {
 template<typename T>
 cl::Buffer makeBufferCopyHost(cl_mem_flags flags, T* ptr, size_t elements) {
     auto buffer = makeBuffer<T>(flags, elements);
-    cl::enqueueWriteBuffer(buffer, true, 0, sizeof(T) * elements, ptr);
+    cl_int error = cl::enqueueWriteBuffer(buffer, true, 0, sizeof(T) * elements, ptr);
+    if (error != CL_SUCCESS) {
+        throw std::runtime_error{ "makeBufferCopyHost error at enuqueueWriteBuffer: " + std::to_string(error) };
+    }
     return buffer;
 }
 template<typename T, size_t size>

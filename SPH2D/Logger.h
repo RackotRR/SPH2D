@@ -1,5 +1,5 @@
 #pragma once
-#define FULL_STAT_LOGGING
+//#define FULL_STAT_LOGGING
 
 #ifdef FULL_STAT_LOGGING
 #include <string>
@@ -45,6 +45,6 @@ struct DontPrintLog {
 	DontPrintLog& operator()(...) { return *this; }
 };
 
-#define init_logger()
+#define init_logger(...)
 #define printlog(...) DontPrintLog()()
 #endif // FULL_STAT_LOGGING

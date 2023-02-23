@@ -16,6 +16,13 @@ void output(
 	const long long timeEstimates);
 
 void fast_output(
+	heap_array<rr_float2, Params::maxn>&& r,	// coordinates of all particles
+	const heap_array<rr_int, Params::maxn>& itype,	// material type 
+	const rr_uint ntotal,	// number of particles
+	const rr_uint itimestep,// current time step
+	const long long timePassedTotal,
+	const long long timeEstimates);
+void fast_output(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles

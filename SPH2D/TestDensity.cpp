@@ -11,7 +11,7 @@ void sum_density_gpu(const rr_uint ntotal,
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float, Params::maxn>& rho) // out, density
 {
-	RRKernel kernel(makeProgram("Density.cl"), "sum_density");
+	static RRKernel kernel(makeProgram("Density.cl"), "sum_density");
 
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
 	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
@@ -54,7 +54,7 @@ bool Test::test_sum_density() {
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
 	find_neighbours(ntotal, r, grid, cells_start_in_grid, neighbours_count, neighbours, w, dwdr);
 
-	sum_density2(ntotal,
+	sum_density(ntotal,
 		mass,
 		neighbours_count,
 		neighbours,

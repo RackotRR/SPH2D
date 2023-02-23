@@ -12,7 +12,7 @@ void find_neighbours_gpu(rr_uint ntotal,
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
 {
-	RRKernel kernel(makeProgram("GridFind.cl"), "find_neighbours");
+	static RRKernel kernel(makeProgram("GridFind.cl"), "find_neighbours");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r);
 	auto grid_ = makeBufferCopyHost(CL_MEM_READ_ONLY, grid);

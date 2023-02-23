@@ -6,7 +6,7 @@
 *	Moreover the entropy production due to viscous dissipation, tds/dt,
 *	and the change of internal energy per mass, de/dt, are calculated
 */
-void int_force2(
+void int_force(
 	const rr_uint ntotal, // number of particles, 
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
@@ -105,8 +105,8 @@ void update_internal_state_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& tyy_cl,
 	heap_array<rr_float, Params::maxn>& eta_cl,
 	heap_array<rr_float, Params::maxn>& tdsdt_cl,
-	heap_array<rr_float, Params::maxn>& p_cl,
-	heap_array<rr_float, Params::maxn>& c_cl);
+	heap_array<rr_float, Params::maxn>& c_cl,
+	heap_array<rr_float, Params::maxn>& p_cl);
 void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& v_cl,
 	const heap_array<rr_float, Params::maxn>& mass_cl,
