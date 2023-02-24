@@ -2,9 +2,9 @@
 #define CL_PARAMS_H
 
 #define params_dim 2
-#define params_maxn 50000
+#define params_maxn 65536
 #define params_max_neighbours 50
-#define params_max_cells 3000000
+#define params_max_cells 3932160
 #define params_x_maxgeom 11.0000000000f
 #define params_x_mingeom 0.0000000000f
 #define params_y_maxgeom 4.0000000000f

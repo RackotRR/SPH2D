@@ -32,3 +32,12 @@ constexpr rr_float powun(rr_float value, rr_uint power) {
 	}
 	return result;
 }
+
+constexpr size_t intlog2(size_t size) {
+	size_t passes = 0;
+	while (size != 1) {
+		size >>= 1;
+		++passes;
+	}
+	return passes;
+}

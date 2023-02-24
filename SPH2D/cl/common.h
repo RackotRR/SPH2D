@@ -17,7 +17,11 @@
 #else
 #define __kernel
 #define __global
+#define __device
+#define CLK_GLOBAL_MEM_FENCE 0
+#define MAXFLOAT FLT_MAX
 size_t get_global_id(rr_uint dimindx);
+void barrier(int flags);
 #endif // !KERNEL_HELPER
 
 

@@ -5,7 +5,7 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr unsigned maxn{ 50'000 }; // maximum number of particles
+	constexpr unsigned maxn{ 1 << 16 }; // maximum number of particles
 	constexpr unsigned max_neighbours{ 50 };
 	constexpr unsigned max_cells{ 60 * maxn }; // maximum number of cells in grid
 

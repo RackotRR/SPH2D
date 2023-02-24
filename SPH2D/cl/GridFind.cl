@@ -3,6 +3,94 @@
 
 #define max_dist_kernel sqr(params_scale_k * params_hsml)
 
+__kernel void binary_search(
+    __global const rr_float2* r,
+    __global const rr_uint* grid,
+    __global rr_uint* cells)
+{
+    rr_uint cell_idx = get_global_id(0);
+    if (cell_idx >= params_max_cells) return;
+
+    rr_uint first = 0;
+    rr_uint n = params_ntotal;
+
+    while (n > 0) {
+        rr_uint step = n >> 1;
+        rr_uint i = first + step;
+
+        if (grid[i] == params_ntotal || get_cell_idx(r[grid[i]]) >= cell_idx) {
+            n = step;
+        }
+        else {
+            first = ++i;
+            n -= step + 1;
+        }
+    }
+
+    cells[cell_idx] = first;
+}
+
+inline void swap(
+    __global rr_uint* grid,
+    rr_uint first,
+    rr_uint second)
+{
+    rr_uint temp = grid[first];
+    grid[first] = grid[second];
+    grid[second] = temp;
+}
+inline bool less(
+    __global const rr_float2* r,
+    rr_uint first,
+    rr_uint second)
+{
+    if (second == params_ntotal) {
+        return first != params_ntotal;
+    }
+    return (first != params_ntotal) && (get_cell_idx(r[first]) < get_cell_idx(r[second]));
+}
+inline bool greater(
+    __global const rr_float2* r,
+    rr_uint first,
+    rr_uint second)
+{
+    if (first == params_ntotal) {
+        return second != params_ntotal;
+    }
+    return (second != params_ntotal) && (get_cell_idx(r[first]) > get_cell_idx(r[second]));
+}
+__kernel void bitonic_sort_step(
+    __global rr_float2* r, 
+    __global rr_uint* grid, 
+    size_t pass, 
+    size_t step_size, 
+    size_t max_step_size) 
+{
+    size_t i = get_global_id(0);
+
+    if (i < params_maxn - step_size) {
+        if (i % (step_size * 2) < step_size) {
+            bool asc = (i / (2 * max_step_size)) % 2 == 0;
+            if (asc && greater(r, grid[i], grid[i + step_size])) {
+                swap(grid, i, i + step_size);
+            }
+            else if (!asc && less(r, grid[i], grid[i + step_size])) {
+                swap(grid, i, i + step_size);
+            }
+        }
+    }
+}
+__kernel void fill_in_grid(__global rr_uint* grid){
+    size_t i = get_global_id(0);
+    if (i >= params_ntotal) {
+        grid[i] = params_ntotal;
+    }
+    else {
+        grid[i] = i;
+    }
+}
+
+
 __kernel void find_neighbours(
     __global const rr_float2* r,
     __global const rr_uint* grid,

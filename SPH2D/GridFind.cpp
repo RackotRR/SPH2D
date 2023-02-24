@@ -59,7 +59,7 @@ void find_neighbours(
 	printlog(__func__)();
 
 	constexpr rr_float scale_k = get_scale_k();
-	constexpr rr_float max_dist = sqr(scale_k * Params::hsml);
+	constexpr rr_float max_dist = sqr(scale_k * Params::hsml); constexpr unsigned a = 1 << 16;
 
 	bool err = false;
 
@@ -72,7 +72,7 @@ void find_neighbours(
 		get_neighbouring_cells(center_cell_idx, neighbour_cells);
 		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
 			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == -1) continue; // invalid cell
+			if (cell_idx == UINT_MAX) continue; // invalid cell
 
 			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
 				grid_i < cell_starts_in_grid(cell_idx + 1ull);
@@ -130,7 +130,7 @@ void grid_find(
 	static heap_array<rr_uint, Params::maxn> grid;
 	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
 
-	make_grid(ntotal, 
+	make_grid_gpu(ntotal, 
 		r, 
 		grid, 
 		cell_starts_in_grid);

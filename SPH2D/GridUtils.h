@@ -92,7 +92,7 @@ namespace {
         unsigned x = get_cell_x(idx);
         unsigned y = get_cell_y(idx);
 
-        static constexpr unsigned INVALID_CELL = static_cast<unsigned>(-1);
+        static constexpr unsigned INVALID_CELL = UINT_MAX;
 
         cells[0] = idx;
         unsigned top = get_cell_idx(x, std::max(y, y + 1));

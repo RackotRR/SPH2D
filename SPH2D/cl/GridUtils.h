@@ -10,7 +10,7 @@
 #define params_scale_k 3.f
 #endif
 #define params_cell_size (params_scale_k * params_hsml)
-#define grid_invalid_cell -1u
+#define grid_invalid_cell UINT_MAX
 
 rr_uint get_cell_idx_by_cell_xy(rr_uint x, rr_uint y) {
     x = (x | (x << 8)) & 0x00FF00FF;

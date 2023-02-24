@@ -2,6 +2,7 @@
 #include "Test.h"
 #include "GridFind.h"
 #include "Input.h"
+#include "CLAdapter.h"
 
 void find_neighbours_gpu(rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r, // coordinates of all particles
@@ -32,6 +33,44 @@ void find_neighbours_gpu(rr_uint ntotal,
 	cl::copy(dwdr_, dwdr.begin(), dwdr.end());
 }
 
+void make_grid_gpu(rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& r,
+	heap_array<rr_uint, Params::maxn>& grid,
+	heap_array<rr_uint, Params::max_cells>& cells)
+{
+	static auto program = makeProgram("GridFind.cl");
+	static RRKernel fill_in_grid_kernel(program, "fill_in_grid");
+	static RRKernel sort_kernel(program, "bitonic_sort_step");
+	static RRKernel binary_search_kernel(program, "binary_search");
+
+	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r);
+	auto cells_ = makeBufferCopyHost(CL_MEM_READ_WRITE, cells);
+	auto grid_ = makeBufferCopyHost(CL_MEM_READ_WRITE, grid);
+	constexpr size_t passes = intlog2(Params::maxn);
+
+	fill_in_grid_kernel(
+		grid_
+	).execute(Params::maxn, Params::localThreads);
+	for (size_t pass = 0; pass < passes; ++pass) {
+		size_t max_step_size = 1ull << pass;
+		for (size_t step_size = max_step_size; step_size != 0; step_size >>= 1) {
+			sort_kernel(
+				r_,
+				grid_,
+				pass,
+				step_size,
+				max_step_size
+			).execute(Params::maxn, Params::localThreads);
+		}
+	}
+	binary_search_kernel(
+		r_, grid_, cells_
+	).execute(Params::max_cells, Params::localThreads);
+
+	cl::copy(grid_, grid.begin(), grid.end());
+	cl::copy(cells_, cells.begin(), cells.end());
+}
+
 bool Test::test_grid_find() {
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
@@ -44,13 +83,21 @@ bool Test::test_grid_find() {
 	heap_array<rr_float, Params::maxn> u;	// specific internal energy
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
     input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+	makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
 
 	initUtils();
+
 	heap_array<rr_uint, Params::maxn> grid;
 	heap_array<rr_uint, Params::max_cells> cells_start_in_grid;
 	make_grid(ntotal, r, grid, cells_start_in_grid);
 
-
+	heap_array<rr_uint, Params::maxn> grid_cl;
+	heap_array<rr_uint, Params::max_cells> cells_start_in_grid_cl;
+	make_grid_gpu(ntotal, r, grid_cl, cells_start_in_grid_cl);	
+	
+	//difference("grid", grid, grid_cl, ntotal);
+	difference("cells", cells_start_in_grid, cells_start_in_grid_cl, Params::max_cells);
+	
 	heap_array<rr_uint, Params::maxn> neighbours_count; // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
