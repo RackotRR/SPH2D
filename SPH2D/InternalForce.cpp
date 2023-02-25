@@ -218,41 +218,30 @@ void int_force(
 
 	if constexpr (Params::visc) {
 		find_stress_tensor(ntotal,
-			v,
-			mass,
-			rho,
+			v, mass, rho,
 			neighbours_count, neighbours, dwdr,
 			vcc, txx, txy, tyy);
 	}
 
 	update_internal_state(ntotal,
-		rho,
-		u,
+		rho, u,
 		txx, txy, tyy,
 		eta, tdsdt, c, p);
 
 	if constexpr (Params::pa_sph == 1) {
 		find_internal_changes_pij_d_rhoij(ntotal,
-			v,
-			mass,
-			rho,
-			eta,
-			u,
+			v, mass, rho, eta, u,
 			neighbours_count, neighbours, dwdr,
 			vcc, txx, txy, tyy,
-			p, tdsdt, 
+			p, tdsdt,
 			a, dedt);
 	}
 	else {
 		find_internal_changes_pidrho2i_pjdrho2j(ntotal,
-			v,
-			mass,
-			rho,
-			eta,
-			u,
-			neighbours_count, neighbours, dwdr, 
+			v, mass, rho, eta, u,
+			neighbours_count, neighbours, dwdr,
 			vcc, txx, txy, tyy,
-			p, tdsdt, 
+			p, tdsdt,
 			a, dedt);
 	}
 }

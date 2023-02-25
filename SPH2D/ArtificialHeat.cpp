@@ -69,7 +69,7 @@ static void find_dedt(const rr_uint ntotal,	// number of particles
 	}
 }
 // calculate the artificial heat (Fulk, 1994, p, a-17)
-void art_heat2(const rr_uint ntotal,	// number of particles
+void art_heat(const rr_uint ntotal,	// number of particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles

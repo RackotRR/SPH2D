@@ -130,7 +130,7 @@ void grid_find(
 	static heap_array<rr_uint, Params::maxn> grid;
 	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
 
-	make_grid_gpu(ntotal, 
+	make_grid(ntotal, 
 		r, 
 		grid, 
 		cell_starts_in_grid);

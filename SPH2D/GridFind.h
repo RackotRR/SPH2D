@@ -42,3 +42,10 @@ void make_grid_gpu(rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,
 	heap_array<rr_uint, Params::maxn>& grid,
 	heap_array<rr_uint, Params::max_cells>& cells);
+
+void grid_find_gpu(rr_uint ntotal,
+	const heap_array<rr_float2, Params::maxn>& r, // coordinates of all particles
+	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
+	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
+	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
+	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr); // precomputed kernel derivative

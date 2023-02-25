@@ -22,7 +22,6 @@ void sph() {
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
 
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-	makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
 	//time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 	cl_time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 }
@@ -62,7 +61,7 @@ void simulation() {
 }
 
 int main(int arc, const char* argv[]) {
-	//testing();
-	simulation();
+	testing();
+	//simulation();
 	return 0;
 }

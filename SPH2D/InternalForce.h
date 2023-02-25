@@ -141,3 +141,18 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& tdsdt_cl,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl);
+void int_force_gpu(
+	const rr_uint ntotal,
+	const heap_array<rr_float, Params::maxn>& mass,
+	const heap_array<rr_float2, Params::maxn>& r,
+	const heap_array<rr_float2, Params::maxn>& v,
+	const heap_array<rr_float, Params::maxn>& rho,
+	const heap_array<rr_float, Params::maxn>& u,
+	const heap_array<rr_uint, Params::maxn>& neighbours_count,
+	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours,
+	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w,
+	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr,
+	heap_array<rr_float, Params::maxn>& c,
+	heap_array<rr_float, Params::maxn>& p,
+	heap_array<rr_float2, Params::maxn>& a,
+	heap_array<rr_float, Params::maxn>& dedt);

@@ -1,5 +1,4 @@
 #include "CommonIncl.h"
-#include "VirtualParticles.h"
 #include "GridFind.h"
 #include "Density.h"
 #include "InternalForce.h"
@@ -41,103 +40,60 @@ void single_step(
 
 	grid_find(ntotal,
 		r,
-		neighbours_count,
-		neighbours,
-		w,
-		dwdr);
+		neighbours_count, neighbours, w, dwdr);
 
 	if constexpr (Params::summation_density) {
 		sum_density(ntotal,
 			mass,
-			neighbours_count,
-			neighbours,
-			w,
+			neighbours_count, neighbours, w,
 			rho);
 	}
 	else {
 		con_density(ntotal,
-			mass,
-			v,
-			neighbours_count,
-			neighbours,
-			dwdr,
+			mass, v,
+			neighbours_count, neighbours, dwdr,
 			rho,
 			drho);
 	}
 
 	int_force(ntotal, 
-		mass, 
-		r, 
-		v, 
-		rho, 
-		u, 
-		neighbours_count,
-		neighbours,
-		w,
-		dwdr,
-		c, 
-		p, 
-		indvxdt, 
-		du);
+		mass, r, v, rho, u, 
+		neighbours_count, neighbours, w, dwdr,
+		c, p, indvxdt, du);
 
 	if constexpr (Params::visc_artificial) {
 		artificial_viscosity(ntotal, 
-			mass, 
-			r, 
-			v, 
-			rho, 
-			c, 
-			neighbours_count,
-			neighbours,
-			dwdr, 
-			arvdvxdt, 
-			avdudt);
+			mass, r, v, rho, c, 
+			neighbours_count, neighbours, dwdr, 
+			arvdvxdt, avdudt);
 	}
 
 	if constexpr (Params::ex_force) {
 		external_force(ntotal,
-			mass, 
-			r, 
-			neighbours_count,
-			neighbours, 
-			itype, 
+			mass, r, 
+			neighbours_count, neighbours, itype, 
 			exdvxdt);
 	}
 
 	if constexpr (Params::heat_artificial) {
-		art_heat2(ntotal, 
-			mass, 
-			r, 
-			v, 
-			rho, 
-			u, 
-			c, 
-			neighbours_count,
-			neighbours, 
-			dwdr,
+		art_heat(ntotal, 
+			mass, r, v, rho, u, c, 
+			neighbours_count, neighbours, dwdr,
 			ahdudt);
 	}
 
 	// calculating average velocity of each particle for avoiding penetration
 	if constexpr (Params::average_velocity) {
 		average_velocity(nfluid,
-			mass, 
-			r, 
-			v, 
-			rho, 
-			neighbours_count,
-			neighbours,
-			w, 
+			mass, r, v, rho, 
+			neighbours_count, neighbours, w, 
 			av);
 	}
 
 	// convert velocity, force and energy to f and dfdt
 	update_change_rate(nfluid,
-		indvxdt,
-		exdvxdt,
-		arvdvxdt,
-		avdudt,
-		ahdudt,
+		indvxdt, exdvxdt, arvdvxdt,
+		avdudt, ahdudt,
 		a, du);
 }
 

@@ -1,5 +1,5 @@
 #pragma once
-//#define FULL_STAT_LOGGING
+#define FULL_STAT_LOGGING
 
 #ifdef FULL_STAT_LOGGING
 #include <string>

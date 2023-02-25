@@ -45,8 +45,8 @@ void predict_half_step_gpu(rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& du_cl,
 	const heap_array<rr_float2, Params::maxn>& v_cl,
 	const heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& u_predict_cl,
 	heap_array<rr_float, Params::maxn>& rho_predict_cl,
+	heap_array<rr_float, Params::maxn>& u_predict_cl,
 	heap_array<rr_float2, Params::maxn>& v_predict_cl)
 {
 	static RRKernel kernel(makeProgram("TimeIntegration.cl"), "predict_half_step");
@@ -59,9 +59,9 @@ void predict_half_step_gpu(rr_uint ntotal,
 	auto a_ = makeBufferCopyHost(CL_MEM_READ_ONLY, a_cl);
 
 	size_t elements = Params::maxn;
-	auto u_predict_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto rho_predict_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto v_predict_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
+	auto u_predict_ = makeBufferCopyHost(CL_MEM_READ_WRITE, u_predict_cl);
+	auto rho_predict_ = makeBufferCopyHost(CL_MEM_READ_WRITE, rho_predict_cl);
+	auto v_predict_ = makeBufferCopyHost(CL_MEM_READ_WRITE, v_predict_cl);
 
 	kernel(
 		drho_, du_, a_,
@@ -130,9 +130,9 @@ void correct_step_gpu(const rr_uint ntotal,
 	auto av_ = makeBufferCopyHost(CL_MEM_READ_ONLY, av_cl);
 
 	size_t elements = Params::maxn;
-	auto u_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto rho_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
-	auto v_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, elements);
+	auto u_ = makeBufferCopyHost(CL_MEM_READ_WRITE, u_cl);
+	auto rho_ = makeBufferCopyHost(CL_MEM_READ_WRITE, rho_cl);
+	auto v_ = makeBufferCopyHost(CL_MEM_READ_WRITE, v_cl);
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_WRITE, r_cl);
 
 	kernel(

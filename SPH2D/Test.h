@@ -5,10 +5,15 @@
 
 
 struct Test {
-    static constexpr rr_float float_epsilon = 0.001f;
+    static constexpr rr_float float_epsilon = 0.0001f;
     static bool relativeToleranceCompare(rr_float a, rr_float b) {
         auto maxAB = std::max(fabsf(a), fabsf(b));
-        return std::fabsf(a - b) <= float_epsilon * maxAB;
+        if (maxAB > 1) {
+            return std::fabsf(a - b) <= float_epsilon * maxAB;
+        }
+        else {
+            return std::fabsf(a - b) <= float_epsilon;
+        }
     }
     template<typename T>
     static bool equals(T a, T b) {
@@ -81,7 +86,6 @@ struct Test {
     static bool test_smoothing_kernel();
     static bool test_eos();
     static bool test_predict_step();
-    static bool test_single_step();
     static bool test_correct_step();
     static bool test_dynamic_boundaries();
     static bool test_grid_find();
@@ -93,6 +97,8 @@ struct Test {
     static bool test_external_force();
     static bool test_artificial_viscosity();
     static bool test_average_velocity();
+
+    static bool integration_test();
 
 private:
     static void showErrors(const char* name, rr_uint err_count) {

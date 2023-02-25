@@ -25,3 +25,4 @@ void generateParticles(
 	rr_uint& nfluid); // total fluid particles
 
 void initConsts();
+void makeParamsHeader(unsigned ntotal, unsigned nfluid, unsigned nvirt);

@@ -15,89 +15,6 @@
 #include "Output.h"
 #include "GridFind.h"
 
-
-class ParamsHeader {
-public:
-    template<typename T>
-    void set_param(const char* param_name, const T& value) {
-        buffer << std::format("#define params_{} {}\n", param_name, value);
-    }
-    template<>
-    void set_param(const char* param_name, const float& value) {
-        buffer << std::format("#define params_{} {:.10f}f\n", param_name, value);
-        //buffer << "#define params_" << param_name << " " << std::setprecision(10) << std::fixed << val << std::endl;
-    }
-    template<>
-    void set_param(const char* param_name, const bool& value) {
-        if (value) {
-            buffer << std::format("#define params_{}\n", param_name);
-        }
-    }
-
-    ParamsHeader(rr_uint ntotal, rr_uint nfluid, rr_uint nvirt) {
-        buffer << "#ifndef CL_PARAMS_H" << std::endl;
-        buffer << "#define CL_PARAMS_H" << std::endl << std::endl; 
-
-#define set(param) set_param(#param, param);
-        using namespace Params;
-        set(dim);
-        set(maxn);
-        set(max_neighbours);
-        set(max_cells);
-        set(x_maxgeom);
-        set(x_mingeom);
-        set(y_maxgeom);
-        set(y_mingeom);
-        set(L);
-        set(d);
-        set(freq);
-        set(A);
-        set(left_wall_start);
-        set(left_wall_end);
-        set(generator_time_wait);
-        set(dt);
-        set(eos);
-        set(pa_sph);
-        set(skf);
-        set(nwm);
-        set(hsml);
-        set(delta);
-        set(boundary_delta);
-        set(summation_density);
-        set(nor_density);
-        set(average_velocity);
-        set(visc);
-        set(ex_force);
-        set(self_gravity);
-        set(visc_artificial);
-        set(heat_artificial);
-        set_param<int>("TYPE_BOUNDARY", TYPE_BOUNDARY);
-        set_param<int>("TYPE_NON_EXISTENT", TYPE_NON_EXISTENT);
-        set_param<int>("TYPE_WATER", TYPE_WATER);
-        set(pi);
-        set(g);
-        set(ntotal);
-        set(nfluid);
-        set(nvirt);
-#undef set
-
-        buffer << std::endl << "#endif" << std::endl;
-    }
-
-    std::string string() {
-        return buffer.str();
-    }
-private:
-    std::stringstream buffer;
-};
-
-inline void makeParamsHeader(rr_uint ntotal, rr_uint nfluid, rr_uint nvirt) {
-    ParamsHeader header(ntotal, nfluid, nvirt);
-    std::string params = header.string();
-    std::ofstream stream("cl\\clparams.h");
-    stream << params;    
-}
-
 inline cl::Program density_program;
 inline cl::Program grid_find_program;
 inline cl::Program internal_force_program;
@@ -161,11 +78,8 @@ inline void cl_time_integration(
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
 {
-    makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
     makePrograms();
     initUtils(); 
-    heap_array<rr_uint, Params::maxn> grid;
-    heap_array<rr_uint, Params::max_cells> cells;
 
     constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
     constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;

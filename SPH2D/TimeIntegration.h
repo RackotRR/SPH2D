@@ -50,8 +50,8 @@ void predict_half_step_gpu(rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& du_cl,
 	const heap_array<rr_float2, Params::maxn>& v_cl,
 	const heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& u_predict_cl,
 	heap_array<rr_float, Params::maxn>& rho_predict_cl,
+	heap_array<rr_float, Params::maxn>& u_predict_cl,
 	heap_array<rr_float2, Params::maxn>& v_predict_cl);
 void correct_step_gpu(
 	const rr_uint ntotal,

@@ -1,225 +1,263 @@
-#include "CLCommon.h"
-#include "Test.h"
+#include "CommonIncl.h"
+#include "Output.h"
+#include "VirtualParticles.h"
+#include "IsNormalCheck.h"
+#include "WaveMaker.h"
 #include "TimeIntegration.h"
-#include "Input.h"
 #include "GridFind.h"
 #include "Density.h"
-#include "ExtForce.h"
 #include "InternalForce.h"
 #include "ArtificialViscosity.h"
+#include "ExtForce.h" 
+#include "ArtificialHeat.h"
+#include "AverageVelocity.h"
 #include "SingleStep.h"
+#include "Test.h"
+#include "Input.h"
 
-namespace {
-	rr_uint ntotal; // number of particles
-	rr_uint nfluid;
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
+namespace integration_test {
+    static rr_uint failed_test = false;
 
-	heap_array<rr_float, Params::maxn> temp;
-	const heap_array<rr_float, Params::maxn> zeros;
-	const heap_array<rr_float2, Params::maxn> zeros2;
+    static void single_step(
+        const rr_uint nfluid, // number of fluid particles
+        const rr_uint ntotal, // number of particles 
+        const heap_array<rr_float, Params::maxn>& mass,// particle masses
+        const heap_array<rr_int, Params::maxn>& itype,	// material type of particles
+        const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+        const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+        const heap_array<rr_float, Params::maxn>& u,	// specific internal energy 
+        heap_array<rr_float, Params::maxn>& rho,	// out, density
+        heap_array<rr_float, Params::maxn>& p,	// out, pressure 
+        heap_array<rr_float, Params::maxn>& c,	// out, sound velocity
+        heap_array<rr_float2, Params::maxn>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
+        heap_array<rr_float, Params::maxn>& du,	// out, du = d(u)/dt
+        heap_array<rr_float, Params::maxn>& drho,	// out, drho = d(rho)/dt
+        heap_array<rr_float2, Params::maxn>& av) // out, Monaghan average velocity
+    {
+        static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
+        static heap_array<rr_float, Params::maxn> avdudt, ahdudt;
+
+        static heap_array<rr_uint, Params::maxn> neighbours_count, neighbours_count_cl;
+        static heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours, neighbours_cl;
+        static heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w, w_cl;
+        static heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr, dwdr_cl;
+
+        grid_find(ntotal,
+            r,
+            neighbours_count,
+            neighbours,
+            w,
+            dwdr);
+        grid_find_gpu(ntotal,
+            r,
+            neighbours_count_cl,
+            neighbours_cl,
+            w_cl,
+            dwdr_cl);
+        //failed_test += Test::difference("grid_find: neighbours_count", neighbours_count, neighbours_count_cl, ntotal);
+        //failed_test += Test::difference("grid_find: neighbours", neighbours, neighbours_cl, ntotal, neighbours_count);
+        //failed_test += Test::difference("grid_find: w", w, w_cl, ntotal, neighbours_count);
+        //failed_test += Test::difference("grid_find: dwdr", dwdr, dwdr_cl, ntotal, neighbours_count);
+
+        if constexpr (Params::summation_density) {
+            auto rho_cl = rho.copy();
+            sum_density(ntotal,
+                mass,
+                neighbours_count, neighbours, w,
+                rho);
+            sum_density_gpu(ntotal,
+                mass,
+                neighbours_count, neighbours, w,
+                rho_cl);
+            failed_test += Test::difference("sum_density: rho", rho, rho_cl, ntotal);
+        }
+        else {
+            con_density(ntotal,
+                mass, v,
+                neighbours_count, neighbours, dwdr,
+                rho,
+                drho);
+        }
+
+        auto c_cl = c.copy();
+        auto p_cl = p.copy();
+        auto indvxdt_cl = indvxdt.copy();
+        auto du_cl = du.copy();
+        int_force(ntotal,
+            mass, r, v, rho, u,
+            neighbours_count, neighbours, w, dwdr,
+            c, p, indvxdt, du);
+        int_force_gpu(ntotal,
+            mass, r, v, rho, u,
+            neighbours_count, neighbours, w, dwdr,
+            c_cl, p_cl, indvxdt_cl, du_cl);
+        failed_test += Test::difference("int_force: c", c, c_cl, ntotal);
+        failed_test += Test::difference("int_force: p", p, p_cl, ntotal);
+        failed_test += Test::difference("int_force: indvxdt", indvxdt, indvxdt_cl, ntotal);
+        failed_test += Test::difference("int_force: du", du, du_cl, ntotal);
+
+        if constexpr (Params::visc_artificial) {
+            auto arvdvxdt_cl = arvdvxdt.copy();
+            auto arvdudt_cl = avdudt.copy();
+            artificial_viscosity(ntotal,
+                mass, r, v, rho, c,
+                neighbours_count, neighbours, dwdr,
+                arvdvxdt, avdudt);
+            artificial_viscosity_gpu(ntotal,
+                mass, r, v, rho, c,
+                neighbours_count, neighbours, dwdr,
+                arvdvxdt_cl, arvdudt_cl);
+            failed_test += Test::difference("art_visc: arvdvxdt", arvdvxdt, arvdvxdt_cl, ntotal);
+            failed_test += Test::difference("art_visc: arvdudt", avdudt, arvdudt_cl, ntotal);
+        }
+
+        if constexpr (Params::ex_force) {
+            auto exdvxdt_cl = exdvxdt.copy();
+            external_force(ntotal,
+                mass, r,
+                neighbours_count, neighbours, itype,
+                exdvxdt);
+            external_force_gpu(ntotal,
+                mass, r,
+                neighbours_count, neighbours, itype,
+                exdvxdt_cl);
+            failed_test += Test::difference("external_force: exdvxdt", exdvxdt, exdvxdt_cl, ntotal);
+        }
+
+        if constexpr (Params::heat_artificial) {
+            art_heat(ntotal,
+                mass, r, v, rho, u, c,
+                neighbours_count, neighbours, dwdr,
+                ahdudt);
+        }
+
+        if constexpr (Params::average_velocity) {
+            auto av_cl = av.copy();
+            average_velocity(nfluid,
+                mass, r, v, rho,
+                neighbours_count, neighbours, w,
+                av);
+            average_velocity_gpu(nfluid,
+                mass, r, v, rho,
+                neighbours_count, neighbours, w,
+                av_cl);
+            failed_test += Test::difference("av_vel: av", av, av_cl, nfluid);
+        }
+
+        auto a_cl = a.copy();
+        du_cl = du.copy();
+        update_change_rate(nfluid,
+            indvxdt, exdvxdt, arvdvxdt,
+            avdudt, ahdudt,
+            a, du);
+        update_change_rate_gpu(nfluid,
+            indvxdt, exdvxdt, arvdvxdt,
+            avdudt, ahdudt,
+            a_cl, du_cl);
+        failed_test += Test::difference("update_change_rate: a", a, a_cl, ntotal);
+        failed_test += Test::difference("update_change_rate: du", du, du_cl, ntotal);
+    }
+    static void time_integration(
+        heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+        heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
+        heap_array<rr_float, Params::maxn>& mass,// particle masses
+        heap_array<rr_float, Params::maxn>& rho,	// out, density
+        heap_array<rr_float, Params::maxn>& p,	// out, pressure
+        heap_array<rr_float, Params::maxn>& u,	// specific internal energy
+        heap_array<rr_float, Params::maxn>& c,	// sound velocity 
+        heap_array<rr_int, Params::maxn>& itype, // material type: >0: material, <0: virtual
+        const rr_uint ntotal, // total particle number at t = 0
+        const rr_uint nfluid)  // fluid particles 
+    {
+        initUtils();
+
+        heap_array<rr_float, Params::maxn> u_predict, rho_predict, du, drho;
+        heap_array<rr_float, Params::maxn>* rho_predicted;
+        if constexpr (Params::summation_density) {
+            rho_predicted = &rho;
+        }
+        else {
+            rho_predicted = &rho_predict;
+        }
+        heap_array<rr_float2, Params::maxn> v_predict, a, av;
+
+        rr_float time = 0;
+        for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
+            time = itimestep * Params::dt;
+
+            auto rho_predicted_cl = rho_predicted->copy();
+            auto u_predict_cl = u_predict.copy();
+            auto v_predict_cl = v_predict.copy();
+            predict_half_step(ntotal,
+                rho, drho,
+                u, du,
+                v, a,
+                *rho_predicted, u_predict, v_predict);
+            predict_half_step_gpu(ntotal,
+                rho, drho,
+                u, du,
+                v, a,
+                rho_predicted_cl, u_predict_cl, v_predict_cl);
+            failed_test += Test::difference("predict_half_step: rho_predicted", *rho_predicted, rho_predicted_cl, ntotal);
+            failed_test += Test::difference("predict_half_step: u_predict", u_predict, u_predict_cl, ntotal);
+            failed_test += Test::difference("predict_half_step: v_predict", v_predict, v_predict_cl, ntotal);
+
+            // definition of variables out of the function vector:
+            integration_test::single_step(nfluid, ntotal, mass, itype, r,
+                v_predict, u_predict, *rho_predicted,
+                p, c, a, du, drho, av);
+
+            auto rho_cl = rho.copy();
+            auto u_cl = u.copy();
+            auto v_cl = v.copy();
+            auto r_cl = r.copy();
+            correct_step(ntotal,
+                itype,
+                drho, du, a,
+                *rho_predicted, u_predict, v_predict, av,
+                rho, u, v, r);
+            correct_step_gpu(ntotal,
+                itype,
+                drho, du, a,
+                *rho_predicted, u_predict, v_predict, av,
+                rho_cl, u_cl, v_cl, r_cl);
+            failed_test += Test::difference("correct_step: rho", rho, rho_cl, ntotal);
+            failed_test += Test::difference("correct_step: u", u, u_cl, ntotal);
+            failed_test += Test::difference("correct_step: v", v, v_cl, ntotal);
+            failed_test += Test::difference("correct_step: r", r, r_cl, ntotal);
+
+
+            if constexpr (Params::nwm) {
+                auto r_cl = r.copy();
+                auto v_cl = v.copy();
+                auto a_cl = a.copy();
+                make_waves(r, v, a, nfluid, ntotal, time);
+                make_waves_gpu(r_cl, v_cl, a_cl, nfluid, ntotal, time);
+                failed_test += Test::difference("make_waves: r", r, r_cl, ntotal);
+                failed_test += Test::difference("make_waves: v", v, v_cl, ntotal);
+                failed_test += Test::difference("make_waves: a", a, a_cl, ntotal);
+            }
+
+            time += Params::dt;
+        }
+    }
 }
 
-static void single_step_gpu(
-	heap_array<rr_float2, Params::maxn>& v_predict_cl,
-	heap_array<rr_float2, Params::maxn>& av_cl,
-	heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& du_cl,
-	heap_array<rr_float, Params::maxn>& rho_cl,
-	heap_array<rr_float, Params::maxn>& u_cl,
-	heap_array<rr_float, Params::maxn>& p_cl,
-	heap_array<rr_float2, Params::maxn>& r_cl,
-	heap_array<rr_float2, Params::maxn>& v_cl)
-{
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> u;// velocities of all particles
-	input(r, v, mass, temp, temp, u, itype, ntotal, nfluid);
+bool Test::integration_test() {
+    rr_uint ntotal; // number of particles
+    rr_uint nfluid;
+    heap_array<rr_float, Params::maxn> mass; // particle masses
+    heap_array<rr_int, Params::maxn> itype;// material type of particles
+    heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
+    heap_array<rr_float2, Params::maxn> v;// velocities of all particles
+    heap_array<rr_float, Params::maxn> rho; // density
+    heap_array<rr_float, Params::maxn> p;	// pressure
+    heap_array<rr_float, Params::maxn> u;	// specific internal energy
+    heap_array<rr_float, Params::maxn> c;	// sound velocity 
+    input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+    makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
 
-	auto r_ = makeBufferCopyHost(r);
-	auto v_ = makeBufferCopyHost(zeros2);
-	auto mass_ = makeBufferCopyHost(mass);
-	auto u_ = makeBufferCopyHost(u);
-	auto itype_ = makeBufferCopyHost(itype);
-
-	auto rho_ = makeBufferCopyHost(zeros);
-	auto p_ = makeBufferCopyHost(zeros);
-	auto c_ = makeBufferCopyHost(zeros);
-	auto a_ = makeBufferCopyHost(zeros2);
-	auto du_ = makeBufferCopyHost(zeros);
-	auto drho_ = makeBufferCopyHost(zeros);
-
-	auto rho_predict_ = makeBufferCopyHost(zeros);
-	auto u_predict_ = makeBufferCopyHost(zeros);
-	auto v_predict_ = makeBufferCopyHost(zeros2);
-
-	auto time_integration_program = makeProgram("TimeIntegration.cl");
-	RRKernel predict_half_step(time_integration_program, "predict_half_step");
-	predict_half_step(
-		drho_, du_, a_,
-		rho_, u_, v_,
-		rho_predict_, u_predict_, v_predict_
-	).execute(ntotal, Params::localThreads);
-
-	heap_array<rr_uint, Params::maxn> grid;
-	heap_array<rr_uint, Params::max_cells> cells;
-	make_grid(ntotal, r, grid, cells);
-	auto grid_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, grid);
-	auto cells_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, cells);
-
-	auto neighbours_count_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, Params::maxn);
-	auto neighbours_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, Params::max_neighbours * Params::maxn);
-	auto w_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, Params::max_neighbours * Params::maxn);
-	auto dwdr_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, Params::max_neighbours * Params::maxn);
-	RRKernel find_neighbours(makeProgram("GridFind.cl"), "find_neighbours");
-	find_neighbours(
-		r_, grid_, cells_,
-		neighbours_count_, neighbours_, w_, dwdr_
-	).execute(ntotal, Params::localThreads);
-
-	RRKernel sum_density(makeProgram("Density.cl"), "sum_density");
-	sum_density(
-		mass_, neighbours_count_, neighbours_, w_,
-		rho_predict_
-	).execute(ntotal, Params::localThreads);
-
-
-	auto int_force_program = makeProgram("InternalForce.cl");
-	auto vcc_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, Params::maxn);
-	auto txx_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, Params::maxn);
-	auto txy_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, Params::maxn);
-	auto tyy_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, Params::maxn);
-	auto eta_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, Params::maxn);
-	auto tdsdt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, Params::maxn);
-	auto indvxdt_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, Params::maxn);
-	auto indudt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, Params::maxn);
-	RRKernel find_stress_tensor(int_force_program, "find_stress_tensor");
-	find_stress_tensor(
-		v_predict_, mass_, rho_predict_, neighbours_count_, neighbours_, dwdr_,
-		vcc_, txx_, txy_, tyy_
-	).execute(ntotal, Params::localThreads);
-	RRKernel update_internal_state(int_force_program, "update_internal_state");
-	update_internal_state(
-		mass_, neighbours_count_, neighbours_, w_,
-		txx_, txy_, tyy_, rho_predict_, u_predict_,
-		eta_, tdsdt_, p_, c_
-	).execute(ntotal, Params::localThreads);
-	RRKernel find_internal_changes_pidrho2i_pjdrho2j(int_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
-	find_internal_changes_pidrho2i_pjdrho2j(
-		v_predict_, mass_, rho_predict_, eta_, u_predict_,
-		neighbours_count_, neighbours_, dwdr_,
-		vcc_, txx_, txy_, tyy_, p_, tdsdt_,
-		indvxdt_, indudt_
-	).execute(ntotal, Params::localThreads);
-
-	auto ardvxdt_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, Params::maxn);
-	auto ardudt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, Params::maxn);
-	RRKernel artificial_viscosity(makeProgram("ArtificialViscosity.cl"), "artificial_viscosity");
-	artificial_viscosity(
-		r_, v_predict_, mass_, rho_predict_, c_,
-		neighbours_count_, neighbours_, dwdr_,
-		ardvxdt_, ardudt_
-	).execute(ntotal, Params::localThreads);
-
-	auto exdvxdt_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, Params::maxn);
-	RRKernel external_force(makeProgram("ExternalForce.cl"), "external_force");
-	external_force(
-		r_, mass_, neighbours_count_, neighbours_, itype_,
-		exdvxdt_
-	).execute(ntotal, Params::localThreads);
-
-	auto av_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, Params::maxn);
-	RRKernel average_velocity(makeProgram("AverageVelocity.cl"), "average_velocity");
-	average_velocity(
-		r_, v_predict_, mass_, rho_predict_,
-		neighbours_count_, neighbours_, w_,
-		av_
-	).execute(ntotal, Params::localThreads);
-
-
-	RRKernel single_step(time_integration_program, "single_step");
-	single_step(
-		indudt_, ardudt_,
-		indvxdt_, exdvxdt_, ardvxdt_,
-		du_, a_
-	).execute(nfluid, Params::localThreads);
-
-	RRKernel correct_step(time_integration_program, "correct_step");
-	correct_step(
-		itype_, drho_, du_, a_,
-		rho_predict_, u_predict_, v_predict_, av_,
-		rho_, u_, v_, r_
-	).execute(ntotal, Params::localThreads);
-
-
-	cl::copy(v_predict_, v_predict_cl.begin(), v_predict_cl.end());
-	cl::copy(av_, av_cl.begin(), av_cl.end());
-	cl::copy(a_, a_cl.begin(), a_cl.end());
-	cl::copy(du_, du_cl.begin(), du_cl.end());
-	cl::copy(rho_, rho_cl.begin(), rho_cl.end());
-	cl::copy(u_, u_cl.begin(), u_cl.end());
-	cl::copy(p_, p_cl.begin(), p_cl.end());
-	cl::copy(r_, r_cl.begin(), r_cl.end());
-	cl::copy(v_, v_cl.begin(), v_cl.end());
-
-}
-bool Test::test_single_step() {
-	input(r, v, mass, temp, temp, u, itype, ntotal, nfluid);
-	initUtils();
-
-	heap_array<rr_float, Params::maxn> rho_predict;
-	heap_array<rr_float, Params::maxn> u_predict;
-	heap_array<rr_float2, Params::maxn> v_predict;
-
-	heap_array<rr_float, Params::maxn> rho;
-	heap_array<rr_float, Params::maxn> p;
-	heap_array<rr_float, Params::maxn> c;
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> du;
-	heap_array<rr_float2, Params::maxn> av;
-
-	predict_half_step(ntotal,
-		rho, temp,
-		u, du,
-		v, a,
-		rho_predict, u_predict, v_predict);
-	single_step(nfluid, ntotal, mass, itype, r, v_predict, u_predict,
-		rho_predict, p, c, a, du, temp, av);
-	correct_step(ntotal, itype, temp, du, a, rho_predict, u_predict, v_predict, av,
-		rho, u, v, r);
-
-	heap_array<rr_float2, Params::maxn> v_predict_cl;
-	heap_array<rr_float2, Params::maxn> a_cl;
-	heap_array<rr_float2, Params::maxn> av_cl;
-	heap_array<rr_float, Params::maxn> du_cl;
-	heap_array<rr_float, Params::maxn> rho_cl;
-	heap_array<rr_float, Params::maxn> u_cl;
-	heap_array<rr_float, Params::maxn> p_cl;
-	heap_array<rr_float2, Params::maxn> r_cl;
-	heap_array<rr_float2, Params::maxn> v_cl;
-	single_step_gpu(
-		v_predict_cl,
-		av_cl,
-		a_cl,
-		du_cl,
-		rho_cl,
-		u_cl,
-		p_cl,
-		r_cl,
-		v_cl);
-
-	rr_uint err_count = 0;
-	err_count += difference("v", v, v_cl, ntotal);
-	err_count += difference("v_predict", v_predict, v_predict_cl, nfluid);
-	err_count += difference("a", a, a_cl, nfluid);
-	err_count += difference("av", av, av_cl, nfluid);
-	err_count += difference("du", du, du_cl, nfluid);
-	err_count += difference("rho", rho, rho_cl, ntotal);
-	err_count += difference("u", u, u_cl, ntotal);
-	err_count += difference("p", p, p_cl, ntotal);
-	err_count += difference("r", r, r_cl, ntotal);
-	return err_count == 0;
+    integration_test::failed_test = 0;
+    integration_test::time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
+    return integration_test::failed_test == 0;
 }
