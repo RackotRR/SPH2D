@@ -97,6 +97,8 @@ void grid_find_gpu(rr_uint ntotal,
 }
 
 bool Test::test_grid_find() {
+	printlog(__func__)();
+
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
 	heap_array<rr_float, Params::maxn> mass; // particle masses
@@ -109,8 +111,6 @@ bool Test::test_grid_find() {
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
     input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 	makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
-
-	initUtils();
 
 	heap_array<rr_uint, Params::maxn> grid;
 	heap_array<rr_uint, Params::max_cells> cells_start_in_grid;

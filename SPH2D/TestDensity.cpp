@@ -32,6 +32,8 @@ void sum_density_gpu(const rr_uint ntotal,
 }
 
 bool Test::test_sum_density() {
+	printlog(__func__)();
+
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
 	heap_array<rr_float, Params::maxn> mass; // particle masses
@@ -44,7 +46,6 @@ bool Test::test_sum_density() {
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 
-	initUtils();
 	heap_array<rr_uint, Params::maxn> grid;
 	heap_array<rr_uint, Params::max_cells> cells_start_in_grid;
 	make_grid(ntotal, r, grid, cells_start_in_grid);

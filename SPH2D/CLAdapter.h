@@ -79,7 +79,6 @@ inline void cl_time_integration(
     const rr_uint nfluid)  // fluid particles 
 {
     makePrograms();
-    initUtils(); 
 
     constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
     constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;

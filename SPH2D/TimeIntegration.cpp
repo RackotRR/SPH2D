@@ -93,7 +93,6 @@ void time_integration(
 
 	RR::Timer timer;
 
-	initUtils();
 	for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
 		printlog()("timestep: ")(itimestep)(" / ")(Params::maxtimestep)();
 		timer.start();

@@ -41,7 +41,6 @@ namespace {
 		once = true;
 
 		input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-		initUtils();
 
 		heap_array<rr_uint, Params::maxn> grid;
 		heap_array<rr_uint, Params::max_cells> cells_start_in_grid;
@@ -115,6 +114,8 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 	cl::copy(tyy_, tyy_cl.begin(), tyy_cl.end());
 }
 bool Test::test_find_stress_tensor() {
+	printlog(__func__)();
+
 	init_once();
 
 	find_stress_tensor(ntotal,
@@ -189,6 +190,7 @@ void update_internal_state_gpu(const rr_uint ntotal,
 	cl::copy(c_, c_cl.begin(), c_cl.end());
 }
 bool Test::test_update_internal_state() {
+	printlog(__func__)();
 	init_once();
 	find_stress_tensor(ntotal,
 		v,
@@ -274,6 +276,7 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end());
 }
 bool Test::test_find_internal_changes_pij_d_rhoij() {
+	printlog(__func__)();
 	init_once();
 	find_stress_tensor(ntotal,
 		v,
@@ -364,6 +367,7 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end()); 
 }
 bool Test::test_find_internal_changes_pidrho2i_pjdrho2j() {
+	printlog(__func__)();
 	init_once();
 	find_stress_tensor(ntotal,
 		v,

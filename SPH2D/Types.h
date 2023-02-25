@@ -1,8 +1,4 @@
-#ifndef SPH_TYPES_H
-#define SPH_TYPES_H
-
-
-#if !defined(KERNEL_INCLUDE) || !defined(KERNEL_BUILD)
+#pragma once
 #include <cmath>
 
 struct float3 {
@@ -161,8 +157,4 @@ inline float reduce(float3 vec) {
 inline float reduce(float2 vec) {
     return vec.x + vec.y;
 }
-#endif
-
-
-#endif // !SPH_TYPES_H
 

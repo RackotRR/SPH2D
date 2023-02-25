@@ -1,6 +1,7 @@
 #include "CLCommon.h"
 #include "Test.h"
 #include "EOS.h"
+#include "Logger.h"
 
 static auto cpu_eos(rr_float rho, rr_float u) {
     rr_float p, c;
@@ -37,6 +38,8 @@ static auto gpu_eos(rr_float rho, rr_float u) {
 }
 
 bool Test::test_eos() {
+    printlog(__func__)();
+
     rr_float rho = 999.f;
     rr_float u = 371.f;
 

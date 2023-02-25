@@ -172,7 +172,6 @@
     <ClInclude Include="CLCommon.h" />
     <ClInclude Include="cl\clparams.h" />
     <ClInclude Include="cl\common.h" />
-    <ClInclude Include="cl\GridUtils.h" />
     <ClInclude Include="CommonIncl.h" />
     <ClInclude Include="Density.h" />
     <ClInclude Include="EOS.h" />

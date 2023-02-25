@@ -99,9 +99,6 @@
     <ClInclude Include="CLCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cl\GridUtils.h">
-      <Filter>Resource Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Input.cpp">

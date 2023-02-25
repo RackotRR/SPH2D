@@ -72,7 +72,7 @@ void find_neighbours(
 		get_neighbouring_cells(center_cell_idx, neighbour_cells);
 		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
 			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == UINT_MAX) continue; // invalid cell
+			if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
 
 			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
 				grid_i < cell_starts_in_grid(cell_idx + 1ull);

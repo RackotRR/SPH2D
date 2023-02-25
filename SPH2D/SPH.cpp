@@ -61,7 +61,7 @@ void simulation() {
 }
 
 int main(int arc, const char* argv[]) {
-	testing();
-	//simulation();
+	//testing();
+	simulation();
 	return 0;
 }

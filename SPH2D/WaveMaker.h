@@ -27,6 +27,7 @@ void make_waves(
 	const rr_uint ntotal,
 	const rr_float time);
 
+// test
 void make_waves_gpu(
 	heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles

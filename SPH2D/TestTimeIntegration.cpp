@@ -75,6 +75,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 }
 
 bool Test::test_predict_step() {
+	printlog(__func__)();
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 
 	predict_half_step(ntotal,
@@ -91,7 +92,7 @@ bool Test::test_predict_step() {
 		rho, drho,
 		u, du,
 		v, a,
-		u_predict_cl, rho_predict_cl, v_predict_cl);
+		rho_predict_cl, u_predict_cl, v_predict_cl);
 
 
 	rr_uint err_count = 0;

@@ -169,8 +169,6 @@ namespace integration_test {
         const rr_uint ntotal, // total particle number at t = 0
         const rr_uint nfluid)  // fluid particles 
     {
-        initUtils();
-
         heap_array<rr_float, Params::maxn> u_predict, rho_predict, du, drho;
         heap_array<rr_float, Params::maxn>* rho_predicted;
         if constexpr (Params::summation_density) {
@@ -244,6 +242,7 @@ namespace integration_test {
 }
 
 bool Test::integration_test() {
+    printlog(__func__)();
     rr_uint ntotal; // number of particles
     rr_uint nfluid;
     heap_array<rr_float, Params::maxn> mass; // particle masses

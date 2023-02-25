@@ -13,20 +13,23 @@ public:
     template<int index, typename Arg0, typename... Arg1s>
     void setArgs(Arg0&& t0, Arg1s&&... t1s) {
         cl_int err = clSetKernelArg(kernel.get(), index, sizeof(t0), &t0);
-        if (err != CL_SUCCESS) {
-            throw std::runtime_error{ "clSetKernelArg error: " + std::to_string(err) };
-        }
+        checkError(err);
         setArgs<index + 1, Arg1s...>(std::forward<Arg1s>(t1s)...);
     }
     template<int index, typename Arg0>
     void setArgs(Arg0&& t0) {
         cl_int err = clSetKernelArg(kernel.get(), index, sizeof(t0), &t0);
-        if (err != CL_SUCCESS) {
-            throw std::runtime_error{ "clSetKernelArg error: " + std::to_string(err) };
-        }
+        checkError(err);
     }
     template<int index>
     void setArgs() { }
+
+    void checkError(cl_int err) {
+        if (err != CL_SUCCESS) {
+            auto name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
+            throw std::runtime_error{ "kernel " + name + " clSetKernelArg error: " + std::to_string(err) };
+        }
+    }
 
     void execute(cl::NDRange global, cl::NDRange local) {
         auto command_queue = cl::CommandQueue::getDefault();

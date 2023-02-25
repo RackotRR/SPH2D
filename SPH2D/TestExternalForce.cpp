@@ -32,7 +32,6 @@ namespace {
 		once = true;
 
 		input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-		initUtils();
 
 		heap_array<rr_uint, Params::maxn> grid;
 		heap_array<rr_uint, Params::max_cells> cells_start_in_grid;
@@ -91,6 +90,7 @@ void external_force_gpu(rr_uint ntotal,
 }
 
 bool Test::test_external_force() {
+	printlog(__func__)();
 	init_once();
 
 	external_force(ntotal,
