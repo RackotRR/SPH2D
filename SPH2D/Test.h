@@ -90,6 +90,7 @@ struct Test {
     static bool test_dynamic_boundaries();
     static bool test_grid_find();
     static bool test_sum_density();
+    static bool test_con_density();
     static bool test_find_stress_tensor();
     static bool test_update_internal_state();
     static bool test_find_internal_changes_pij_d_rhoij();

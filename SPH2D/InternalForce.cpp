@@ -46,7 +46,7 @@ void find_stress_tensor(
 			tyy(j) += mass(i) * hyy / rho(i);
 
 			// calculate SPH sum for vc, c = dvx/dx + dvy/dy + dvz/dz
-			rr_float hvcc = reduce(dvx * dwdr(n, j));
+			rr_float hvcc = dot(dvx, dwdr(n, j));
 			vcc(j) += mass(i) * hvcc / rho(i);
 		}
 	}
@@ -87,7 +87,7 @@ void find_internal_changes_pij_d_rhoij(
 
 			rr_float2 h = -dwdr(n, j) * (p(i) + p(j));
 			rr_float rhoij = 1.f / (rho(i) * rho(j));
-			rr_float he = reduce(h * (v(j) - v(i)));
+			rr_float he = dot(h, v(j) - v(i));
 
 			if (Params::visc) {
 				rr_float dwdx = dwdr(n, j).x;
@@ -139,7 +139,7 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 			rr_uint i = neighbours(n, j); // particle near
 
 			rr_float2 h = -dwdr(n, j) * (p(i) / sqr(rho(i)) + p(j) / sqr(rho(j)));
-			rr_float he = reduce(h * (v(j) - v(i)));
+			rr_float he = dot(h, v(j) - v(i));
 
 			if constexpr (Params::visc) { // viscous force
 				rr_float dwdx = dwdr(n, j).x;

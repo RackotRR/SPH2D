@@ -16,6 +16,7 @@ Test::Test() {
     test_module(test_predict_step);
     test_module(test_grid_find);
     test_module(test_sum_density);
+    test_module(test_con_density);
     test_module(test_find_stress_tensor);
     test_module(test_update_internal_state);
     test_module(test_find_internal_changes_pidrho2i_pjdrho2j);
