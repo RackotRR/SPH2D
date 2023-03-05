@@ -12,6 +12,7 @@
 inline RRKernel predict_half_step_kernel;
 inline RRKernel find_neighbours_kernel;
 inline RRKernel sum_density_kernel;
+inline RRKernel con_density_kernel;
 inline RRKernel find_stress_tensor_kernel;
 inline RRKernel update_internal_state_kernel;
 inline RRKernel find_internal_changes_kernel;
@@ -40,6 +41,7 @@ inline void makePrograms() {
     binary_search_kernel = RRKernel(grid_find_program, "binary_search");
     find_neighbours_kernel = RRKernel(grid_find_program, "find_neighbours");
     sum_density_kernel = RRKernel(density_program, "sum_density");
+    con_density_kernel = RRKernel(density_program, "con_density");
     find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
     update_internal_state_kernel = RRKernel(internal_force_program, "update_internal_state");
     find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
@@ -182,11 +184,22 @@ inline void cl_time_integration(
             neighbours_count_, neighbours_, w_, dwdr_
         ).execute(ntotal, Params::localThreads); 
 
-        printlog("sum density")();
-        sum_density_kernel(
-            mass_, neighbours_count_, neighbours_, w_,
-            rho_predict_
-        ).execute(ntotal, Params::localThreads);
+        if constexpr (Params::summation_density) {
+            printlog("sum density")();
+            sum_density_kernel(
+                mass_, neighbours_count_, neighbours_, w_,
+                rho_predict_
+            ).execute(ntotal, Params::localThreads);
+        }
+        else {
+            printlog("con density")();
+            con_density_kernel(
+                mass_, v_predict_, 
+                neighbours_count_, neighbours_, dwdr_,
+                rho_predict_,
+                drho_
+            ).execute(ntotal, Params::localThreads);
+        }
 
         printlog("find stress tensor")();
         find_stress_tensor_kernel(

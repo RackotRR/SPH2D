@@ -16,15 +16,14 @@
 #define params_left_wall_start 35500
 #define params_left_wall_end 35780
 #define params_generator_time_wait 0.0000000000f
-#define params_dt 0.0001000000f
+#define params_dt 0.0000100000f
 #define params_eos 2
 #define params_pa_sph 2
 #define params_skf 1
 #define params_nwm 2
-#define params_hsml 0.0167999994f
+#define params_hsml 0.0168000013f
 #define params_delta 0.0139999995f
 #define params_boundary_delta 0.0279999990f
-#define params_summation_density
 #define params_average_velocity
 #define params_visc
 #define params_ex_force

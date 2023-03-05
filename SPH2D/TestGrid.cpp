@@ -145,7 +145,6 @@ bool Test::test_grid_find() {
 	heap_array<rr_float, Params::maxn> u;	// specific internal energy
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
     input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-	makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
 
 	heap_array<rr_uint, Params::maxn> grid;
 	heap_array<rr_uint, Params::max_cells> cells_start_in_grid;

@@ -1,5 +1,6 @@
 #pragma once 
 #include <string>
+#include "Types.h"
 
 namespace Params {
 	// dimension of the problem (1, 2, 3)
@@ -9,42 +10,42 @@ namespace Params {
 	constexpr unsigned max_neighbours{ 50 };
 	constexpr unsigned max_cells{ 60 * maxn }; // maximum number of cells in grid
 
-	inline float x_maxgeom;
-	inline float x_mingeom;
-	inline float y_maxgeom;
-	inline float y_mingeom;
+	inline rr_float x_maxgeom;
+	inline rr_float x_mingeom;
+	inline rr_float y_maxgeom;
+	inline rr_float y_mingeom;
 
 	inline unsigned x_fluid_particles;
 	inline unsigned y_fluid_particles;
-	inline float x_fluid_min;
-	inline float y_fluid_min;
-	inline float x_fluid_max;
-	inline float y_fluid_max;
+	inline rr_float x_fluid_min;
+	inline rr_float y_fluid_min;
+	inline rr_float x_fluid_max;
+	inline rr_float y_fluid_max;
 
-	inline float x_boundary_min;
-	inline float y_boundary_min;
-	inline float x_boundary_max;
-	inline float y_boundary_max;
+	inline rr_float x_boundary_min;
+	inline rr_float y_boundary_min;
+	inline rr_float x_boundary_max;
+	inline rr_float y_boundary_max;
 
 	inline unsigned particles_fluid;
 	inline unsigned	particles_boundary;
 	inline unsigned particles_total;
 	inline unsigned fluid_particles_per_d;
 
-	inline float L;
-	inline float d;
-	inline float freq;
-	inline float A;
-	inline float H;
-	inline float k;
-	inline float beachX;
+	inline rr_float L;
+	inline rr_float d;
+	inline rr_float freq;
+	inline rr_float A;
+	inline rr_float H;
+	inline rr_float k;
+	inline rr_float beachX;
 
 	inline unsigned left_wall_start;
 	inline unsigned left_wall_end;
-	inline float generator_time_wait;
+	inline rr_float generator_time_wait;
 
-	inline float dt;
-	inline float simulation_time;
+	inline rr_float dt;
+	inline rr_float simulation_time;
 
 	constexpr unsigned localThreads{ 128 };
 
@@ -78,17 +79,17 @@ namespace Params {
 	constexpr int nwm{ 2 };
 
 	// const smoothing length
-	constexpr float hsml = 0.0167999994f;
+	constexpr rr_float hsml = 1.2f * 0.014f;
 
 	// initial distance between particles
-	inline float delta;
-	inline float boundary_delta;
+	inline rr_float delta;
+	inline rr_float boundary_delta;
 
 	/// Switches for diferent scenarios;
 
 	// true : use density summation model
 	// false : use continuity equation
-	constexpr bool summation_density{ true };
+	constexpr bool summation_density{ false };
 	// true : density normalization by using CSPM
 	// false : no normalization
 	constexpr bool nor_density{ summation_density && false };
@@ -120,7 +121,7 @@ namespace Params {
 
 	/// control parameters for output
 
-	constexpr bool enable_check_consistency{ false };
+	constexpr bool enable_check_consistency{ true };
 	// false - just say
 	// true - stop on not normal
 	constexpr bool inf_stop{ enable_check_consistency && true };
@@ -129,8 +130,8 @@ namespace Params {
 	inline unsigned normal_check_step; // step for checking boundaries and finite values
 	inline unsigned save_step; // save timestep (on disk)
 
-	constexpr float pi{ 3.14159265358979323846f };
-	constexpr float g{ 9.81f };
+	constexpr rr_float pi{ 3.14159265358979323846f };
+	constexpr rr_float g{ 9.81f };
 
 	inline std::string experimentName;
 

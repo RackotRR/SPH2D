@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include "Output.h"
+#include "Input.h"
 
 namespace {
 	std::string experimentRelativePath;
@@ -110,6 +111,11 @@ void printParams() {
 	std::string path = experimentRelativePath + "Params.json";
 	std::ofstream stream(path, std::ofstream::out);
 	stream << json;
+
+	makeParamsHeader(Params::particles_total, 
+		Params::particles_fluid, 
+		Params::particles_boundary, 
+		experimentRelativePath + "clparams.h");
 }
 
 

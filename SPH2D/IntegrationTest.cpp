@@ -72,11 +72,18 @@ namespace integration_test {
             failed_test += Test::difference("sum_density: rho", rho, rho_cl, ntotal);
         }
         else {
+            auto drho_cl = drho.copy();
             con_density(ntotal,
                 mass, v,
                 neighbours_count, neighbours, dwdr,
                 rho,
                 drho);
+            con_density_gpu(ntotal,
+                mass, v,
+                neighbours_count, neighbours, dwdr,
+                rho,
+                drho_cl);
+            failed_test += Test::difference("con_density: drho", drho, drho_cl, ntotal);
         }
 
         auto c_cl = c.copy();
@@ -254,7 +261,6 @@ bool Test::integration_test() {
     heap_array<rr_float, Params::maxn> u;	// specific internal energy
     heap_array<rr_float, Params::maxn> c;	// sound velocity 
     input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
-    makeParamsHeader(ntotal, nfluid, ntotal - nfluid);
 
     integration_test::failed_test = 0;
     integration_test::time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
