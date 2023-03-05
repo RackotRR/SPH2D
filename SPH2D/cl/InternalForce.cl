@@ -42,7 +42,7 @@ __kernel void find_stress_tensor(
         tyy[j] += massi * hyy / rhoi;
 
         // calculate SPH sum for vc, c = dvx/dx + dvy/dy + dvz/dz
-        rr_float hvcc = reduce_2f(dvx * dwdri);
+        rr_float hvcc = dot(dvx, dwdri);
         vcc[j] += massi * hvcc / rhoi;
     }
 }
@@ -82,7 +82,7 @@ __kernel void find_internal_changes_pij_d_rhoij(
         rr_float2 dwdri = dwdr[at(n, j)];
         rr_float2 h = -dwdri * (p[i] + p[j]);
         rr_float mrhoij = mass[i] / (rho[i] * rho[j]);
-        rr_float he = reduce_2f(h * (v[j] - v[i]));
+        rr_float he = dot(h, v[j] - v[i]);
 
 #ifdef params_visc
         h.x += (eta[i] * txx[i] + eta[j] * txx[j]) * dwdri.x;
@@ -133,7 +133,7 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
         rr_float rhoj = rho[j];
 
         rr_float2 h = -dwdri * (p[i] / sqr(rhoi) + p[j] / sqr(rhoj));
-        rr_float he = reduce_2f(h * (v[j] - v[i]));
+        rr_float he = dot(h, v[j] - v[i]);
 
 #ifdef params_visc
         h.x += (eta[i] * txx[i] / sqr(rhoi) + eta[j] * txx[j] / sqr(rhoj)) * dwdri.x;

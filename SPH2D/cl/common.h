@@ -18,6 +18,9 @@
 #define MAXFLOAT FLT_MAX
 size_t get_global_id(rr_uint dimindx);
 void barrier(int flags);
+rr_float dot(rr_float2 v1, rr_float2 v2);
+template<typename T> 
+T max(T v1, T v2);
 #endif // !KERNEL_BUILD
 
 #define sqr(a) ((a) * (a))
@@ -30,19 +33,9 @@ inline rr_float powun(rr_float value, rr_uint power) {
     }
     return result;
 }
-inline float length_sqr_3f(float3 vec) {
-    return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
-}
-inline float length_sqr_2f(float2 vec) {
+inline rr_float length_sqr(rr_float2 vec) {
     return vec.x * vec.x + vec.y * vec.y;
 }
-inline float reduce_3f(float3 vec) {
-    return vec.x + vec.y + vec.z;
-}
-inline float reduce_2f(float2 vec) {
-    return vec.x + vec.y;
-}
-
 #include "../GridUtils.h"
 
 #define at(n, j) ((n) + params_max_neighbours * (j))

@@ -122,7 +122,7 @@ __kernel void find_neighbours(
 			if (i == j) continue; // particle isn't neighbour of itself
 
 			rr_float2 diff = r[i] - r[j];
-			rr_float dist_sqr = length_sqr_2f(diff);
+			rr_float dist_sqr = length_sqr(diff);
 
 			if (dist_sqr < max_dist_kernel) {
 				rr_uint neighbour_id = neighbours_count[j]++;

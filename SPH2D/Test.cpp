@@ -20,6 +20,7 @@ Test::Test() {
     test_module(test_update_internal_state);
     test_module(test_find_internal_changes_pidrho2i_pjdrho2j);
     test_module(test_find_internal_changes_pij_d_rhoij);
+    test_module(test_internal_force);
     test_module(test_external_force);
     test_module(test_artificial_viscosity);
     test_module(test_average_velocity);

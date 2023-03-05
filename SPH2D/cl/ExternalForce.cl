@@ -37,7 +37,7 @@ __kernel void external_force(
 
 			// rr --- distance between particles
 			rr_float2 dr = r[j] - r[i];
-			rr_float rr_sqr = length_sqr_2f(dr);
+			rr_float rr_sqr = length_sqr(dr);
 
 			if (rr_sqr < sqr(ext_force_rr0)) {
 				// calculating force

@@ -94,6 +94,7 @@ struct Test {
     static bool test_update_internal_state();
     static bool test_find_internal_changes_pij_d_rhoij();
     static bool test_find_internal_changes_pidrho2i_pjdrho2j();
+    static bool test_internal_force();
     static bool test_external_force();
     static bool test_artificial_viscosity();
     static bool test_average_velocity();

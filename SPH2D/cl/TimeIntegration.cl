@@ -33,7 +33,7 @@ __kernel void predict_half_step(
 	if (i >= params_ntotal) return;
 
 	u_predict[i] = u[i] + du[i] * params_dt * 0.5f;
-	u_predict[i] = max(u_predict[i], 0.f);
+	u_predict[i] = max(u_predict[i], (rr_float)0.f);
 
 #ifndef params_summation_density
 	rho_predict[i] = rho[i] + drho[i] * params_dt * 0.5f;
@@ -62,7 +62,7 @@ __kernel void correct_step(
 	if (i >= params_ntotal) return;
 
 	u[i] = u_predict[i] + du[i] * params_dt;
-	u[i] = max(u[i], 0.f);
+	u[i] = max(u[i], (rr_float)0.f);
 
 #ifndef params_summation_density
 	rho[i] = rho_predict[i] + drho[i] * params_dt;

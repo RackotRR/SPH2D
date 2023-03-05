@@ -30,8 +30,8 @@ __kernel void artificial_viscosity(
 
 		rr_float2 dv = v[i] - v[j];
 		rr_float2 dr = r[i] - r[j];
-		rr_float vr = reduce_2f(dv * dr);
-		rr_float rr = length_sqr_2f(dr);
+		rr_float vr = dot(dv, dr);
+		rr_float rr = length_sqr(dr);
 
 		// artificial viscous force only if v_ij * r_ij < 0
 		if (vr < 0) {
@@ -45,7 +45,7 @@ __kernel void artificial_viscosity(
 
 			rr_float2 h = -dwdr[at(n, j)] * piv;
 			a[j] -= h * mass[i];
-			dedt[j] -= reduce_2f(dv * h) * mass[i];
+			dedt[j] -= dot(dv, h) * mass[i];
 		}
 	}
 
