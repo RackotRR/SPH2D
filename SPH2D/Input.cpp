@@ -116,6 +116,9 @@ void input(
 	printlog("nfluid: ")(nfluid)();
 	printlog("nvirt: ")(nvirt)();
 	printlog("ntotal: ")(ntotal)();
+
+	printParams();
+	makeParamsHeader(ntotal, nfluid, nvirt, Params::experimentName + "\\clparams.h");
 }
 
 
@@ -232,9 +235,9 @@ namespace {
 	};
 }
 
-void makeParamsHeader(unsigned ntotal, unsigned nfluid, unsigned nvirt) {
+void makeParamsHeader(unsigned ntotal, unsigned nfluid, unsigned nvirt, std::string path) {
 	::ParamsHeader header(ntotal, nfluid, nvirt);
 	std::string params = header.string();
-	std::ofstream stream("cl\\clparams.h");
+	std::ofstream stream(path);
 	stream << params;
 }

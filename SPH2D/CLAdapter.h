@@ -1,27 +1,13 @@
 #pragma once
 #include "CLCommon.h"
 
-#include <type_traits>
-#include <iomanip>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <format>
-
 #include <iostream>
 #include <RR/Time/Timer.h>
 
 #include "CommonIncl.h"
 #include "Output.h"
 #include "GridFind.h"
-
-inline cl::Program density_program;
-inline cl::Program grid_find_program;
-inline cl::Program internal_force_program;
-inline cl::Program external_force_program;
-inline cl::Program artificial_viscosity_program;
-inline cl::Program average_velocity_program;
-inline cl::Program time_integration_program;
+#include "IsNormalCheck.h"
 
 inline RRKernel predict_half_step_kernel;
 inline RRKernel find_neighbours_kernel;
@@ -40,13 +26,13 @@ static RRKernel sort_kernel;
 static RRKernel binary_search_kernel;
 
 inline void makePrograms() {
-    density_program = makeProgram("Density.cl");
-    grid_find_program = makeProgram("GridFind.cl");
-    internal_force_program = makeProgram("InternalForce.cl");
-    external_force_program = makeProgram("ExternalForce.cl");
-    artificial_viscosity_program = makeProgram("ArtificialViscosity.cl");
-    average_velocity_program = makeProgram("AverageVelocity.cl");
-    time_integration_program = makeProgram("TimeIntegration.cl");
+    cl::Program density_program = makeProgram("Density.cl");
+    cl::Program grid_find_program = makeProgram("GridFind.cl");
+    cl::Program internal_force_program = makeProgram("InternalForce.cl");
+    cl::Program external_force_program = makeProgram("ExternalForce.cl");
+    cl::Program artificial_viscosity_program = makeProgram("ArtificialViscosity.cl");
+    cl::Program average_velocity_program = makeProgram("AverageVelocity.cl");
+    cl::Program time_integration_program = makeProgram("TimeIntegration.cl");
 
     predict_half_step_kernel = RRKernel(time_integration_program, "predict_half_step");
     fill_in_grid_kernel = RRKernel(grid_find_program, "fill_in_grid");
@@ -80,7 +66,7 @@ inline void cl_time_integration(
 {
     makePrograms();
 
-    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
+    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE;// | CL_MEM_HOST_WRITE_ONLY;
     constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 
     // common
@@ -129,8 +115,9 @@ inline void cl_time_integration(
     // average velocity
     auto av_ = makeBuffer<rr_float2>(DEVICE_ONLY, Params::maxn);
 
-
+    // bitonic sort passes
     constexpr size_t passes = intlog2(Params::maxn);
+
     rr_float time = 0;
     RR::Timer timer;
     for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
@@ -141,9 +128,25 @@ inline void cl_time_integration(
         if (itimestep % Params::save_step == 0) {
             long long timeEstimate = static_cast<long long>(timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.);
             
-            heap_array<rr_float2, Params::maxn> r_temp;
-            cl::copy(r_, r_temp.begin(), r_temp.end());
-            fast_output(std::move(r_temp), itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+            auto r_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>();
+            auto itype_temp = std::make_unique<heap_array<rr_int, Params::maxn>>(itype.copy());
+            auto v_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>();
+            auto p_temp = std::make_unique<heap_array<rr_float, Params::maxn>>();
+            cl::copy(r_, r_temp->begin(), r_temp->end());
+            cl::copy(v_, v_temp->begin(), v_temp->end());
+            cl::copy(p_, p_temp->begin(), p_temp->end());
+            output_on_demand(
+                std::move(r_temp),
+                std::move(itype_temp),
+                std::move(v_temp),
+                nullptr,
+                std::move(p_temp),
+                nullptr,
+                ntotal,
+                itimestep,
+                timer.total<std::chrono::minutes>(),
+                timeEstimate);
+            //fast_output(std::move(r_temp), itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
         }
 
         printlog("predict_half_step_kernel")();
@@ -177,7 +180,7 @@ inline void cl_time_integration(
         find_neighbours_kernel(
             r_, grid_, cells_,
             neighbours_count_, neighbours_, w_, dwdr_
-        ).execute(ntotal, Params::localThreads);
+        ).execute(ntotal, Params::localThreads); 
 
         printlog("sum density")();
         sum_density_kernel(
@@ -239,10 +242,27 @@ inline void cl_time_integration(
             rho_, u_, v_, r_
         ).execute(ntotal, Params::localThreads);
 
-        printlog("update boundaries")();
-        update_boundaries_kernel(
-            v_, r_, time
-        ).execute(ntotal, Params::localThreads);
+        if constexpr (Params::nwm) {
+            printlog("update boundaries")();
+            update_boundaries_kernel(
+                v_, r_, time
+            ).execute(ntotal, Params::localThreads);
+        }
+
+        if constexpr (Params::enable_check_consistency) {
+            if (should_check_normal(itimestep)) {
+                static heap_array<rr_float2, Params::maxn> r_cpy, v_cpy;
+                static heap_array<rr_float, Params::maxn> rho_cpy, p_cpy;
+
+                cl::copy(r_, r_cpy.begin(), r_cpy.end());
+                cl::copy(v_, v_cpy.begin(), v_cpy.end());
+                cl::copy(rho_, rho_cpy.begin(), rho_cpy.end());
+                cl::copy(p_, p_cpy.begin(), p_cpy.end());
+
+                check_finite(r_cpy, v_cpy, rho_cpy, p_cpy, itype, ntotal);
+                check_particles_are_within_boundaries(ntotal, r_cpy, itype);
+            }
+        }
 
         time += Params::dt;
         timer.finish();

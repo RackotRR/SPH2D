@@ -113,7 +113,7 @@ void con_density(
 			rr_uint i = neighbours(n, j); // particle near
 
 			rr_float2 dvx = v(i) - v(j);
-			rr_float vcc = reduce(dvx * dwdr(n, j));
+			rr_float vcc = dot(dvx, dwdr(n, j));
 			drhodt(j) += mass(i) * vcc;
 		}
 	}

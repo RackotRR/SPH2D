@@ -22,7 +22,7 @@ static void find_vcc(const rr_uint ntotal,	// number of particles
 			rr_uint i = neighbours(n, j); // particle near
 
 			rr_float2 dv = v(j) - v(i);
-			rr_float hvcc = reduce(dv * dwdr(n, j));
+			rr_float hvcc = dot(dv, dwdr(n, j));
 			vcc(j) += mass(i) * hvcc / rho(i);
 		}
 	}
@@ -40,7 +40,7 @@ static void find_dedt(const rr_uint ntotal,	// number of particles
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& dedt)
 {
-	const float hsml = Params::hsml;
+	const rr_float hsml = Params::hsml;
 	static constexpr rr_float g1 = 0.1f;
 	static constexpr rr_float g2 = 1.0f;
 
@@ -55,7 +55,7 @@ static void find_dedt(const rr_uint ntotal,	// number of particles
 			rr_float mrho = (rho(i) + rho(j)) * 0.5f;
 			rr_float2 dr = r(i) - r(j);
 			rr_float rr = length_sqr(dr);
-			rr_float rdwdx = reduce(dr * dwdr(n, j));
+			rr_float rdwdx = dot(dr, dwdr(n, j));
 
 			rr_float mui = g1 * hsml * c(i) + g2 * sqr(hsml) * (abs(vcc(i)) - vcc(i));
 			rr_float muj = g1 * hsml * c(j) + g2 * sqr(hsml) * (abs(vcc(j)) - vcc(j));

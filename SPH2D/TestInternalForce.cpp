@@ -31,9 +31,6 @@ namespace {
 	heap_array<rr_float, Params::maxn> tdsdt;
 	heap_array<rr_float, Params::maxn> eta;
 
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> dedt;
-
 
 	void init_once() {
 		static bool once = false;
@@ -118,6 +115,10 @@ bool Test::test_find_stress_tensor() {
 
 	init_once();
 
+	heap_array<rr_float, Params::maxn> vcc;
+	heap_array<rr_float, Params::maxn> txx;
+	heap_array<rr_float, Params::maxn> txy;
+	heap_array<rr_float, Params::maxn> tyy;
 	find_stress_tensor(ntotal,
 		v,
 		mass,
@@ -201,6 +202,10 @@ bool Test::test_update_internal_state() {
 		dwdr,
 		vcc, txx, txy, tyy);
 
+	heap_array<rr_float, Params::maxn> tdsdt;
+	heap_array<rr_float, Params::maxn> eta;
+	heap_array<rr_float, Params::maxn> c;
+	heap_array<rr_float, Params::maxn> p;
 	update_internal_state(ntotal,
 		rho, u,
 		txx, txy, tyy,
@@ -261,8 +266,8 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt_cl);
 
 	size_t elements = Params::maxn;
-	auto a_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
-	auto dedt_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
+	auto a_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, elements);
+	auto dedt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, elements);
 
 	kernel(
 		v_, mass_, rho_, eta_, u_,
@@ -292,6 +297,8 @@ bool Test::test_find_internal_changes_pij_d_rhoij() {
 		eta, tdsdt, c, p);
 
 
+	heap_array<rr_float2, Params::maxn> a;
+	heap_array<rr_float, Params::maxn> dedt;
 	find_internal_changes_pij_d_rhoij(ntotal,
 		v, mass, rho, eta, u,
 		neighbours_count, neighbours, dwdr,
@@ -383,6 +390,8 @@ bool Test::test_find_internal_changes_pidrho2i_pjdrho2j() {
 		eta, tdsdt, c, p);
 
 
+	heap_array<rr_float2, Params::maxn> a;
+	heap_array<rr_float, Params::maxn> dedt;
 	find_internal_changes_pidrho2i_pjdrho2j(ntotal,
 		v, mass, rho, eta, u,
 		neighbours_count, neighbours, dwdr,
@@ -460,4 +469,34 @@ void int_force_gpu(
 			p, tdsdt,
 			a, dedt);
 	}
+}
+
+bool Test::test_internal_force() {
+	printlog(__func__)();
+	init_once();
+
+	heap_array<rr_float2, Params::maxn> a;
+	heap_array<rr_float, Params::maxn> dedt;
+	heap_array<rr_float, Params::maxn> c;
+	heap_array<rr_float, Params::maxn> p;
+	int_force(ntotal,
+		mass, r, v, rho, u,
+		neighbours_count, neighbours, w, dwdr,
+		c, p, a, dedt);
+
+	heap_array<rr_float2, Params::maxn> a_cl;
+	heap_array<rr_float, Params::maxn> dedt_cl;
+	heap_array<rr_float, Params::maxn> c_cl;
+	heap_array<rr_float, Params::maxn> p_cl;
+	int_force_gpu(ntotal,
+		mass, r, v, rho, u,
+		neighbours_count, neighbours, w, dwdr,
+		c_cl, p_cl, a_cl, dedt_cl);
+
+	rr_uint err_count = 0;
+	err_count += difference("a", a, a_cl, ntotal);
+	err_count += difference("dedt", dedt, dedt_cl, ntotal);
+	err_count += difference("c", c, c_cl, ntotal);
+	err_count += difference("p", p, p_cl, ntotal);
+	return err_count == 0;
 }

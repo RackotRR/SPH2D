@@ -3,7 +3,6 @@
 #include <cassert>
 
 #include "Params.h"
-#include "Types.h"
 #include "GridUtils.h"
 #include "HeapArray.h" 
 #include "Logger.h"

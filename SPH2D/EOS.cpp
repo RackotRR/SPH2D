@@ -36,7 +36,7 @@ void p_art_water(
     else {
         // artificial EOS, Form (Monaghan, 1994)
         static constexpr rr_uint gamma = 7;
-        float B = cSqr * rho0 / gamma;
+        rr_float B = cSqr * rho0 / gamma;
         if (rho > rho0) {
             p = B * (powun(rho / rho0, gamma) - 1.f);
         }

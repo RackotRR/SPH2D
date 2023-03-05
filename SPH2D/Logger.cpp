@@ -19,7 +19,7 @@ PrintLog& PrintLog::operator()(const std::string& line) {
 	printlog_part(line);
 	return *this;
 }
-PrintLog& PrintLog::operator()(float value) {
+PrintLog& PrintLog::operator()(rr_float value) {
 	printlog_part(std::to_string(value));
 	return *this;
 }

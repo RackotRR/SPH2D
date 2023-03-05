@@ -24,7 +24,7 @@ void predict_half_step(
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		u_predict(i) = u(i) + du(i) * Params::dt * 0.5f;
-		u_predict(i) = std::max(u_predict(i), 0.f);
+		u_predict(i) = std::max<rr_float>(u_predict(i), 0.f);
 
 		if constexpr (Params::summation_density == false) {
 			rho_predict(i) = rho(i) + drho(i) * Params::dt * 0.5f;
@@ -52,7 +52,7 @@ void correct_step(
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		u(i) = u_predict(i) + du(i) * Params::dt;
-		u(i) = std::max(u(i), 0.f);
+		u(i) = std::max<rr_float>(u(i), 0.f);
 
 		if constexpr (Params::summation_density == false) {
 			rho(i) = rho_predict(i) + drho(i) * Params::dt;
@@ -101,7 +101,23 @@ void time_integration(
 		if (itimestep % Params::save_step == 0) {
 			long long timeEstimate = static_cast<long long>(timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.);
 			//output(r, v, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
-			fast_output(r, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+			//fast_output(r, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+
+			auto r_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>(r.copy());
+			auto itype_temp = std::make_unique<heap_array<rr_int, Params::maxn>>(itype.copy());
+			auto v_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>(v.copy());
+			auto p_temp = std::make_unique<heap_array<rr_float, Params::maxn>>(p.copy());
+			output_on_demand(
+				std::move(r_temp),
+				std::move(itype_temp),
+				std::move(v_temp),
+				nullptr,
+				std::move(p_temp),
+				nullptr,
+				ntotal,
+				itimestep,
+				timer.total<std::chrono::minutes>(),
+				timeEstimate);
 		}
 
 		predict_half_step(ntotal,

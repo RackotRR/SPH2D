@@ -46,6 +46,41 @@ namespace {
 			stream << itype(i) << std::endl;
 		}
 	}
+
+	void print_on_demand(
+		std::unique_ptr<heap_array<rr_float2, Params::maxn>> r,	// coordinates of all particles
+		std::unique_ptr<heap_array<rr_int, Params::maxn>> itype,	// material type 
+		std::unique_ptr<heap_array<rr_float2, Params::maxn>> v,	// velocities of all particles
+		std::unique_ptr<heap_array<rr_float, Params::maxn>> rho,// density
+		std::unique_ptr<heap_array<rr_float, Params::maxn>> p,	// pressure
+		std::unique_ptr<heap_array<rr_float, Params::maxn>> u,	// specific internal energy
+		const rr_uint ntotal,	// number of particles
+		const rr_uint itimestep) // current time step
+	{
+		if (!r || !itype) {
+			throw std::runtime_error{ "print_on_demand error: r and itype were expected not to be null" };
+		}
+
+		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
+		stream << ntotal << std::endl;
+		for (rr_uint i = 0; i < ntotal; i++) {
+			stream << r->at(i).x << std::endl << r->at(i).y << std::endl;
+			stream << itype->at(i) << std::endl;
+
+			if (v) {
+				stream << v->at(i).x << std::endl << v->at(i).y << std::endl;
+			}
+			if (rho) {
+				stream << rho->at(i) << std::endl;
+			}
+			if (p) {
+				stream << p->at(i) << std::endl;
+			}
+			if (u) {
+				stream << u->at(i) << std::endl;
+			}
+		}
+	}
 }
 
 // params and other things
@@ -89,6 +124,34 @@ void setupOutput() {
 
 	//init_logger();
 	init_logger(Params::experimentName);
+}
+
+void output_on_demand(
+	std::unique_ptr<heap_array<rr_float2, Params::maxn>> r,	// coordinates of all particles
+	std::unique_ptr<heap_array<rr_int, Params::maxn>> itype,	// material type 
+	std::unique_ptr<heap_array<rr_float2, Params::maxn>> v,	// velocities of all particles
+	std::unique_ptr<heap_array<rr_float, Params::maxn>> rho,// density
+	std::unique_ptr<heap_array<rr_float, Params::maxn>> p,	// pressure
+	std::unique_ptr<heap_array<rr_float, Params::maxn>> u,	// specific internal energy
+	const rr_uint ntotal,	// number of particles
+	const rr_uint itimestep,// current time step
+	const long long timePassedTotal,
+	const long long timeEstimates)
+{
+	printlog()(__func__)();
+
+	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
+	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
+
+	std::thread(print_on_demand,
+		std::move(r),
+		std::move(itype),
+		std::move(v),
+		std::move(rho),
+		std::move(p),
+		std::move(u),
+		ntotal,
+		itimestep).detach();
 }
 
 // save particle information to external disk file

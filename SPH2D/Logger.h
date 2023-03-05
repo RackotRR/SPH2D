@@ -3,13 +3,14 @@
 
 #ifdef FULL_STAT_LOGGING
 #include <string>
+#include "Types.h"
 
 class PrintLog {
 public:
 	PrintLog& operator()();
 	PrintLog& operator()(const char*);
 	PrintLog& operator()(const std::string&);
-	PrintLog& operator()(float);
+	PrintLog& operator()(rr_float);
 	PrintLog& operator()(long long);
 	PrintLog& operator()(int);
 	PrintLog& operator()(unsigned);

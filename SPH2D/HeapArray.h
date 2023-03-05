@@ -42,6 +42,13 @@ public:
 		return arr;
 	}
 
+
+	const T& at(size_t i, size_t j) const {
+		return (*this)(i, j);
+	}
+	T& at(size_t i, size_t j) {
+		return (*this)(i, j);
+	}
 	const T& operator() (size_t i, size_t j) const {
 		return ptr[i + dimensions * j];
 	}
@@ -120,6 +127,12 @@ public:
 		create(initValue);
 	}
 
+	const T& at(size_t i) const {
+		return (*this)(i);
+	}
+	T& at(size_t i) {
+		return (*this)(i);
+	}
 	const T& operator() (size_t i) const {
 		return ptr[i];
 	} 
