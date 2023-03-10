@@ -19,6 +19,10 @@ __kernel void artificial_viscosity(
 	a[j] = 0.f;
 	dedt[j] = 0.f;
 
+#ifdef params_visc_artificial
+	rr_float2 a_temp = 0;
+	rr_float dedt_temp = 0;
+
 #define art_visc_alpha 1.f // shear viscosity
 #define art_visc_beta 1.f // bulk viscosity
 #define art_visc_etq 0.1f // const to avoid singularities
@@ -26,7 +30,6 @@ __kernel void artificial_viscosity(
 	rr_uint nc = neighbours_count[j];
 	for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
 		rr_uint i = neighbours[at(n, j)]; // particle near
-
 
 		rr_float2 dv = v[i] - v[j];
 		rr_float2 dr = r[i] - r[j];
@@ -42,12 +45,14 @@ __kernel void artificial_viscosity(
 			rr_float mc = 0.5f * (c[i] + c[j]);
 			rr_float mrho = 0.5f * (rho[i] + rho[j]);
 			rr_float piv = (art_visc_beta * muv - art_visc_alpha * mc) * muv / mrho;
-
 			rr_float2 h = -dwdr[at(n, j)] * piv;
-			a[j] -= h * mass[i];
-			dedt[j] -= dot(dv, h) * mass[i];
+
+			a_temp -= h * mass[i];
+			dedt_temp -= dot(dv, h) * mass[i];
 		}
 	}
 
-	dedt[j] *= 0.5f;
+	dedt[j] = dedt_temp * 0.5f;
+	a[j] = a_temp;
+#endif // params_visc_artificial
 }

@@ -32,8 +32,7 @@ __kernel void predict_half_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-	u_predict[i] = u[i] + du[i] * params_dt * 0.5f;
-	u_predict[i] = max(u_predict[i], (rr_float)0.f);
+	u_predict[i] = max(u[i] + du[i] * params_dt * 0.5f, (rr_float)0.f);
 
 #ifndef params_summation_density
 	rho_predict[i] = rho[i] + drho[i] * params_dt * 0.5f;
@@ -61,16 +60,16 @@ __kernel void correct_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-	u[i] = u_predict[i] + du[i] * params_dt;
-	u[i] = max(u[i], (rr_float)0.f);
+	u[i] = max(u_predict[i] + du[i] * params_dt, (rr_float)0.f);
 
 #ifndef params_summation_density
 	rho[i] = rho_predict[i] + drho[i] * params_dt;
 #endif // params_summation_density
 
 	if (itype[i] > 0) {
-		v[i] = v_predict[i] + a[i] * params_dt + av[i];
-		r[i] += v[i] * params_dt;
+		rr_float2 v_temp = v_predict[i] + a[i] * params_dt + av[i];
+		v[i] = v_temp;
+		r[i] += v_temp * params_dt;
 	}
 }
 

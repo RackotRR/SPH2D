@@ -62,9 +62,9 @@ inline bool greater(
 __kernel void bitonic_sort_step(
     __global rr_float2* r, 
     __global rr_uint* grid, 
-    size_t pass, 
-    size_t step_size, 
-    size_t max_step_size) 
+    rr_uint pass, 
+    rr_uint step_size, 
+    rr_uint max_step_size) 
 {
     size_t i = get_global_id(0);
 
@@ -114,7 +114,7 @@ __kernel void find_neighbours(
 		if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
 
 		for (rr_uint grid_i = cell_starts_in_grid[cell_idx]; // run through all particles in cell
-			grid_i < cell_starts_in_grid[cell_idx + 1ull];
+			grid_i < cell_starts_in_grid[cell_idx + 1];
 			++grid_i)
 		{
 			rr_uint i = grid[grid_i]; // index of particle

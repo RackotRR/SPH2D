@@ -14,8 +14,10 @@ __kernel void average_velocity(
 	size_t j = get_global_id(0);
 	if (j >= params_ntotal) return;
 
-	rr_float2 av_temp = 0.f;
+	av[j] = 0;
 
+#ifdef params_average_velocity
+	rr_float2 av_temp = 0.f;
 	rr_uint nc = neighbours_count[j];
 	for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
 		rr_uint i = neighbours[at(n, j)]; // particle near
@@ -25,7 +27,6 @@ __kernel void average_velocity(
 	}
 
 #define av_vel_epsilon 0.3f // epsilon for incompressible flow
-	av_temp *= av_vel_epsilon;
-
-	av[j] = av_temp;
+	av[j] = av_temp * av_vel_epsilon;
+#endif // !params_average_velocity
 }

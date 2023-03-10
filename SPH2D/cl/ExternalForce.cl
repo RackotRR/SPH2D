@@ -12,13 +12,14 @@ __kernel void external_force(
 	size_t j = get_global_id(0);
 	if (j >= params_ntotal) return;
 
-	a[j].x = 0.f;
-#ifdef params_self_gravity
-	a[j].y = -params_g;
-#else
-	a[j].y = 0.f;
-#endif
+	rr_float2 a_temp;
 
+	a_temp.x = 0.f;
+#ifdef params_self_gravity
+	a_temp.y = -params_g;
+#else
+	a_temp.y = 0.f;
+#endif
 
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
@@ -45,8 +46,10 @@ __kernel void external_force(
 				rr_float f = ext_force_D * (powun(ext_force_rr0 / rr, ext_force_p1) - powun(ext_force_rr0 / rr, ext_force_p2)) / rr_sqr;
 
 				// applying force to material particle
-				a[j] += dr * f;
+				a_temp += dr * f;
 			}
 		}
 	}
+
+	a[j] = a_temp;
 }

@@ -11,18 +11,20 @@ __kernel void sum_density(
 {
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
-
+    
     rr_float wjj;
     rr_float2 dwdrjj;
     smoothing_kernel(0.f, 0.f, &wjj, &dwdrjj);
-    rho[j] = mass[j] * wjj;
+    rr_float rho_temp = mass[j] * wjj;
 
     rr_uint nc = neighbours_count[j];
     for (rr_uint n = 0; n < nc; ++n) {
         rr_uint i = neighbours[at(n, j)];
 
-        rho[j] += mass[i] * w[at(n, j)];
+        rho_temp += mass[i] * w[at(n, j)];
     }
+
+    rho[j] = rho_temp;
 }
 
 __kernel void con_density(
@@ -38,7 +40,7 @@ __kernel void con_density(
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
 
-    drho[j] = 0;
+    rr_float drho_temp = 0;
 
     rr_uint nc = neighbours_count[j];
     for (rr_uint n = 0; n < nc; ++n) {
@@ -46,6 +48,8 @@ __kernel void con_density(
 
         rr_float2 dvx = v[i] - v[j];
         rr_float vcc = dot(dvx, dwdr[at(n, j)]);
-        drho[j] += mass[i] * vcc;
+        drho_temp += mass[i] * vcc;
     }
+
+    drho[j] = drho_temp;
 }
