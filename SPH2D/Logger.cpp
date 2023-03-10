@@ -35,6 +35,10 @@ PrintLog& PrintLog::operator()(int value) {
 	printlog_part(std::to_string(value));
 	return *this;
 }
+PrintLog& PrintLog::operator()(size_t value) {
+	printlog_part(std::to_string(value));
+	return *this;
+}
 
 static std::unique_ptr<std::ofstream> log_file;
 static std::ostream* log_stream;

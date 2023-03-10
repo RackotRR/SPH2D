@@ -12,9 +12,7 @@ void output(
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates);
+	const rr_uint itimestep);// current time step
 
 void output_on_demand(
 	std::unique_ptr<heap_array<rr_float2, Params::maxn>> r,	// coordinates of all particles
@@ -24,27 +22,23 @@ void output_on_demand(
 	std::unique_ptr<heap_array<rr_float, Params::maxn>> p,	// pressure
 	std::unique_ptr<heap_array<rr_float, Params::maxn>> u,	// specific internal energy
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates);
+	const rr_uint itimestep);// current time step
 
 void fast_output(
 	heap_array<rr_float2, Params::maxn>&& r,	// coordinates of all particles
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates);
+	const rr_uint itimestep);// current time step
 void fast_output(
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
+	heap_array<rr_float2, Params::maxn>&& r,	// coordinates of all particles
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates);
+	const rr_uint itimestep); // current time step
 
 // call once at start
 void setupOutput();
 
 // call once at start after initialization
 void printParams();
+
+void printTimeEstimate(long long totalTime_ns, rr_uint timeStep);

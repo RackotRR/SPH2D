@@ -7,6 +7,7 @@
 
 #include "Output.h"
 #include "Input.h"
+#include "CLCommon.h"
 
 namespace {
 	std::string experimentRelativePath;
@@ -112,9 +113,9 @@ void printParams() {
 	std::ofstream stream(path, std::ofstream::out);
 	stream << json;
 
-	makeParamsHeader(Params::particles_total, 
-		Params::particles_fluid, 
-		Params::particles_boundary, 
+	makeParamsHeader(Params::particles_total,
+		Params::particles_fluid,
+		Params::particles_boundary,
 		experimentRelativePath + "clparams.h");
 }
 
@@ -130,6 +131,7 @@ void setupOutput() {
 
 	//init_logger();
 	init_logger(Params::experimentName);
+	logCLInfo();
 }
 
 void output_on_demand(
@@ -140,14 +142,9 @@ void output_on_demand(
 	std::unique_ptr<heap_array<rr_float, Params::maxn>> p,	// pressure
 	std::unique_ptr<heap_array<rr_float, Params::maxn>> u,	// specific internal energy
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates)
+	const rr_uint itimestep)// current time step
 {
 	printlog()(__func__)();
-
-	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
-	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
 
 	std::thread(print_on_demand,
 		std::move(r),
@@ -170,14 +167,9 @@ void output(
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates)
+	const rr_uint itimestep)// current time step
 {
 	printlog()(__func__)();
-
-	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
-	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
 
 	std::thread(printFull, 
 		r.copy(), 
@@ -195,25 +187,47 @@ void fast_output(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates)
+	const rr_uint itimestep)// current time step
 {
-	fast_output(r.copy(), itype, ntotal, itimestep, timePassedTotal, timeEstimates);
+	fast_output(r.copy(), itype, ntotal, itimestep);
 }
 
 void fast_output(
 	heap_array<rr_float2, Params::maxn>&& r,	// coordinates of all particles
 	const heap_array<rr_int, Params::maxn>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep,// current time step
-	const long long timePassedTotal,
-	const long long timeEstimates)
+	const rr_uint itimestep) // current time step
 {
 	printlog()(__func__)();
-
-	std::cout << itimestep << " / " << Params::maxtimestep << " \t (part: " << ntotal << ")";
-	std::cout << "{ passed: " << timePassedTotal << "; w8 est." << timeEstimates << " }" << std::endl;
-
 	std::thread(printFast, std::move(r), itype.copy(), ntotal, itimestep).detach();
+}
+
+static std::string getTimeInAppropriateForm(long long timeSec) {
+	if (timeSec > 120) {
+		timeSec /= 60;
+	}
+	else {
+		return std::to_string(timeSec) + "s";
+	}
+
+	if (timeSec > 120) {
+		timeSec /= 60;
+	}
+	else {
+		return std::to_string(timeSec) + "m";
+	}
+
+	return std::to_string(timeSec) + "h";
+}
+
+void printTimeEstimate(long long totalTime_ns, rr_uint timeStep) {
+	if (timeStep && timeStep % Params::print_time_est_step == 0) {
+		constexpr rr_float coefNanosecondsToSeconds = 1.E-9f;
+		long long timeEstimates = static_cast<long long>((totalTime_ns / timeStep) * coefNanosecondsToSeconds * (Params::maxtimestep - timeStep));
+		long long timePassed = static_cast<long long>(totalTime_ns * coefNanosecondsToSeconds);
+
+		std::cout << timeStep << " / " << Params::maxtimestep << " \t (part: " << Params::particles_total << ")";
+		std::cout << "{ passed: " << getTimeInAppropriateForm(timePassed);
+		std::cout << "; w8 est." << getTimeInAppropriateForm(timeEstimates) << " }" << std::endl;
+	}
 }

@@ -1,37 +1,18 @@
 #pragma once
 #include <CL/opencl.hpp>
 #include "HeapArray.h"
+#include "Logger.h"
 
 template<typename... Args>
 class RRKernelFuctor {
 public:
     template<typename... Args>
-    RRKernelFuctor(cl::Kernel kernel, Args&&... args) : kernel{ kernel } {
+    RRKernelFuctor(const cl::Kernel& kernel, Args&&... args) : kernel{ kernel } {
         setArgs<0>(std::forward<Args>(args)...);
     }
-
-    template<int index, typename Arg0, typename... Arg1s>
-    void setArgs(Arg0&& t0, Arg1s&&... t1s) {
-        cl_int err = clSetKernelArg(kernel.get(), index, sizeof(t0), &t0);
-        checkError(err);
-        setArgs<index + 1, Arg1s...>(std::forward<Arg1s>(t1s)...);
-    }
-    template<int index, typename Arg0>
-    void setArgs(Arg0&& t0) {
-        cl_int err = clSetKernelArg(kernel.get(), index, sizeof(t0), &t0);
-        checkError(err);
-    }
-    template<int index>
-    void setArgs() { }
-
-    void checkError(cl_int err) {
-        if (err != CL_SUCCESS) {
-            auto name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
-            throw std::runtime_error{ "kernel " + name + " clSetKernelArg error: " + std::to_string(err) };
-        }
-    }
-
     void execute(cl::NDRange global, cl::NDRange local) {
+        printlog("enueueNDRangeKernel ")(kernel.getInfo<CL_KERNEL_FUNCTION_NAME>())();
+
         auto command_queue = cl::CommandQueue::getDefault();
         cl_int err = command_queue.enqueueNDRangeKernel(
             kernel,
@@ -43,11 +24,44 @@ public:
         }
     }
 private:
-    cl::Kernel kernel;
+    template<int index, typename Arg0, typename... Arg1s>
+    void setArgs(Arg0&& t0, Arg1s&&... t1s) {
+        setKernelArg(index, sizeof(t0), &t0);
+        setArgs<index + 1, Arg1s...>(std::forward<Arg1s>(t1s)...);
+    }
+    template<int index, typename Arg0>
+    void setArgs(Arg0&& t0) {
+        setKernelArg(index, sizeof(t0), &t0);
+    }
+    template<int index>
+    void setArgs() { }
+
+    void setKernelArg(int index, size_t size, const void* ptr) {
+        cl_int err = clSetKernelArg(kernel.get(), index, size, ptr);
+        auto name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
+        if (err != CL_SUCCESS) {
+            throw std::runtime_error{ "kernel " + name + " clSetKernelArg error: " + std::to_string(err) };
+        }
+        else {
+            printlog("setKernelArg for ")(name)(" at ")(index)();
+        }
+    }
+private:
+    const cl::Kernel& kernel;
 };
 class RRKernel {
 public:
-    RRKernel(const cl::Program& program, const char* name) : kernel{ program, name } {}
+    RRKernel(const cl::Program& program, const char* name) {
+        cl_int err;
+        kernel = cl::Kernel{ program, name, &err };
+
+        if (err != CL_SUCCESS) {
+            throw std::runtime_error{ "createKernel error: " + std::to_string(err) };
+        }
+        else {
+            printlog("kernel ")(name)(" created")();
+        }
+    }
     RRKernel() = default;
     operator cl::Kernel() {
         return kernel;
@@ -99,6 +113,8 @@ template<typename T, size_t size, size_t dim>
 cl::Buffer makeBufferCopyHost(const heap_array_md<T, dim, size>& arr) {
     return makeBufferCopyHost(CL_MEM_READ_WRITE, arr);
 }
+
+void logCLInfo();
 
 std::string loadCode(const std::string& filename);
 cl::Program makeProgramFromSource(const std::string& source);

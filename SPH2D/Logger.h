@@ -14,6 +14,7 @@ public:
 	PrintLog& operator()(long long);
 	PrintLog& operator()(int);
 	PrintLog& operator()(unsigned);
+	PrintLog& operator()(size_t);
 
 	static PrintLog& instance() {
 		static PrintLog theInstance;
