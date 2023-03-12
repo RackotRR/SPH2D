@@ -85,6 +85,8 @@ void artificial_viscosity_gpu(rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl) 
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("ArtificialViscosity.cl"), "artificial_viscosity");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
@@ -113,6 +115,7 @@ void artificial_viscosity_gpu(rr_uint ntotal,
 
 bool Test::test_artificial_viscosity() {
 	printlog(__func__)();
+
 	init_once();
 
 	artificial_viscosity(ntotal,

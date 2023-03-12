@@ -66,6 +66,8 @@ void external_force_gpu(rr_uint ntotal,
 	const heap_array<rr_int, Params::maxn>& itype_cl,
 	heap_array<rr_float2, Params::maxn>& a_cl) 
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("ExternalForce.cl"), "external_force");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
@@ -91,6 +93,7 @@ void external_force_gpu(rr_uint ntotal,
 
 bool Test::test_external_force() {
 	printlog(__func__)();
+
 	init_once();
 
 	external_force(ntotal,

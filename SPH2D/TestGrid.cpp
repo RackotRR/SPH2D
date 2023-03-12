@@ -13,6 +13,8 @@ void find_neighbours_gpu(rr_uint ntotal,
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("GridFind.cl"), "find_neighbours");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r);
@@ -38,6 +40,8 @@ void make_grid_gpu(rr_uint ntotal,
 	heap_array<rr_uint, Params::maxn>& grid,
 	heap_array<rr_uint, Params::max_cells>& cells)
 {
+	printlog_debug(__func__)();
+
 	static auto program = makeProgram("GridFind.cl");
 	static RRKernel fill_in_grid_kernel(program, "fill_in_grid");
 	static RRKernel sort_kernel(program, "bitonic_sort_step");
@@ -81,6 +85,8 @@ void grid_find_gpu(rr_uint ntotal,
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
 {
+	printlog_debug(__func__)();
+
 	static heap_array<rr_uint, Params::maxn> grid;
 	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
 

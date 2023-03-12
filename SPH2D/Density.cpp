@@ -11,7 +11,7 @@ static void density_normalization(
 	const heap_array<rr_float, Params::maxn>& rho,	// density of particles
 	heap_array<rr_float, Params::maxn>& normrho) // out, density normalization coef
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
@@ -35,7 +35,7 @@ static void density_summation(
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float, Params::maxn>& rho)	// out, density of particles
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
@@ -59,7 +59,7 @@ void sum_density(
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float, Params::maxn>& rho) // out, density
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	// normrho(maxn) --- integration of the kernel itself
 	static heap_array<rr_float, Params::maxn> normrho;
@@ -102,7 +102,7 @@ void con_density(
 	const heap_array<rr_float, Params::maxn>& rho,	// density  
 	heap_array<rr_float, Params::maxn>& drhodt) // out, density change rate of each particle
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle

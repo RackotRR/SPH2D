@@ -250,6 +250,7 @@ namespace integration_test {
 
 bool Test::integration_test() {
     printlog(__func__)();
+
     rr_uint ntotal; // number of particles
     rr_uint nfluid;
     heap_array<rr_float, Params::maxn> mass; // particle masses

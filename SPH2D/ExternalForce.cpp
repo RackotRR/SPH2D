@@ -11,7 +11,7 @@ void external_force(
 	const heap_array<rr_int, Params::maxn>& itype,	// type of particles 
 	heap_array<rr_float2, Params::maxn>& a) // out, acceleration with respect to x, y, z
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
 	const rr_float rr0 = Params::hsml;

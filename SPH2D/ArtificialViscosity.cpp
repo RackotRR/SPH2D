@@ -15,7 +15,7 @@ void artificial_viscosity(
 	heap_array<rr_float2, Params::maxn>& a, // out, acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt) // out, change of specific internal energy
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	/// const for the artificial viscosity:
 	// shear viscosity
 	static constexpr rr_float alpha = 1.f;

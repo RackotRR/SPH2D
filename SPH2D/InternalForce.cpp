@@ -18,7 +18,7 @@ void find_stress_tensor(
 	heap_array<rr_float, Params::maxn>& txy,
 	heap_array<rr_float, Params::maxn>& tyy)
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	// calculate SPH sum for shear tensor Tab = va,b + vb,a - 2/3 delta_ab vc,c
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
@@ -72,7 +72,7 @@ void find_internal_changes_pij_d_rhoij(
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
@@ -125,7 +125,7 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
@@ -171,6 +171,8 @@ void update_internal_state(
 	heap_array<rr_float, Params::maxn>& c,	// particle sound speed
 	heap_array<rr_float, Params::maxn>& p)	// particle pressure
 {
+	printlog_debug(__func__)();
+
 	for (rr_uint i = 0; i < ntotal; i++) {
 		if constexpr (Params::visc) { // viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
 			eta(i) = 1.e-3f; // water
@@ -205,7 +207,7 @@ void int_force(
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	static heap_array<rr_float, Params::maxn> vcc;
 	static heap_array<rr_float, Params::maxn> txx;

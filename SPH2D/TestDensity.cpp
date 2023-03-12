@@ -12,6 +12,8 @@ void sum_density_gpu(const rr_uint ntotal,
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float, Params::maxn>& rho) // out, density
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("Density.cl"), "sum_density");
 
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
@@ -83,6 +85,8 @@ void con_density_gpu(
 	const heap_array<rr_float, Params::maxn>& rho,
 	heap_array<rr_float, Params::maxn>& drhodt_cl) 
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("Density.cl"), "con_density");
 
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);

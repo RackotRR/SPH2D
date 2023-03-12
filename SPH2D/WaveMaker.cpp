@@ -10,7 +10,7 @@ void make_waves(
 	const rr_uint ntotal,
 	const rr_float time)
 {
-	printlog()(__func__)();
+	printlog_debug()(__func__)();
 
 	// NWM
 	if constexpr (Params::nwm == 1) {

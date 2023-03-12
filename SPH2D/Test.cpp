@@ -8,6 +8,7 @@
     result = testing_function();        \
     passed += result;                   \
     ++total;                            \
+    printlog(#testing_function)(result ? " passed" : " failed")(); \
     std::cout << #testing_function << (result ? " passed" : " failed") << std::endl;
 
 Test::Test() {
@@ -30,9 +31,11 @@ Test::Test() {
 
     std::cout << "module tests: " << std::endl;
     std::cout << "passed: " << passed << " / " << total << std::endl;
+    printlog("module tests: ")()("passed: ")(passed)(" / ")(total)();
 
     if (passed == total) {
         result = integration_test();
         std::cout << "integration test " << (result ? "passed" : "failed") << std::endl;
+        printlog("integration test ")(result ? "passed" : "failed")();
     }
 }

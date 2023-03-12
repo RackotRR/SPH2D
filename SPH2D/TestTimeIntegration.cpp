@@ -49,6 +49,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 	heap_array<rr_float, Params::maxn>& u_predict_cl,
 	heap_array<rr_float2, Params::maxn>& v_predict_cl)
 {
+	printlog_debug(__func__)();
 	static RRKernel kernel(makeProgram("TimeIntegration.cl"), "predict_half_step");
 
 	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
@@ -76,6 +77,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 
 bool Test::test_predict_step() {
 	printlog(__func__)();
+
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 
 	predict_half_step(ntotal,
@@ -118,6 +120,8 @@ void correct_step_gpu(const rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& v_cl,
 	heap_array<rr_float2, Params::maxn>& r_cl)
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("TimeIntegration.cl"), "correct_step");
 
 	auto itype_ = makeBufferCopyHost(CL_MEM_READ_ONLY, itype_cl);
@@ -161,6 +165,8 @@ void make_waves_gpu(
 	const rr_uint ntotal,
 	const rr_float time) 
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("TimeIntegration.cl"), "update_boundaries");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_WRITE, v_cl);

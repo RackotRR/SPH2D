@@ -144,7 +144,7 @@ void output_on_demand(
 	const rr_uint ntotal,	// number of particles
 	const rr_uint itimestep)// current time step
 {
-	printlog()(__func__)();
+	printlog_debug()(__func__)();
 
 	std::thread(print_on_demand,
 		std::move(r),
@@ -171,7 +171,7 @@ void output(
 	const rr_uint ntotal,	// number of particles
 	const rr_uint itimestep)// current time step
 {
-	printlog()(__func__)();
+	printlog_debug()(__func__)();
 
 	std::thread(printFull, 
 		r.copy(), 
@@ -204,7 +204,7 @@ void fast_output(
 	const rr_uint ntotal,	// number of particles
 	const rr_uint itimestep) // current time step
 {
-	printlog()(__func__)();
+	printlog_debug()(__func__)();
 	std::thread(printFast, std::move(r), itype.copy(), ntotal, itimestep).detach();
 }
 

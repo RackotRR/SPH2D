@@ -81,7 +81,7 @@ void art_heat(const rr_uint ntotal,	// number of particles
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& dedt) // out, produced artificial heat, adding to energy Eq
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	static heap_array<rr_float, Params::maxn> vcc;
 
 	find_vcc(ntotal, 

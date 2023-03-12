@@ -13,7 +13,7 @@ void average_velocity(
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float2, Params::maxn>& av) // average velocity of each particle
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 	// epsilon for incompressible flow
 	static constexpr rr_float epsilon = 0.3f;
 

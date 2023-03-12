@@ -83,6 +83,8 @@ void average_velocity_gpu(rr_uint ntotal,
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w_cl,
 	heap_array<rr_float2, Params::maxn>& av_cl) 
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("AverageVelocity.cl"), "average_velocity");
 
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r_cl);
@@ -108,6 +110,7 @@ void average_velocity_gpu(rr_uint ntotal,
 
 bool Test::test_average_velocity() {
 	printlog(__func__)();
+
 	init_once();
 
 	heap_array<rr_float2, Params::maxn> av;

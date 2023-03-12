@@ -28,7 +28,7 @@ void single_step(
 	heap_array<rr_float, Params::maxn>& drho,	// out, drho = d(rho)/dt
 	heap_array<rr_float2, Params::maxn>& av) // out, Monaghan average velocity
 {
-	printlog()(__func__)();
+	printlog_debug()(__func__)();
 
 	static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
 	static heap_array<rr_float, Params::maxn> avdudt, ahdudt;

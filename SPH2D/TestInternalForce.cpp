@@ -77,6 +77,8 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 	heap_array<rr_float, Params::maxn>& txy_cl,
 	heap_array<rr_float, Params::maxn>& tyy_cl)
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("InternalForce.cl"), "find_stress_tensor");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
@@ -163,6 +165,8 @@ void update_internal_state_gpu(const rr_uint ntotal,
 	heap_array<rr_float, Params::maxn>& c_cl,
 	heap_array<rr_float, Params::maxn>& p_cl)
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("InternalForce.cl"), "update_internal_state");
 	heap_array<rr_float, Params::maxn> zeros;
 
@@ -192,6 +196,7 @@ void update_internal_state_gpu(const rr_uint ntotal,
 }
 bool Test::test_update_internal_state() {
 	printlog(__func__)();
+
 	init_once();
 	find_stress_tensor(ntotal,
 		v,
@@ -248,6 +253,8 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl)
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pij_d_rhoij");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
@@ -282,6 +289,7 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 }
 bool Test::test_find_internal_changes_pij_d_rhoij() {
 	printlog(__func__)();
+
 	init_once();
 	find_stress_tensor(ntotal,
 		v,
@@ -341,6 +349,8 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	heap_array<rr_float2, Params::maxn>& a_cl,
 	heap_array<rr_float, Params::maxn>& dedt_cl)
 {
+	printlog_debug(__func__)();
+
 	static RRKernel kernel(makeProgram("InternalForce.cl"), "find_internal_changes_pidrho2i_pjdrho2j");
 
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
@@ -375,6 +385,7 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 }
 bool Test::test_find_internal_changes_pidrho2i_pjdrho2j() {
 	printlog(__func__)();
+
 	init_once();
 	find_stress_tensor(ntotal,
 		v,
@@ -432,6 +443,8 @@ void int_force_gpu(
 	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
 	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
 {
+	printlog_debug(__func__)();
+
 	static heap_array<rr_float, Params::maxn> vcc;
 	static heap_array<rr_float, Params::maxn> txx;
 	static heap_array<rr_float, Params::maxn> tyy;
@@ -473,6 +486,7 @@ void int_force_gpu(
 
 bool Test::test_internal_force() {
 	printlog(__func__)();
+
 	init_once();
 
 	heap_array<rr_float2, Params::maxn> a;

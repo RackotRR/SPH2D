@@ -12,7 +12,7 @@ bool check_finite(
 	const heap_array<rr_int, Params::maxn>& itype,	// type
 	const rr_uint ntotal)
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	bool is_finite = true;
 
@@ -52,7 +52,7 @@ bool check_particles_are_within_boundaries(
 	const heap_array<rr_float2, Params::maxn>& r,
 	const heap_array<rr_int, Params::maxn>& itype)
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	bool are_within_boundaries = true;
 

@@ -11,7 +11,7 @@ public:
         setArgs<0>(std::forward<Args>(args)...);
     }
     void execute(cl::NDRange global, cl::NDRange local) {
-        printlog("enueueNDRangeKernel ")(kernel.getInfo<CL_KERNEL_FUNCTION_NAME>())();
+        //printlog_trace("enueueNDRangeKernel ")(kernel.getInfo<CL_KERNEL_FUNCTION_NAME>())();
 
         auto command_queue = cl::CommandQueue::getDefault();
         cl_int err = command_queue.enqueueNDRangeKernel(
@@ -41,6 +41,9 @@ private:
         auto name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
         if (err != CL_SUCCESS) {
             throw std::runtime_error{ "kernel " + name + " clSetKernelArg error: " + std::to_string(err) };
+        }
+        else {
+            printlog_trace("setKernelArg ")(index)(" for ")(name)();
         }
     }
 private:

@@ -137,7 +137,7 @@ void dynamic_boundaries(
 	heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const rr_float time)
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	if (time < Params::generator_time_wait) {
 		return;
@@ -150,8 +150,8 @@ void dynamic_boundaries(
 		v(i).x = v_x;
 	}
 
-	printlog("r.x: ")(r(Params::left_wall_start).x)();
-	printlog("v.x: ")(v_x)();
+	printlog_trace("r.x: ")(r(Params::left_wall_start).x)();
+	printlog_trace("v.x: ")(v_x)();
 }
 
 rr_uint get_boundary_particles_y() {

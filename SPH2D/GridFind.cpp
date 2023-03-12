@@ -10,7 +10,7 @@ void make_grid(
 	heap_array<rr_uint, Params::maxn>& grid,
 	heap_array<rr_uint, Params::max_cells>& cells_start_in_grid) // grid index of particle
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	static heap_array<unsigned, Params::maxn> unsorted_grid;
 
@@ -56,7 +56,7 @@ void find_neighbours(
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	constexpr rr_float scale_k = get_scale_k();
 	constexpr rr_float max_dist = sqr(scale_k * Params::hsml); constexpr unsigned a = 1 << 16;
@@ -125,7 +125,7 @@ void grid_find(
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
 {
-	printlog(__func__)();
+	printlog_debug(__func__)();
 
 	static heap_array<rr_uint, Params::maxn> grid;
 	static heap_array<rr_uint, Params::max_cells> cell_starts_in_grid;
