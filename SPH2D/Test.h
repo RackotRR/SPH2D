@@ -5,14 +5,14 @@
 
 
 struct Test {
-    static constexpr rr_float float_epsilon = 0.0001f;
+    static constexpr rr_float float_epsilon = 0.00001f;
     static bool relativeToleranceCompare(rr_float a, rr_float b) {
-        auto maxAB = std::max(fabsf(a), fabsf(b));
+        auto maxAB = std::max(fabs(a), fabs(b));
         if (maxAB > 1) {
-            return std::fabsf(a - b) <= float_epsilon * maxAB;
+            return std::fabs(a - b) <= float_epsilon * maxAB;
         }
         else {
-            return std::fabsf(a - b) <= float_epsilon;
+            return std::fabs(a - b) <= float_epsilon;
         }
     }
     template<typename T>
@@ -27,8 +27,8 @@ struct Test {
     static bool equals(rr_float2 a, rr_float2 b) {
         bool x = equals(a.x, b.x);
         bool y = equals(a.y, b.y);
-        rr_float max_a = std::max(fabsf(a.x), fabsf(a.y));
-        rr_float max_b = std::max(fabsf(b.x), fabsf(b.y));
+        rr_float max_a = std::max(fabs(a.x), fabs(a.y));
+        rr_float max_b = std::max(fabs(b.x), fabs(b.y));
         return x && y;// || equals(max_a, max_b);
     }
 

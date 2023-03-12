@@ -141,10 +141,10 @@ inline rr_float length_sqr(float2 vec) {
     return vec.x * vec.x + vec.y * vec.y;
 }
 inline rr_float length(float3 vec) {
-    return sqrtf(length_sqr(vec));
+    return sqrt(length_sqr(vec));
 }
 inline rr_float length(float2 vec) {
-    return sqrtf(length_sqr(vec));
+    return sqrt(length_sqr(vec));
 }
 inline rr_float distance(float3 vec1, float3 vec2) {
     return length(vec1 - vec2);

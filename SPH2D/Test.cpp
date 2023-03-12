@@ -1,8 +1,10 @@
 #include <iostream>
 #include "Test.h"
+#include "Logger.h"
 
 
 #define test_module(testing_function)   \
+    printlog("----------------------------------")(); \
     result = testing_function();        \
     passed += result;                   \
     ++total;                            \

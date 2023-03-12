@@ -162,7 +162,6 @@ inline void cl_time_integration(
         fill_in_grid_kernel(
             grid_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         printlog("sort grid")();
         for (rr_uint pass = 0; pass < passes; ++pass) {
@@ -175,7 +174,6 @@ inline void cl_time_integration(
                     step_size,
                     max_step_size
                 ).execute(Params::maxn, Params::localThreads);
-                cl::finish();
             }
         }
 
@@ -183,14 +181,12 @@ inline void cl_time_integration(
         binary_search_kernel(
             r_, grid_, cells_
         ).execute(Params::max_cells, Params::localThreads);
-        cl::finish();
 
         printlog("find neighbours")();
         find_neighbours_kernel(
             r_, grid_, cells_,
             neighbours_count_, neighbours_, w_, dwdr_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         if constexpr (Params::summation_density) {
             printlog("sum density")();
@@ -208,21 +204,18 @@ inline void cl_time_integration(
                 drho_
             ).execute(Params::maxn, Params::localThreads);
         }
-        cl::finish();
 
         printlog("find stress tensor")();
         find_stress_tensor_kernel(
             v_predict_, mass_, rho_predict_, neighbours_count_, neighbours_, dwdr_,
             vcc_, txx_, txy_, tyy_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         printlog("update internal state")();
         update_internal_state_kernel(
             rho_predict_, u_predict_, txx_, txy_, tyy_,
             eta_, tdsdt_, p_, c_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         printlog("find internal changes")();
         find_internal_changes_kernel(
@@ -231,7 +224,6 @@ inline void cl_time_integration(
             vcc_, txx_, txy_, tyy_, p_, tdsdt_,
             indvxdt_, indudt_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         printlog("external force")();
         external_force_kernel(
@@ -252,7 +244,6 @@ inline void cl_time_integration(
             neighbours_count_, neighbours_, w_,
             av_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         printlog("single step")();
         single_step_kernel(
@@ -260,7 +251,6 @@ inline void cl_time_integration(
             indvxdt_, exdvxdt_, ardvxdt_,
             du_, a_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         printlog("correct step")();
         correct_step_kernel(
@@ -268,14 +258,12 @@ inline void cl_time_integration(
             rho_predict_, u_predict_, v_predict_, av_,
             rho_, u_, v_, r_
         ).execute(Params::maxn, Params::localThreads);
-        cl::finish();
 
         if constexpr (Params::nwm) {
             printlog("update boundaries")();
             update_boundaries_kernel(
                 v_, r_, time
             ).execute(Params::maxn, Params::localThreads);
-            cl::finish();
         }
 
         if constexpr (Params::enable_check_consistency) {

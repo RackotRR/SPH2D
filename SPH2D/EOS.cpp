@@ -13,7 +13,7 @@ void p_art_water(
     rr_float H = Params::d;
     rr_float g = Params::g;
     rr_float cSqr = 200.f * g * H;
-    c = sqrtf(cSqr);
+    c = sqrt(cSqr);
 
     if constexpr (Params::eos == 1) {
 

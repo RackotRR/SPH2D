@@ -98,10 +98,12 @@ void time_integration(
 		timer.start();
 
 		time = itimestep * Params::dt;
+
+		printTimeEstimate(timer.total(), itimestep);
+
 		if (itimestep % Params::save_step == 0) {
-			long long timeEstimate = static_cast<long long>(timer.average() * (Params::maxtimestep - itimestep) * 1.E-9 / 60.);
-			//output(r, v, rho, p, u, c, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
-			//fast_output(r, itype, ntotal, itimestep, timer.total<std::chrono::minutes>(), timeEstimate);
+			//output(r, v, rho, p, u, c, itype, ntotal, itimestep);
+			//fast_output(r, itype, ntotal, itimestep);
 
 			auto r_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>(r.copy());
 			auto itype_temp = std::make_unique<heap_array<rr_int, Params::maxn>>(itype.copy());
@@ -115,9 +117,7 @@ void time_integration(
 				std::move(p_temp),
 				nullptr,
 				ntotal,
-				itimestep,
-				timer.total<std::chrono::minutes>(),
-				timeEstimate);
+				itimestep);
 		}
 
 		predict_half_step(ntotal,

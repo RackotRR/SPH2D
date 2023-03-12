@@ -6,17 +6,17 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr unsigned maxn{ 1 << 16 }; // maximum number of particles
-	constexpr unsigned max_neighbours{ 50 };
-	constexpr unsigned max_cells{ 60 * maxn }; // maximum number of cells in grid
+	constexpr rr_uint maxn{ 1 << 17 }; // maximum number of particles
+	constexpr rr_uint max_neighbours{ 64 };
+	constexpr rr_uint max_cells{ max_neighbours * maxn }; // maximum number of cells in grid
 
 	inline rr_float x_maxgeom;
 	inline rr_float x_mingeom;
 	inline rr_float y_maxgeom;
 	inline rr_float y_mingeom;
 
-	inline unsigned x_fluid_particles;
-	inline unsigned y_fluid_particles;
+	inline rr_uint x_fluid_particles;
+	inline rr_uint y_fluid_particles;
 	inline rr_float x_fluid_min;
 	inline rr_float y_fluid_min;
 	inline rr_float x_fluid_max;
@@ -27,10 +27,10 @@ namespace Params {
 	inline rr_float x_boundary_max;
 	inline rr_float y_boundary_max;
 
-	inline unsigned particles_fluid;
-	inline unsigned	particles_boundary;
-	inline unsigned particles_total;
-	inline unsigned fluid_particles_per_d;
+	inline rr_uint particles_fluid;
+	inline rr_uint particles_boundary;
+	inline rr_uint particles_total;
+	inline rr_uint fluid_particles_per_d;
 
 	inline rr_float L;
 	inline rr_float d;
@@ -40,14 +40,14 @@ namespace Params {
 	inline rr_float k;
 	inline rr_float beachX;
 
-	inline unsigned left_wall_start;
-	inline unsigned left_wall_end;
+	inline rr_uint left_wall_start;
+	inline rr_uint left_wall_end;
 	inline rr_float generator_time_wait;
 
 	inline rr_float dt;
 	inline rr_float simulation_time;
 
-	constexpr unsigned localThreads{ 128 };
+	inline rr_uint localThreads;
 
 	// form of eos
 	// eos = 1 : Lennard-Jones
@@ -76,10 +76,10 @@ namespace Params {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	constexpr int nwm{ 2 };
+	constexpr int nwm{ 0 };
 
 	// const smoothing length
-	constexpr rr_float hsml = 1.2f * 0.014f;
+	constexpr rr_float hsml = 1.1f * 0.004f;
 
 	// initial distance between particles
 	inline rr_float delta;
@@ -89,7 +89,7 @@ namespace Params {
 
 	// true : use density summation model
 	// false : use continuity equation
-	constexpr bool summation_density{ false };
+	constexpr bool summation_density{ true };
 	// true : density normalization by using CSPM
 	// false : no normalization
 	constexpr bool nor_density{ summation_density && false };
@@ -126,9 +126,10 @@ namespace Params {
 	// true - stop on not normal
 	constexpr bool inf_stop{ enable_check_consistency && true };
 
-	inline unsigned maxtimestep; // time step to finish
-	inline unsigned normal_check_step; // step for checking boundaries and finite values
-	inline unsigned save_step; // save timestep (on disk)
+	inline rr_uint maxtimestep; // time step to finish
+	inline rr_uint normal_check_step; // step for checking boundaries and finite values
+	inline rr_uint save_step; // save timestep (on disk)
+	inline rr_uint print_time_est_step; // time estimations every N steps
 
 	constexpr rr_float pi{ 3.14159265358979323846f };
 	constexpr rr_float g{ 9.81f };

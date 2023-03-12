@@ -42,9 +42,6 @@ private:
         if (err != CL_SUCCESS) {
             throw std::runtime_error{ "kernel " + name + " clSetKernelArg error: " + std::to_string(err) };
         }
-        else {
-            printlog("setKernelArg for ")(name)(" at ")(index)();
-        }
     }
 private:
     const cl::Kernel& kernel;

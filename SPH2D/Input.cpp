@@ -14,15 +14,15 @@ void initConsts() {
 	printlog()(__func__)();
 
 	constexpr rr_float H = 0.1f;
-	constexpr rr_float L = 2.f;
-	constexpr rr_float depth = 0.7f;
+	constexpr rr_float L = 1.2f;
+	constexpr rr_float depth = 0.6f;
 	constexpr rr_float ratio = L / depth;
-	constexpr rr_float tank_length = 5.f * L;
-	constexpr rr_float tank_height = 2.f * depth;
-	constexpr rr_uint particlesPer_d = 50;
+	constexpr rr_float tank_length = 3.22f;// *L;
+	constexpr rr_float tank_height = 1.8f;// *depth;
+	constexpr rr_uint particlesPer_d = 250;
 	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
-	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L * tank_length / L);
-	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d * tank_height / depth * 0.5f);
+	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L);
+	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d);
 	constexpr rr_uint fluid_particles = fluid_particles_x * fluid_particles_y;
 	constexpr rr_float delta = depth / particlesPer_d;
 
@@ -34,15 +34,15 @@ void initConsts() {
 	Params::fluid_particles_per_d = particlesPer_d;
 	Params::x_fluid_particles = fluid_particles_x;
 	Params::y_fluid_particles = fluid_particles_y;
-	Params::x_fluid_min = 0.1f;
-	Params::y_fluid_min = 0.1f;
-	Params::x_fluid_max = Params::x_fluid_min + Params::x_fluid_particles * Params::delta;
-	Params::y_fluid_max = Params::y_fluid_min + Params::y_fluid_particles * Params::delta;
+	Params::x_fluid_min = 0.f;
+	Params::y_fluid_min = 0.f;
+	Params::x_fluid_max = Params::x_fluid_min + (particlesPer_L / L * tank_length) * Params::delta;
+	Params::y_fluid_max = Params::y_fluid_min + (particlesPer_d / depth * tank_height) * Params::delta;
 
-	Params::x_maxgeom = 11.f;
-	Params::x_mingeom = 0;
-	Params::y_maxgeom = 4.f;
-	Params::y_mingeom = 0;
+	Params::x_maxgeom = 3.4f;
+	Params::x_mingeom = -0.1f;
+	Params::y_maxgeom = 1.8f;
+	Params::y_mingeom = -0.1f;
 	Params::beachX = 0; // is not in use now
 	printlog("x_maxgeom: ")(Params::x_maxgeom)();
 	printlog("x_mingeom: ")(Params::x_mingeom)();
@@ -64,10 +64,10 @@ void initConsts() {
 	printlog("generation fluid level (depth): ")(Params::d)();
 	printlog("generator amplitude: ")(Params::A)();
 
-	Params::normal_check_step = 500;
-	Params::save_step = 500;
+	Params::normal_check_step = 10000;
+	Params::save_step = 5000;
 	Params::simulation_time = 2.f;
-	Params::dt = 1e-4f;
+	Params::dt = 0.5e-5f;
 	rr_float steps = Params::simulation_time / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
@@ -78,9 +78,14 @@ void initConsts() {
 	printlog("simulation time: ")(Params::simulation_time)();
 	printlog("dt: ")(Params::dt)();
 	printlog("maxtimestep: ")(Params::maxtimestep)();
+	
+	Params::print_time_est_step = 250;
 
 	Params::generator_time_wait = 0.f;
 	printlog("generator time wait: ")(Params::generator_time_wait)();
+
+	Params::localThreads = 256;
+	printlog("local work group size: ")(Params::localThreads)();
 }
 
 // loading or generating initial particle information
@@ -102,7 +107,6 @@ void input(
 	rr_uint nvirt = 0;
 
 	initConsts();
-	printParams();
 
 	generateParticles(r, v, mass, rho, p, u, itype, nfluid);
 	virt_part(nfluid, nvirt, mass, r, v, rho, u, p, itype);
@@ -118,7 +122,9 @@ void input(
 	printlog("ntotal: ")(ntotal)();
 
 	printParams();
-	makeParamsHeader(ntotal, nfluid, nvirt, Params::experimentName + "\\clparams.h");
+	makeParamsHeader(Params::particles_total,
+		Params::particles_fluid,
+		Params::particles_boundary);
 }
 
 

@@ -69,17 +69,17 @@ inline rr_uint get_cell_idx_by_cell_xy(rr_uint x, rr_uint y) {
 
 inline rr_uint get_cell_x_from_coordinate(rr_float x) {
 #ifdef KERNEL_INCLUDE
-    return (rr_uint)((params_x_mingeom + x) / grid_cell_size);
+    return (rr_uint)((x - params_x_mingeom) / grid_cell_size);
 #else 
-    return (rr_uint)((Params::x_mingeom + x) / grid_cell_size());
+    return (rr_uint)((x - Params::x_mingeom) / grid_cell_size());
 #endif // KERNEL_INCLUDE
 }
 
 inline rr_uint get_cell_y_from_coordinate(rr_float y) {
 #ifdef KERNEL_INCLUDE
-    return (rr_uint)((params_y_mingeom + y) / grid_cell_size);
+    return (rr_uint)((y - params_y_mingeom) / grid_cell_size);
 #else 
-    return (rr_uint)((Params::y_mingeom + y) / grid_cell_size());
+    return (rr_uint)((y - Params::y_mingeom) / grid_cell_size());
 #endif // KERNEL_INCLUDE
 }
 

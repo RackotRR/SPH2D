@@ -105,7 +105,7 @@ void find_neighbours(
 					}
 					neighbours(neighbour_id, j) = i;
 
-					kernel(sqrtf(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j));
+					kernel(sqrt(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j));
 				}
 			} // grid_i
 		} // cell_i

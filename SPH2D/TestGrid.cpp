@@ -46,15 +46,15 @@ void make_grid_gpu(rr_uint ntotal,
 	auto r_ = makeBufferCopyHost(CL_MEM_READ_ONLY, r);
 	auto cells_ = makeBufferCopyHost(CL_MEM_READ_WRITE, cells);
 	auto grid_ = makeBufferCopyHost(CL_MEM_READ_WRITE, grid);
-	constexpr size_t passes = intlog2(Params::maxn);
+	constexpr rr_uint passes = intlog2(Params::maxn);
 
 	fill_in_grid_kernel(
 		grid_
 	).execute(Params::maxn, Params::localThreads);
 	cl::finish();
-	for (size_t pass = 0; pass < passes; ++pass) {
-		size_t max_step_size = 1ull << pass;
-		for (size_t step_size = max_step_size; step_size != 0; step_size >>= 1) {
+	for (rr_uint pass = 0; pass < passes; ++pass) {
+		rr_uint max_step_size = 1ull << pass;
+		for (rr_uint step_size = max_step_size; step_size != 0; step_size >>= 1) {
 			sort_kernel(
 				r_,
 				grid_,
@@ -95,14 +95,14 @@ void grid_find_gpu(rr_uint ntotal,
 
 	static auto cells_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, Params::max_cells);
 	static auto grid_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, Params::maxn);
-	constexpr size_t passes = intlog2(Params::maxn);
+	constexpr rr_uint passes = intlog2(Params::maxn);
 
 	fill_in_grid_kernel(
 		grid_
 	).execute(Params::maxn, Params::localThreads);
-	for (size_t pass = 0; pass < passes; ++pass) {
-		size_t max_step_size = 1ull << pass;
-		for (size_t step_size = max_step_size; step_size != 0; step_size >>= 1) {
+	for (rr_uint pass = 0; pass < passes; ++pass) {
+		rr_uint max_step_size = 1ull << pass;
+		for (rr_uint step_size = max_step_size; step_size != 0; step_size >>= 1) {
 			sort_kernel(
 				r_,
 				grid_,

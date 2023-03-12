@@ -155,6 +155,8 @@ void output_on_demand(
 		std::move(u),
 		ntotal,
 		itimestep).detach();
+
+	std::cout << "output on demand: " << itimestep << std::endl;
 }
 
 // save particle information to external disk file
@@ -181,6 +183,8 @@ void output(
 		itype.copy(), 
 		ntotal, 
 		itimestep).detach();
+
+	std::cout << "output: " << itimestep << std::endl;
 }
 
 void fast_output(
@@ -190,6 +194,8 @@ void fast_output(
 	const rr_uint itimestep)// current time step
 {
 	fast_output(r.copy(), itype, ntotal, itimestep);
+
+	std::cout << "fast output: " << itimestep << std::endl;
 }
 
 void fast_output(
