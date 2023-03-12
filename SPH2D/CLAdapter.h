@@ -28,6 +28,7 @@ static RRKernel binary_search_kernel;
 
 inline void makePrograms() {
     printlog()(__func__)();
+
     cl::Program density_program = makeProgram("Density.cl");
     cl::Program grid_find_program = makeProgram("GridFind.cl");
     cl::Program internal_force_program = makeProgram("InternalForce.cl");
@@ -67,6 +68,8 @@ inline void cl_time_integration(
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
 {
+    printlog(__func__);
+
     makePrograms();
 
     constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE;// | CL_MEM_HOST_WRITE_ONLY;
@@ -151,19 +154,19 @@ inline void cl_time_integration(
             //fast_output(std::move(r_temp), itype, ntotal, itimestep);
         }
 
-        printlog("predict_half_step_kernel")();
+        printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(
             drho_, du_, a_,
             rho_, u_, v_,
             rho_predict_, u_predict_, v_predict_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("fill in grid")();
+        printlog_debug("fill in grid")();
         fill_in_grid_kernel(
             grid_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("sort grid")();
+        printlog_debug("sort grid")();
         for (rr_uint pass = 0; pass < passes; ++pass) {
             rr_uint max_step_size = 1ull << pass;
             for (rr_uint step_size = max_step_size; step_size != 0; step_size >>= 1) {
@@ -177,26 +180,26 @@ inline void cl_time_integration(
             }
         }
 
-        printlog("search in grid")();
+        printlog_debug("search in grid")();
         binary_search_kernel(
             r_, grid_, cells_
         ).execute(Params::max_cells, Params::localThreads);
 
-        printlog("find neighbours")();
+        printlog_debug("find neighbours")();
         find_neighbours_kernel(
             r_, grid_, cells_,
             neighbours_count_, neighbours_, w_, dwdr_
         ).execute(Params::maxn, Params::localThreads);
 
         if constexpr (Params::summation_density) {
-            printlog("sum density")();
+            printlog_debug("sum density")();
             sum_density_kernel(
                 mass_, neighbours_count_, neighbours_, w_,
                 rho_predict_
             ).execute(Params::maxn, Params::localThreads);
         }
         else {
-            printlog("con density")();
+            printlog_debug("con density")();
             con_density_kernel(
                 mass_, v_predict_,
                 neighbours_count_, neighbours_, dwdr_,
@@ -205,19 +208,19 @@ inline void cl_time_integration(
             ).execute(Params::maxn, Params::localThreads);
         }
 
-        printlog("find stress tensor")();
+        printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
             v_predict_, mass_, rho_predict_, neighbours_count_, neighbours_, dwdr_,
             vcc_, txx_, txy_, tyy_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("update internal state")();
+        printlog_debug("update internal state")();
         update_internal_state_kernel(
             rho_predict_, u_predict_, txx_, txy_, tyy_,
             eta_, tdsdt_, p_, c_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("find internal changes")();
+        printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, mass_, rho_predict_, eta_, u_predict_,
             neighbours_count_, neighbours_, dwdr_,
@@ -225,34 +228,34 @@ inline void cl_time_integration(
             indvxdt_, indudt_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("external force")();
+        printlog_debug("external force")();
         external_force_kernel(
             r_, mass_, neighbours_count_, neighbours_, itype_,
             exdvxdt_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("artificial viscosity")();
+        printlog_debug("artificial viscosity")();
         artificial_viscosity_kernel(
             r_, v_predict_, mass_, rho_predict_, c_,
             neighbours_count_, neighbours_, dwdr_,
             ardvxdt_, ardudt_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("average velocity")();
+        printlog_debug("average velocity")();
         average_velocity_kernel(
             r_, v_predict_, mass_, rho_predict_,
             neighbours_count_, neighbours_, w_,
             av_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("single step")();
+        printlog_debug("single step")();
         single_step_kernel(
             indudt_, ardudt_,
             indvxdt_, exdvxdt_, ardvxdt_,
             du_, a_
         ).execute(Params::maxn, Params::localThreads);
 
-        printlog("correct step")();
+        printlog_debug("correct step")();
         correct_step_kernel(
             itype_, drho_, du_, a_,
             rho_predict_, u_predict_, v_predict_, av_,
@@ -260,7 +263,7 @@ inline void cl_time_integration(
         ).execute(Params::maxn, Params::localThreads);
 
         if constexpr (Params::nwm) {
-            printlog("update boundaries")();
+            printlog_debug("update boundaries")();
             update_boundaries_kernel(
                 v_, r_, time
             ).execute(Params::maxn, Params::localThreads);
