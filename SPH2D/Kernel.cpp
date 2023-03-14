@@ -27,12 +27,12 @@ void kernel(
 	rr_float& w, // out, kernel for all interaction pairs
 	rr_float2& dwdx) // out, derivation of kernel with respect to x, y, z
 {
-	static constexpr rr_float hsml{ Params::hsml };
+	static rr_float hsml{ Params::hsml };
 	rr_float q = dist / hsml;
 
 	static_assert(Params::skf >= 1 && Params::skf <= 3);
 	if constexpr (Params::skf == 1) { // Cubic spline  
-		static constexpr rr_float factor = 15.f / (7.f * Params::pi * sqr(hsml)); 
+		static rr_float factor = 15.f / (7.f * Params::pi * sqr(hsml)); 
 
 		if (q <= 1) { 
 			w = factor * (2.f / 3.f - sqr(q) + cube(q) * 0.5f);
@@ -46,10 +46,6 @@ void kernel(
 			w = 0.f;
 			dwdx = { 0.f };
 		}
-
-		//rr_float asdf = (-2.f + 3.f * 0.5f * q);
-		//w = Params::hsml * factor  / sqr(hsml) * (-2.f + 3.f / 2.f * q);
-		//w *= asdf;
 	}
 	else if constexpr (Params::skf == 2) { // Gauss kernel
 		static rr_float factor = 1.f / (powun(hsml, Params::dim) * pow(Params::pi, Params::dim / 2.f));
@@ -64,7 +60,7 @@ void kernel(
 		}
 	}
 	else if constexpr (Params::skf == 3) { // Quintic spline 
-		static constexpr rr_float factor = 7.f / (478.f * Params::pi * sqr(hsml)); 
+		static rr_float factor = 7.f / (478.f * Params::pi * sqr(hsml)); 
 
 		if (q <= 1) {
 			w = factor * (powun(3.f - q, 5) - 6.f * powun(2 - q, 5) + 15.f * powun(1.f - q, 5));

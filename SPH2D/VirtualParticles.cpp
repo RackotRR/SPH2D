@@ -34,9 +34,9 @@ void virt_part(
 	printlog()(__func__)();
 	nvirt = 0;
 
-	Params::x_boundary_min = Params::x_fluid_min - 3 * Params::delta;
-	Params::y_boundary_min = Params::y_fluid_min - 3 * Params::delta;
-	Params::x_boundary_max = Params::x_fluid_max + 3 * Params::delta;
+	Params::x_boundary_min = Params::x_fluid_min - 3 * Params::hsml;
+	Params::y_boundary_min = Params::y_fluid_min - 3 * Params::hsml;
+	Params::x_boundary_max = Params::x_fluid_max + 3 * Params::hsml;
 	Params::y_boundary_max = Params::y_maxgeom;
 	Params::boundary_delta = Params::delta * 2;
 	printlog("boundary delta ")(Params::boundary_delta)();

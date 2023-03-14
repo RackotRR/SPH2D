@@ -27,7 +27,7 @@ void initConsts() {
 	constexpr rr_float delta = depth / particlesPer_d;
 
 	Params::delta = delta;
-	//Params::hsml = delta * 1.2f;
+	Params::hsml = delta * 1.2f;
 	printlog("dx=dy=delta: ")(Params::delta)();
 	printlog("hsml: ")(Params::hsml)();
 
@@ -174,12 +174,14 @@ namespace {
 		template<>
 		void set_param(const char* param_name, const float& value) {
 			buffer << std::format("#define params_{} {:.10f}f\n", param_name, value);
-			//buffer << "#define params_" << param_name << " " << std::setprecision(10) << std::fixed << val << std::endl;
 		}
 		template<>
 		void set_param(const char* param_name, const bool& value) {
 			if (value) {
 				buffer << std::format("#define params_{}\n", param_name);
+			}
+			else {
+				buffer << std::format("#undef params_{}\n", param_name);
 			}
 		}
 
@@ -206,6 +208,7 @@ namespace {
 			set(generator_time_wait);
 			set(dt);
 			set(eos);
+			set(eos_csqr_k);
 			set(pa_sph);
 			set(skf);
 			set(nwm);
@@ -215,6 +218,7 @@ namespace {
 			set(summation_density);
 			set(nor_density);
 			set(average_velocity);
+			set(average_velocity_epsilon);
 			set(visc);
 			set(ex_force);
 			set(self_gravity);

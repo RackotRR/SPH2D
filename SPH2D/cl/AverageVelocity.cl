@@ -12,7 +12,7 @@ __kernel void average_velocity(
 	__global rr_float2* av)
 {
 	size_t j = get_global_id(0);
-	if (j >= params_ntotal) return;
+	if (j >= params_nfluid) return;
 
 	av[j] = 0;
 
@@ -26,7 +26,6 @@ __kernel void average_velocity(
 		av_temp += dvx * mass[i] / (rho[i] + rho[j]) * w[at(n, j)] * 2.f;
 	}
 
-#define av_vel_epsilon 0.3f // epsilon for incompressible flow
-	av[j] = av_temp * av_vel_epsilon;
+	av[j] = av_temp * params_average_velocity_epsilon;
 #endif // !params_average_velocity
 }

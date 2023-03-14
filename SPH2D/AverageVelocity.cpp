@@ -14,8 +14,6 @@ void average_velocity(
 	heap_array<rr_float2, Params::maxn>& av) // average velocity of each particle
 {
 	printlog_debug(__func__)();
-	// epsilon for incompressible flow
-	static constexpr rr_float epsilon = 0.3f;
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
@@ -29,6 +27,6 @@ void average_velocity(
 			av(j) += dvx * mass(i) / (rho(i) + rho(j)) * w(n, j) * 2.f;
 		}
 
-		av(j) *= epsilon;
+		av(j) *= Params::average_velocity_epsilon;
 	}
 }

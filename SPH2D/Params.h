@@ -53,6 +53,7 @@ namespace Params {
 	// eos = 1 : Lennard-Jones
 	//		 2 : Monaghan 1994
 	constexpr int eos{ 2 };
+	constexpr rr_float eos_csqr_k{ 1.f };
 
 	// SPH algorithm for particle approximation
 	// pa_sph = 1 : (p[i] + p[i])/(rho[i]*rho[j])
@@ -79,7 +80,7 @@ namespace Params {
 	constexpr int nwm{ 0 };
 
 	// const smoothing length
-	constexpr rr_float hsml = 1.1f * 0.004f;
+	inline rr_float hsml;
 
 	// initial distance between particles
 	inline rr_float delta;
@@ -96,7 +97,8 @@ namespace Params {
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
-	constexpr bool average_velocity{ true }; // Liu G.R. (eq 4.92)
+	constexpr bool average_velocity{ false }; // Liu G.R. (eq 4.92)
+	constexpr rr_float average_velocity_epsilon{ 0.3f };
 
 	// viscosity on?
 	constexpr bool visc{ true };

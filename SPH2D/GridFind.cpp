@@ -59,8 +59,8 @@ void find_neighbours(
 	printlog_debug(__func__)();
 
 	constexpr rr_float scale_k = get_scale_k();
-	constexpr rr_float max_dist = sqr(scale_k * Params::hsml); constexpr unsigned a = 1 << 16;
-
+	const rr_float max_dist = sqr(scale_k * Params::hsml); 
+	
 	bool err = false;
 
 #pragma omp parallel for
