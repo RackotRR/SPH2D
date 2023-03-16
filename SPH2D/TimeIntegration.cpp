@@ -102,21 +102,13 @@ void time_integration(
 		printTimeEstimate(timer.total(), itimestep);
 
 		if (itimestep % Params::save_step == 0) {
-			//output(r, v, rho, p, u, c, itype, ntotal, itimestep);
-			//fast_output(r, itype, ntotal, itimestep);
-
-			auto r_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>(r.copy());
-			auto itype_temp = std::make_unique<heap_array<rr_int, Params::maxn>>(itype.copy());
-			auto v_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>(v.copy());
-			auto p_temp = std::make_unique<heap_array<rr_float, Params::maxn>>(p.copy());
-			output_on_demand(
-				std::move(r_temp),
-				std::move(itype_temp),
-				std::move(v_temp),
-				nullptr,
-				std::move(p_temp),
-				nullptr,
-				ntotal,
+			output2(
+				r.copy(),
+				itype.copy(),
+				v.copy(),
+				std::nullopt,
+				std::nullopt,
+				p.copy(),
 				itimestep);
 		}
 

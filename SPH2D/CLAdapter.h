@@ -135,23 +135,26 @@ inline void cl_time_integration(
         printTimeEstimate(timer.total(), itimestep);
 
         if (itimestep % Params::save_step == 0) {
-            auto r_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>();
-            auto itype_temp = std::make_unique<heap_array<rr_int, Params::maxn>>(itype.copy());
-            auto v_temp = std::make_unique<heap_array<rr_float2, Params::maxn>>();
-            auto p_temp = std::make_unique<heap_array<rr_float, Params::maxn>>();
-            cl::copy(r_, r_temp->begin(), r_temp->end());
-            cl::copy(v_, v_temp->begin(), v_temp->end());
-            cl::copy(p_, p_temp->begin(), p_temp->end());
-            output_on_demand(
+            heap_array<rr_float2, Params::maxn> r_temp;
+            heap_array<rr_float2, Params::maxn> v_temp;
+            heap_array<rr_float, Params::maxn> p_temp;
+
+            cl::copy(r_, r_temp.begin(), r_temp.end());
+            cl::copy(v_, v_temp.begin(), v_temp.end());
+            cl::copy(p_, p_temp.begin(), p_temp.end());
+
+            if constexpr (Params::enable_check_consistency) {
+                check_particles_are_within_boundaries(ntotal, r_temp, itype);
+            }
+
+            output2(
                 std::move(r_temp),
-                std::move(itype_temp),
+                itype.copy(),
                 std::move(v_temp),
-                nullptr,
+                std::nullopt,
+                std::nullopt,
                 std::move(p_temp),
-                nullptr,
-                ntotal,
                 itimestep);
-            //fast_output(std::move(r_temp), itype, ntotal, itimestep);
         }
 
         printlog_debug("predict_half_step_kernel")();
@@ -267,21 +270,6 @@ inline void cl_time_integration(
             update_boundaries_kernel(
                 v_, r_, time
             ).execute(Params::maxn, Params::localThreads);
-        }
-
-        if constexpr (Params::enable_check_consistency) {
-            if (should_check_normal(itimestep)) {
-                static heap_array<rr_float2, Params::maxn> r_cpy, v_cpy;
-                static heap_array<rr_float, Params::maxn> rho_cpy, p_cpy;
-
-                cl::copy(r_, r_cpy.begin(), r_cpy.end());
-                cl::copy(v_, v_cpy.begin(), v_cpy.end());
-                cl::copy(rho_, rho_cpy.begin(), rho_cpy.end());
-                cl::copy(p_, p_cpy.begin(), p_cpy.end());
-
-                check_finite(r_cpy, v_cpy, rho_cpy, p_cpy, itype, ntotal);
-                check_particles_are_within_boundaries(ntotal, r_cpy, itype);
-            }
         }
 
         time += Params::dt;

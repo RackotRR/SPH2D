@@ -26,61 +26,52 @@ namespace {
 			stream << itype(i) << std::endl;
 		}
 	}
-	void printFull(
-		const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
-		const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-		const heap_array<rr_float, Params::maxn>& rho,// density
-		const heap_array<rr_float, Params::maxn>& p,	// pressure
-		const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-		const heap_array<rr_float, Params::maxn>& c,	// sound velocity
-		const heap_array<rr_int, Params::maxn>& itype,	// material type 
-		const rr_uint ntotal,	// number of particles
-		const rr_uint itimestep) // current time step
+
+	void print2(
+		heap_array<rr_float2, Params::maxn>&& r,
+		heap_array<rr_int, Params::maxn>&& itype,
+		std::optional<heap_array<rr_float2, Params::maxn>> v,
+		std::optional<heap_array<rr_float, Params::maxn>> rho,
+		std::optional<heap_array<rr_float, Params::maxn>> u,
+		std::optional<heap_array<rr_float, Params::maxn>> p,
+		const rr_uint itimestep)
 	{
-		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
-		stream << ntotal << std::endl;
-		for (rr_uint i = 0; i < ntotal; i++) {
-			stream << r(i).x << std::endl << r(i).y << std::endl;
-			stream << v(i).x << std::endl << v(i).y << std::endl;
-			stream << rho(i) << std::endl;
-			stream << p(i) << std::endl;
-			stream << c(i) << std::endl;
-			stream << itype(i) << std::endl;
+		try {
+			std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
+
+			stream << "fmt: ";
+			auto add_format_specifier = [&](const char* value, auto& opt) {
+				if (opt.has_value()) {
+					stream << value << " ";
+				}
+			};
+			add_format_specifier("vx vy", v);
+			add_format_specifier("rho", rho);
+			add_format_specifier("u", u);
+			add_format_specifier("p", p);
+			stream << std::endl;
+
+			stream << Params::particles_total << std::endl;
+			for (rr_uint i = 0; i < Params::particles_total; i++) {
+				stream << r(i).x << std::endl << r(i).y << std::endl;
+				stream << itype(i) << std::endl;
+
+				if (v) {
+					stream << v.value().at(i).x << std::endl << v.value().at(i).y << std::endl;
+				}
+				if (rho) {
+					stream << rho.value().at(i) << std::endl;
+				}
+				if (u) {
+					stream << u.value().at(i) << std::endl;
+				}
+				if (p) {
+					stream << p.value().at(i) << std::endl;
+				}
+			}
 		}
-	}
-
-	void print_on_demand(
-		std::unique_ptr<heap_array<rr_float2, Params::maxn>> r,	// coordinates of all particles
-		std::unique_ptr<heap_array<rr_int, Params::maxn>> itype,	// material type 
-		std::unique_ptr<heap_array<rr_float2, Params::maxn>> v,	// velocities of all particles
-		std::unique_ptr<heap_array<rr_float, Params::maxn>> rho,// density
-		std::unique_ptr<heap_array<rr_float, Params::maxn>> p,	// pressure
-		std::unique_ptr<heap_array<rr_float, Params::maxn>> u,	// specific internal energy
-		const rr_uint ntotal,	// number of particles
-		const rr_uint itimestep) // current time step
-	{
-		if (!r || !itype) {
-			throw std::runtime_error{ "print_on_demand error: r and itype were expected not to be null" };
-		}
-
-		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
-		stream << ntotal << std::endl;
-		for (rr_uint i = 0; i < ntotal; i++) {
-			stream << r->at(i).x << std::endl << r->at(i).y << std::endl;
-			stream << itype->at(i) << std::endl;
-
-			if (v) {
-				stream << v->at(i).x << std::endl << v->at(i).y << std::endl;
-			}
-			if (rho) {
-				stream << rho->at(i) << std::endl;
-			}
-			if (p) {
-				stream << p->at(i) << std::endl;
-			}
-			if (u) {
-				stream << u->at(i) << std::endl;
-			}
+		catch (std::exception& ex) {
+			printlog("print2 error :")(ex.what())();
 		}
 	}
 }
@@ -134,57 +125,28 @@ void setupOutput() {
 	logCLInfo();
 }
 
-void output_on_demand(
-	std::unique_ptr<heap_array<rr_float2, Params::maxn>> r,	// coordinates of all particles
-	std::unique_ptr<heap_array<rr_int, Params::maxn>> itype,	// material type 
-	std::unique_ptr<heap_array<rr_float2, Params::maxn>> v,	// velocities of all particles
-	std::unique_ptr<heap_array<rr_float, Params::maxn>> rho,// density
-	std::unique_ptr<heap_array<rr_float, Params::maxn>> p,	// pressure
-	std::unique_ptr<heap_array<rr_float, Params::maxn>> u,	// specific internal energy
-	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep)// current time step
+void output2(
+	heap_array<rr_float2, Params::maxn>&& r,
+	heap_array<rr_int, Params::maxn>&& itype,
+	std::optional<heap_array<rr_float2, Params::maxn>> v,
+	std::optional<heap_array<rr_float, Params::maxn>> rho,
+	std::optional<heap_array<rr_float, Params::maxn>> u,
+	std::optional<heap_array<rr_float, Params::maxn>> p,
+	const rr_uint itimestep)
 {
 	printlog_debug()(__func__)();
 
-	std::thread(print_on_demand,
+	std::thread(print2,
 		std::move(r),
 		std::move(itype),
 		std::move(v),
 		std::move(rho),
-		std::move(p),
 		std::move(u),
-		ntotal,
-		itimestep).detach();
+		std::move(p),
+		itimestep
+	).detach();
 
-	std::cout << "output on demand: " << itimestep << std::endl;
-}
-
-// save particle information to external disk file
-void output(
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
-	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-	const heap_array<rr_float, Params::maxn>& rho,// density
-	const heap_array<rr_float, Params::maxn>& p,	// pressure
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
-	const heap_array<rr_int, Params::maxn>& itype,	// material type 
-	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep)// current time step
-{
-	printlog_debug()(__func__)();
-
-	std::thread(printFull, 
-		r.copy(), 
-		v.copy(),
-		rho.copy(),
-		p.copy(),
-		u.copy(),
-		c.copy(),
-		itype.copy(), 
-		ntotal, 
-		itimestep).detach();
-
-	std::cout << "output: " << itimestep << std::endl;
+	std::cout << "output2: " << itimestep << std::endl;
 }
 
 void fast_output(
@@ -232,7 +194,7 @@ void printTimeEstimate(long long totalTime_ns, rr_uint timeStep) {
 		long long timeEstimates = static_cast<long long>((totalTime_ns / timeStep) * coefNanosecondsToSeconds * (Params::maxtimestep - timeStep));
 		long long timePassed = static_cast<long long>(totalTime_ns * coefNanosecondsToSeconds);
 
-		std::cout << timeStep << " / " << Params::maxtimestep << " \t (part: " << Params::particles_total << ")";
+		std::cout << timeStep << " / " << Params::maxtimestep << "   (part: " << Params::particles_total << ")";
 		std::cout << "{ passed: " << getTimeInAppropriateForm(timePassed);
 		std::cout << "; w8 est." << getTimeInAppropriateForm(timeEstimates) << " }" << std::endl;
 	}
