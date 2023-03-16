@@ -83,12 +83,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Projects\LIBS\OpenCL\include;E:\Projects\LIBS\json;E:\Projects\LIBS\RackotRR\include;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Projects\LIBS\OpenCL\include;E:\Projects\LIBS\json;$(IncludePath)</IncludePath>
     <LibraryPath>E:\Projects\LIBS\OpenCL\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Projects\LIBS\OpenCL\include;E:\Projects\LIBS\json;E:\Projects\LIBS\RackotRR\include;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Projects\LIBS\OpenCL\include;E:\Projects\LIBS\json;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)</TargetName>
     <LibraryPath>E:\Projects\LIBS\OpenCL\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -178,7 +178,6 @@
     <ClInclude Include="ExtForce.h" />
     <ClInclude Include="GridFind.h" />
     <ClInclude Include="GridUtils.h" />
-    <ClInclude Include="HeapArray.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="InternalForce.h" />
     <ClInclude Include="IsNormalCheck.h" />

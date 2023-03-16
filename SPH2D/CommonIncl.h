@@ -4,8 +4,10 @@
 
 #include "Params.h"
 #include "GridUtils.h"
-#include "HeapArray.h" 
 #include "Logger.h"
+#include "RR\Memory\RRHeapArray.h" 
+
+using namespace RR::Memory;
 
 // simple math utils
 constexpr rr_float sqr(rr_float value) {

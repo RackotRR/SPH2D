@@ -1,7 +1,7 @@
 #include "CLAdapter.h"
 #include <iostream>
 #include <string>
-#include <RR/Time/Timer.h>
+#include "RR/Time/Timer.h"
 
 #include "CommonIncl.h"
 #include "Input.h"
@@ -52,7 +52,7 @@ void simulation() {
 		sph();
 		timer.finish();
 
-		std::cout << "total time in seconds: " << timer.value<std::chrono::seconds>() << std::endl;
+		std::cout << "total time in minutes: " << timer.value<std::chrono::minutes>() << std::endl;
 	}
 	catch (const std::exception& ex) {
 		printlog("catch exception: ")(ex.what())();

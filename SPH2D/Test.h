@@ -1,8 +1,6 @@
 #pragma once
 #include <iostream>
-#include "Types.h"
-#include "HeapArray.h"
-
+#include "CommonIncl.h"
 
 struct Test {
     static constexpr rr_float float_epsilon = 0.00001f;

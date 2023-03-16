@@ -17,8 +17,8 @@ void initConsts() {
 	constexpr rr_float L = 1.2f;
 	constexpr rr_float depth = 0.6f;
 	constexpr rr_float ratio = L / depth;
-	constexpr rr_float tank_length = 3.22f;// *L;
-	constexpr rr_float tank_height = 1.8f;// *depth;
+	constexpr rr_float tank_length = 3.22f;
+	constexpr rr_float tank_height = 1.8f;
 	constexpr rr_uint particlesPer_d = 250;
 	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
 	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L);
@@ -163,7 +163,7 @@ void generateParticles(
 		itype(i) = Params::TYPE_WATER;
 
 		rr_float c = 0.f;
-		p_art_water(rho(i), u(i), p(i), c);
+		p_art_water(rho(i), p(i), c);
 	}
 }
 

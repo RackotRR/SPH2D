@@ -6,7 +6,7 @@
 #include "WaveMaker.h"
 #include "TimeIntegration.h"
 
-#include <RR/Time/Timer.h>
+#include "RR/Time/Timer.h"
 
 void predict_half_step(
 	const rr_uint ntotal,

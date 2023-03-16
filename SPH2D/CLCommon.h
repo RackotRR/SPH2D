@@ -1,7 +1,6 @@
 #pragma once
 #include <CL/opencl.hpp>
-#include "HeapArray.h"
-#include "Logger.h"
+#include "CommonIncl.h"
 
 template<typename... Args>
 class RRKernelFuctor {
