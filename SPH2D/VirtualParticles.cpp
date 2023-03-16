@@ -17,6 +17,8 @@ static void ground(
 	rr_uint& nvirt,
 	heap_array<rr_float2, Params::maxn>& r);
 
+static constexpr rr_uint LAYERS_NUM = 2;
+
 // determine the information of virtual particles
 // here only the Monaghan type virtual particles for the 2d shear
 // cavity driven probles generated
@@ -34,11 +36,11 @@ void virt_part(
 	printlog()(__func__)();
 	nvirt = 0;
 
-	Params::x_boundary_min = Params::x_fluid_min - 3 * Params::hsml;
-	Params::y_boundary_min = Params::y_fluid_min - 3 * Params::hsml;
-	Params::x_boundary_max = Params::x_fluid_max + 3 * Params::hsml;
+	Params::x_boundary_min = Params::x_fluid_min - Params::hsml;
+	Params::y_boundary_min = Params::y_fluid_min - Params::hsml;
+	Params::x_boundary_max = Params::x_fluid_max + Params::hsml;
 	Params::y_boundary_max = Params::y_maxgeom;
-	Params::boundary_delta = Params::delta * 2;
+	Params::boundary_delta = Params::delta / 4;
 	printlog("boundary delta ")(Params::boundary_delta)();
 	printlog("boundary xmin ")(Params::x_boundary_min)();
 	printlog("boundary xmax ")(Params::x_boundary_max)();
@@ -79,13 +81,15 @@ void left_wall(
 
 	Params::left_wall_start = ntotal + nvirt;
 	for (rr_uint y_i = 0; y_i < y_particles; ++y_i) {
-		rr_uint i = ntotal + nvirt;
 		// place particles in chess order
-		r(i).x = x;
-		r(i).y = Params::y_boundary_min + y_i * Params::boundary_delta;
-		r(i + 1ull).x = x + Params::boundary_delta * 0.5f;
-		r(i + 1ull).y = Params::y_boundary_min + (y_i + 0.5f) * Params::boundary_delta;
-		nvirt += 2;
+		for (rr_uint layer = 0; layer < LAYERS_NUM; ++layer) {
+			rr_uint i = ntotal + nvirt;
+			rr_float x_diff = layer * Params::boundary_delta * 0.5f;
+			rr_float y_diff = (layer % 2) * 0.5f;
+			r(i).x = x - x_diff;
+			r(i).y = Params::y_boundary_min + Params::boundary_delta * (y_i + y_diff);
+			++nvirt;
+		}
 	}
 	Params::left_wall_end = ntotal + nvirt;
 }
@@ -103,11 +107,14 @@ void right_wall(
 	for (rr_uint y_i = 0; y_i < y_particles; ++y_i) {
 		rr_uint i = ntotal + nvirt;
 		// place particles in chess order
-		r(i).x = x;
-		r(i).y = Params::y_boundary_min + y_i * Params::boundary_delta;
-		r(i + 1ull).x = x - Params::boundary_delta * 0.5f;
-		r(i + 1ull).y = Params::y_boundary_min + (y_i + 0.5f) * Params::boundary_delta;
-		nvirt += 2;
+		for (rr_uint layer = 0; layer < LAYERS_NUM; ++layer) {
+			rr_uint i = ntotal + nvirt;
+			rr_float x_diff = layer * Params::boundary_delta * 0.5f;
+			rr_float y_diff = (layer % 2) * 0.5f;
+			r(i).x = x - x_diff;
+			r(i).y = Params::y_boundary_min + Params::boundary_delta * (y_i + y_diff);
+			++nvirt;
+		}
 	}
 }
 
@@ -124,11 +131,14 @@ void ground(
 	for (rr_uint x_i = 0; x_i < x_particles; ++x_i) {
 		rr_uint i = ntotal + nvirt;
 		// place particles in chess order
-		r(i).x = Params::x_mingeom + x_i * Params::boundary_delta;
-		r(i).y = y;
-		r(i + 1ull).x = Params::x_mingeom + (x_i + 0.5f) * Params::boundary_delta;
-		r(i + 1ull).y = y + Params::boundary_delta * 0.5f;
-		nvirt += 2;
+		for (rr_uint layer = 0; layer < LAYERS_NUM; ++layer) {
+			rr_uint i = ntotal + nvirt;
+			rr_float x_diff = (layer % 2) * 0.5f;
+			rr_float y_diff = layer * Params::boundary_delta * 0.5f;
+			r(i).x = Params::x_mingeom + Params::boundary_delta * (x_i + x_diff);
+			r(i).y = Params::y_boundary_min - y_diff;
+			++nvirt;
+		}
 	}
 }
 

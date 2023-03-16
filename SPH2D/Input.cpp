@@ -27,7 +27,7 @@ void initConsts() {
 	constexpr rr_float delta = depth / particlesPer_d;
 
 	Params::delta = delta;
-	Params::hsml = delta * 1.2f;
+	Params::hsml = delta * 1.5f;
 	printlog("dx=dy=delta: ")(Params::delta)();
 	printlog("hsml: ")(Params::hsml)();
 
@@ -64,16 +64,20 @@ void initConsts() {
 	printlog("generation fluid level (depth): ")(Params::d)();
 	printlog("generator amplitude: ")(Params::A)();
 
-	Params::normal_check_step = 10000;
+	Params::eos_csqr_k = 2;
+	Params::average_velocity_epsilon = 0.05f;
+	printlog("eos_csqr_k: ")(Params::eos_csqr_k)();
+	printlog("average_velocity_epsilon: ")(Params::average_velocity_epsilon)();
+
 	Params::save_step = 5000;
+	Params::normal_check_step = Params::save_step;
 	Params::simulation_time = 2.f;
-	Params::dt = 0.5e-5f;
+	Params::dt = 1.e-5f;
 	rr_float steps = Params::simulation_time / Params::dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
 	}
 	Params::maxtimestep = static_cast<size_t>(steps);
-	printlog("check normal step: ")(Params::normal_check_step)();
 	printlog("save step: ")(Params::save_step)();
 	printlog("simulation time: ")(Params::simulation_time)();
 	printlog("dt: ")(Params::dt)();

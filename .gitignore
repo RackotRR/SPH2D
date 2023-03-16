@@ -14,6 +14,7 @@ SPH2D/params
 SPH2D/tmp
 SPH2D/test
 SPH2D/Params.json
+SPH2D/cl/clparams.h
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

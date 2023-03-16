@@ -6,8 +6,8 @@ namespace Params {
 	// dimension of the problem (1, 2, 3)
 	constexpr int dim{ 2 };
 
-	constexpr rr_uint maxn{ 1 << 17 }; // maximum number of particles
-	constexpr rr_uint max_neighbours{ 64 };
+	constexpr rr_uint maxn{ 1 << 18 }; // maximum number of particles
+	constexpr rr_uint max_neighbours{ 128 };
 	constexpr rr_uint max_cells{ max_neighbours * maxn }; // maximum number of cells in grid
 
 	inline rr_float x_maxgeom;
@@ -53,7 +53,7 @@ namespace Params {
 	// eos = 1 : Lennard-Jones
 	//		 2 : Monaghan 1994
 	constexpr int eos{ 2 };
-	constexpr rr_float eos_csqr_k{ 1.f };
+	inline rr_float eos_csqr_k{ 1.f };
 
 	// SPH algorithm for particle approximation
 	// pa_sph = 1 : (p[i] + p[i])/(rho[i]*rho[j])
@@ -98,7 +98,7 @@ namespace Params {
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
 	constexpr bool average_velocity{ false }; // Liu G.R. (eq 4.92)
-	constexpr rr_float average_velocity_epsilon{ 0.3f };
+	inline rr_float average_velocity_epsilon{ 0.05f };
 
 	// viscosity on?
 	constexpr bool visc{ true };
