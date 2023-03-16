@@ -5,7 +5,6 @@ __kernel void find_stress_tensor(
     __global const rr_float2* v,
     __global const rr_float* mass,
     __global const rr_float* rho,
-    __global const rr_uint* neighbours_count,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
 
@@ -22,10 +21,11 @@ __kernel void find_stress_tensor(
     rr_float txy_temp = 0.f;
     rr_float tyy_temp = 0.f;
 
-    rr_uint nc = neighbours_count[j];
-    for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
-        rr_uint i = neighbours[at(n, j)]; // particle near
-
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != params_ntotal; // particle near
+        ++n)
+    {
         rr_float2 dwdri = dwdr[at(n, j)];
         rr_float2 dvx = v[j] - v[i];
 
@@ -57,8 +57,6 @@ __kernel void find_internal_changes_pij_d_rhoij(
     __global const rr_float* mass,
     __global const rr_float* rho,
     __global const rr_float* eta,
-    __global const rr_float* u,
-    __global const rr_uint* neighbours_count,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
     __global const rr_float* vcc,
@@ -77,10 +75,11 @@ __kernel void find_internal_changes_pij_d_rhoij(
     rr_float2 a_temp = 0.f;
     rr_float dedt_temp = 0.f;
 
-    rr_uint nc = neighbours_count[j];
-    for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
-        rr_uint i = neighbours[at(n, j)]; // particle near
-
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != params_ntotal; // particle near
+        ++n)
+    {
         rr_float2 dwdri = dwdr[at(n, j)];
         rr_float2 h = -dwdri * (p[i] + p[j]);
         rr_float mrhoij = mass[i] / rho[i] / rho[j];
@@ -107,8 +106,6 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
     __global const rr_float* mass,
     __global const rr_float* rho,
     __global const rr_float* eta,
-    __global const rr_float* u,
-    __global const rr_uint* neighbours_count,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
     __global const rr_float* vcc,
@@ -127,10 +124,11 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
     rr_float2 a_temp = 0.f;
     rr_float dedt_temp = 0.f;
 
-    rr_uint nc = neighbours_count[j];
-    for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
-        rr_uint i = neighbours[at(n, j)]; // particle near
-
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != params_ntotal; // particle near
+        ++n)
+    {
         rr_float2 dwdri = dwdr[at(n, j)];
         rr_float rhoi = rho[i];
         rr_float rhoj = rho[j];
@@ -156,7 +154,6 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
 
 __kernel void update_internal_state(
     __global const rr_float* rho,
-    __global const rr_float* u,
     __global const rr_float* txx,
     __global const rr_float* txy,
     __global const rr_float* tyy,
@@ -180,7 +177,7 @@ __kernel void update_internal_state(
     // pressure from equation of state 
     rr_float pj;
     rr_float cj;
-    p_art_water(rho[j], u[j], &pj, &cj);
+    p_art_water(rho[j], &pj, &cj);
     p[j] = pj;
     c[j] = cj;
 }

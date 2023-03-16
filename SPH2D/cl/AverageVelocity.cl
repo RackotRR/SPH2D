@@ -5,7 +5,6 @@ __kernel void average_velocity(
 	__global const rr_float2* v,
 	__global const rr_float* mass,
 	__global const rr_float* rho,
-	__global const rr_uint* neighbours_count,
 	__global const rr_uint* neighbours,
 	__global const rr_float* w,
 
@@ -18,10 +17,12 @@ __kernel void average_velocity(
 
 #ifdef params_average_velocity
 	rr_float2 av_temp = 0.f;
-	rr_uint nc = neighbours_count[j];
-	for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
-		rr_uint i = neighbours[at(n, j)]; // particle near
 
+	rr_uint i;
+	for (rr_iter n = 0;
+		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		++n)
+	{
 		rr_float2 dvx = v[i] - v[j];
 		av_temp += dvx * mass[i] / (rho[i] + rho[j]) * w[at(n, j)] * 2.f;
 	}

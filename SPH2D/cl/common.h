@@ -7,6 +7,7 @@
 #ifdef KERNEL_BUILD
 #define rr_float float
 #define rr_uint uint
+#define rr_iter uint
 #define rr_int int
 #define rr_float2 float2
 #else

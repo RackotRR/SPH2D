@@ -51,7 +51,6 @@ void find_neighbours(
 	const heap_array<rr_float2, Params::maxn>& r,
 	const heap_array<rr_uint, Params::maxn>& grid,
 	const heap_array<rr_uint, Params::max_cells>& cell_starts_in_grid,
-	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
@@ -65,7 +64,7 @@ void find_neighbours(
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
-		neighbours_count(j) = 0;
+		rr_uint neighbour_id = 0;
 		rr_uint center_cell_idx = get_cell_idx(r(j));
 
 		rr_uint neighbour_cells[9];
@@ -86,9 +85,8 @@ void find_neighbours(
 				rr_float dist_sqr = length_sqr(diff);
 
 				if (dist_sqr < max_dist) {
-					rr_uint neighbour_id = neighbours_count(j)++;
 					if constexpr (Params::enable_check_consistency) {
-						if (neighbour_id >= Params::max_neighbours) {
+						if (neighbour_id == Params::max_neighbours - 1) {
 							#pragma omp critical
 							{
 								printlog("neighbour_id: ")(neighbour_id)(" / ")(Params::max_neighbours)();
@@ -104,11 +102,14 @@ void find_neighbours(
 						}
 					}
 					neighbours(neighbour_id, j) = i;
-
-					kernel(sqrt(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j));
+					kernel(sqrt(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j)); 
+					++neighbour_id;
 				}
 			} // grid_i
 		} // cell_i
+
+		rr_uint n = std::min(neighbour_id, Params::max_neighbours - 1);
+		neighbours(n, j) = ntotal;
 	} // j (particle itself)
 
 
@@ -120,7 +121,6 @@ void find_neighbours(
 void grid_find(
 	const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r,
-	heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr) // precomputed kernel derivative
@@ -139,7 +139,6 @@ void grid_find(
 		r,
 		grid,
 		cell_starts_in_grid,
-		neighbours_count,
 		neighbours,
 		w,
 		dwdr);

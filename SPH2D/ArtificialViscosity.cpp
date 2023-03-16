@@ -9,7 +9,6 @@ void artificial_viscosity(
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& rho,// density 
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float2, Params::maxn>& a, // out, acceleration with respect to x, y, z
@@ -29,10 +28,11 @@ void artificial_viscosity(
 		a(j) = { 0.f };
 		dedt(j) = 0.f;
 
-		rr_uint nc = neighbours_count(j);
-		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
-			rr_uint i = neighbours(n, j); // particle near
-
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
 			rr_float2 dv = v(i) - v(j);
 			rr_float2 dr = r(i) - r(j);
 			rr_float vr = dot(dv, dr);

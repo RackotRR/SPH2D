@@ -4,19 +4,19 @@
 #include "Logger.h"
 #include "Input.h"
 
-static auto cpu_eos(rr_float rho, rr_float u) {
+static auto cpu_eos(rr_float rho) {
     rr_float p, c;
-    p_art_water(rho, u, p, c);
+    p_art_water(rho, p, c);
     return std::make_pair(p, c);
 }
 
-static auto gpu_eos(rr_float rho, rr_float u) {
+static auto gpu_eos(rr_float rho) {
     const char* code = R"(
         #include "EOS.cl"
-        __kernel void test_cl_eos(rr_float rho, rr_float u, __global rr_float* p, __global rr_float* c) {
+        __kernel void test_cl_eos(rr_float rho, __global rr_float* p, __global rr_float* c) {
             rr_float _p;
             rr_float _c;
-            p_art_water(rho, u, &_p, &_c);
+            p_art_water(rho, &_p, &_c);
             *p = _p;
             *c = _c;
         }
@@ -27,7 +27,7 @@ static auto gpu_eos(rr_float rho, rr_float u) {
     auto p_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY);
     auto c_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY);
 
-    kernel(rho, u, p_, c_)
+    kernel(rho, p_, c_)
         .execute({ 1 }, { 1 });
 
     rr_float p;
@@ -43,11 +43,10 @@ bool Test::test_eos() {
 
     makeParamsHeader(0, 0, 0);
 
-    rr_float rho = 999.f;
-    rr_float u = 371.f;
+    rr_float rho = 1111.f;
 
-    auto [p, c] = cpu_eos(rho, u);
-    auto [p_cl, c_cl] = gpu_eos(rho, u);
+    auto [p, c] = cpu_eos(rho);
+    auto [p_cl, c_cl] = gpu_eos(rho);
 
     if (!Test::equals(p, p_cl)) {
         std::cout << "p: ";

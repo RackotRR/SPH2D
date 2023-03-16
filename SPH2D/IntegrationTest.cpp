@@ -37,20 +37,17 @@ namespace integration_test {
         static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
         static heap_array<rr_float, Params::maxn> avdudt, ahdudt;
 
-        static heap_array<rr_uint, Params::maxn> neighbours_count, neighbours_count_cl;
         static heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours, neighbours_cl;
         static heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w, w_cl;
         static heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr, dwdr_cl;
 
         grid_find(ntotal,
             r,
-            neighbours_count,
             neighbours,
             w,
             dwdr);
         grid_find_gpu(ntotal,
             r,
-            neighbours_count_cl,
             neighbours_cl,
             w_cl,
             dwdr_cl);
@@ -63,11 +60,11 @@ namespace integration_test {
             auto rho_cl = rho.copy();
             sum_density(ntotal,
                 mass,
-                neighbours_count, neighbours, w,
+                neighbours, w,
                 rho);
             sum_density_gpu(ntotal,
                 mass,
-                neighbours_count, neighbours, w,
+                neighbours, w,
                 rho_cl);
             failed_test += Test::difference("sum_density: rho", rho, rho_cl, ntotal);
         }
@@ -75,12 +72,12 @@ namespace integration_test {
             auto drho_cl = drho.copy();
             con_density(ntotal,
                 mass, v,
-                neighbours_count, neighbours, dwdr,
+                neighbours, dwdr,
                 rho,
                 drho);
             con_density_gpu(ntotal,
                 mass, v,
-                neighbours_count, neighbours, dwdr,
+                neighbours, dwdr,
                 rho,
                 drho_cl);
             failed_test += Test::difference("con_density: drho", drho, drho_cl, ntotal);
@@ -91,12 +88,12 @@ namespace integration_test {
         auto indvxdt_cl = indvxdt.copy();
         auto du_cl = du.copy();
         int_force(ntotal,
-            mass, r, v, rho, u,
-            neighbours_count, neighbours, w, dwdr,
+            mass, r, v, rho,
+            neighbours, w, dwdr,
             c, p, indvxdt, du);
         int_force_gpu(ntotal,
-            mass, r, v, rho, u,
-            neighbours_count, neighbours, w, dwdr,
+            mass, r, v, rho,
+            neighbours, w, dwdr,
             c_cl, p_cl, indvxdt_cl, du_cl);
         failed_test += Test::difference("int_force: c", c, c_cl, ntotal);
         failed_test += Test::difference("int_force: p", p, p_cl, ntotal);
@@ -108,11 +105,11 @@ namespace integration_test {
             auto arvdudt_cl = avdudt.copy();
             artificial_viscosity(ntotal,
                 mass, r, v, rho, c,
-                neighbours_count, neighbours, dwdr,
+                neighbours, dwdr,
                 arvdvxdt, avdudt);
             artificial_viscosity_gpu(ntotal,
                 mass, r, v, rho, c,
-                neighbours_count, neighbours, dwdr,
+                neighbours, dwdr,
                 arvdvxdt_cl, arvdudt_cl);
             failed_test += Test::difference("art_visc: arvdvxdt", arvdvxdt, arvdvxdt_cl, ntotal);
             failed_test += Test::difference("art_visc: arvdudt", avdudt, arvdudt_cl, ntotal);
@@ -122,11 +119,11 @@ namespace integration_test {
             auto exdvxdt_cl = exdvxdt.copy();
             external_force(ntotal,
                 mass, r,
-                neighbours_count, neighbours, itype,
+                neighbours, itype,
                 exdvxdt);
             external_force_gpu(ntotal,
                 mass, r,
-                neighbours_count, neighbours, itype,
+                neighbours, itype,
                 exdvxdt_cl);
             failed_test += Test::difference("external_force: exdvxdt", exdvxdt, exdvxdt_cl, ntotal);
         }
@@ -134,7 +131,7 @@ namespace integration_test {
         if constexpr (Params::heat_artificial) {
             art_heat(ntotal,
                 mass, r, v, rho, u, c,
-                neighbours_count, neighbours, dwdr,
+                neighbours, dwdr,
                 ahdudt);
         }
 
@@ -142,11 +139,11 @@ namespace integration_test {
             auto av_cl = av.copy();
             average_velocity(nfluid,
                 mass, r, v, rho,
-                neighbours_count, neighbours, w,
+                neighbours, w,
                 av);
             average_velocity_gpu(nfluid,
                 mass, r, v, rho,
-                neighbours_count, neighbours, w,
+                neighbours, w,
                 av_cl);
             failed_test += Test::difference("av_vel: av", av, av_cl, nfluid);
         }

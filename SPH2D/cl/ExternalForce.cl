@@ -3,7 +3,6 @@
 __kernel void external_force(
 	__global const rr_float2* r,
 	__global const rr_float* mass,
-	__global const rr_uint* neighbours_count,
 	__global const rr_uint* neighbours,
 	__global const rr_int* itype,
 
@@ -28,10 +27,11 @@ __kernel void external_force(
 #define ext_force_p1 12
 #define ext_force_p2 4
 
-	rr_uint nc = neighbours_count[j];
-	for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
-		rr_uint i = neighbours[at(n, j)]; // particle near
-
+	rr_uint i;
+	for (rr_iter n = 0;
+		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		++n)
+	{
 		// type > 0 --- material particle
 		// type < 0 --- virtual particle   
 		if (itype[j] > 0 && itype[i] < 0) {

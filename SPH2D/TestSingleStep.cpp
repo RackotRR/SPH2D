@@ -37,7 +37,7 @@ void update_change_rate_gpu(rr_uint nfluid,
 		arvdvxdt_,
 		dudt_,
 		a_
-	).execute(nfluid, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dudt_, dudt_cl.begin(), dudt_cl.end());

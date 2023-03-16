@@ -8,7 +8,6 @@ static void find_vcc(const rr_uint ntotal,	// number of particles
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& vcc)
@@ -17,10 +16,11 @@ static void find_vcc(const rr_uint ntotal,	// number of particles
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		vcc(j) = 0.f;
 
-		rr_uint nc = neighbours_count(j);
-		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
-			rr_uint i = neighbours(n, j); // particle near
-
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
 			rr_float2 dv = v(j) - v(i);
 			rr_float hvcc = dot(dv, dwdr(n, j));
 			vcc(j) += mass(i) * hvcc / rho(i);
@@ -35,7 +35,6 @@ static void find_dedt(const rr_uint ntotal,	// number of particles
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
 	const heap_array<rr_float, Params::maxn>& vcc,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& dedt)
@@ -48,10 +47,11 @@ static void find_dedt(const rr_uint ntotal,	// number of particles
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		dedt(j) = 0.f;
 
-		rr_uint nc = neighbours_count(j);
-		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
-			rr_uint i = neighbours(n, j); // particle near
-
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
 			rr_float mrho = (rho(i) + rho(j)) * 0.5f;
 			rr_float2 dr = r(i) - r(j);
 			rr_float rr = length_sqr(dr);
@@ -76,7 +76,6 @@ void art_heat(const rr_uint ntotal,	// number of particles
 	const heap_array<rr_float, Params::maxn>& rho,	// density
 	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	const heap_array<rr_float, Params::maxn>& c,	// sound velocity
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& dedt) // out, produced artificial heat, adding to energy Eq
@@ -89,7 +88,6 @@ void art_heat(const rr_uint ntotal,	// number of particles
 		r, 
 		v, 
 		rho, 
-		neighbours_count,
 		neighbours, 
 		dwdr,
 		vcc);
@@ -102,7 +100,6 @@ void art_heat(const rr_uint ntotal,	// number of particles
 		u, 
 		c, 
 		vcc, 
-		neighbours_count,
 		neighbours, 
 		dwdr,
 		dedt);

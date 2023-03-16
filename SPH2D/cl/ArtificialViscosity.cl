@@ -6,7 +6,6 @@ __kernel void artificial_viscosity(
 	__global const rr_float* mass,
 	__global const rr_float* rho,
 	__global const rr_float* c,
-	__global const rr_uint* neighbours_count,
 	__global const rr_uint* neighbours,
 	__global const rr_float2* dwdr,
 
@@ -27,10 +26,11 @@ __kernel void artificial_viscosity(
 #define art_visc_beta 1.f // bulk viscosity
 #define art_visc_etq 0.1f // const to avoid singularities
 
-	rr_uint nc = neighbours_count[j];
-	for (rr_uint n = 0; n < nc; ++n) { // run through index of neighbours 
-		rr_uint i = neighbours[at(n, j)]; // particle near
-
+	rr_uint i;
+	for (rr_iter n = 0;
+		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		++n)
+	{
 		rr_float2 dv = v[i] - v[j];
 		rr_float2 dr = r[i] - r[j];
 		rr_float vr = dot(dv, dr);

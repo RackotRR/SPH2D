@@ -65,7 +65,7 @@ void virt_part(
 		itype(i) = Params::TYPE_BOUNDARY;
 
 		rr_float c = 0.f;
-		p_art_water(rho(i), u(i), p(i), c);
+		p_art_water(rho(i), p(i), c);
 	}
 }
 

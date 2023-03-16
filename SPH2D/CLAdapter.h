@@ -96,7 +96,6 @@ inline void cl_time_integration(
     // grid find
     auto grid_ = makeBuffer<rr_uint>(DEVICE_ONLY, Params::maxn);
     auto cells_ = makeBuffer<rr_uint>(DEVICE_ONLY, Params::max_cells);
-    auto neighbours_count_ = makeBuffer<rr_uint>(DEVICE_ONLY, Params::maxn);
     auto neighbours_ = makeBuffer<rr_uint>(DEVICE_ONLY, Params::max_neighbours * Params::maxn);
     auto w_ = makeBuffer<rr_float>(DEVICE_ONLY, Params::max_neighbours * Params::maxn);
     auto dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, Params::max_neighbours * Params::maxn);
@@ -191,13 +190,13 @@ inline void cl_time_integration(
         printlog_debug("find neighbours")();
         find_neighbours_kernel(
             r_, grid_, cells_,
-            neighbours_count_, neighbours_, w_, dwdr_
+            neighbours_, w_, dwdr_
         ).execute(Params::maxn, Params::localThreads);
 
         if constexpr (Params::summation_density) {
             printlog_debug("sum density")();
             sum_density_kernel(
-                mass_, neighbours_count_, neighbours_, w_,
+                mass_, neighbours_, w_,
                 rho_predict_
             ).execute(Params::maxn, Params::localThreads);
         }
@@ -205,7 +204,7 @@ inline void cl_time_integration(
             printlog_debug("con density")();
             con_density_kernel(
                 mass_, v_predict_,
-                neighbours_count_, neighbours_, dwdr_,
+                neighbours_, dwdr_,
                 rho_predict_,
                 drho_
             ).execute(Params::maxn, Params::localThreads);
@@ -213,41 +212,41 @@ inline void cl_time_integration(
 
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, mass_, rho_predict_, neighbours_count_, neighbours_, dwdr_,
+            v_predict_, mass_, rho_predict_, neighbours_, dwdr_,
             vcc_, txx_, txy_, tyy_
         ).execute(Params::maxn, Params::localThreads);
 
         printlog_debug("update internal state")();
         update_internal_state_kernel(
-            rho_predict_, u_predict_, txx_, txy_, tyy_,
+            rho_predict_, txx_, txy_, tyy_,
             eta_, tdsdt_, p_, c_
         ).execute(Params::maxn, Params::localThreads);
 
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
-            v_predict_, mass_, rho_predict_, eta_, u_predict_,
-            neighbours_count_, neighbours_, dwdr_,
+            v_predict_, mass_, rho_predict_, eta_,
+            neighbours_, dwdr_,
             vcc_, txx_, txy_, tyy_, p_, tdsdt_,
             indvxdt_, indudt_
         ).execute(Params::maxn, Params::localThreads);
 
         printlog_debug("external force")();
         external_force_kernel(
-            r_, mass_, neighbours_count_, neighbours_, itype_,
+            r_, mass_, neighbours_, itype_,
             exdvxdt_
         ).execute(Params::maxn, Params::localThreads);
 
         printlog_debug("artificial viscosity")();
         artificial_viscosity_kernel(
             r_, v_predict_, mass_, rho_predict_, c_,
-            neighbours_count_, neighbours_, dwdr_,
+            neighbours_, dwdr_,
             ardvxdt_, ardudt_
         ).execute(Params::maxn, Params::localThreads);
 
         printlog_debug("average velocity")();
         average_velocity_kernel(
             r_, v_predict_, mass_, rho_predict_,
-            neighbours_count_, neighbours_, w_,
+            neighbours_, w_,
             av_
         ).execute(Params::maxn, Params::localThreads);
 
