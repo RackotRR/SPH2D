@@ -12,8 +12,6 @@ void int_force(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
@@ -27,7 +25,6 @@ void find_stress_tensor(
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& vcc,
@@ -38,7 +35,6 @@ void find_stress_tensor(
 void update_internal_state(
 	const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	const heap_array<rr_float, Params::maxn>& txx,
 	const heap_array<rr_float, Params::maxn>& txy,
 	const heap_array<rr_float, Params::maxn>& tyy,
@@ -53,8 +49,6 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,	// density
 	const heap_array<rr_float, Params::maxn>& eta,	// dynamic viscosity
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	const heap_array<rr_float, Params::maxn>& vcc,
@@ -72,8 +66,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,	// density
 	const heap_array<rr_float, Params::maxn>& eta,	// dynamic viscosity
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	const heap_array<rr_float, Params::maxn>& vcc,
@@ -90,7 +82,6 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& v_cl,
 	const heap_array<rr_float, Params::maxn>& mass_cl,
 	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
 	heap_array<rr_float, Params::maxn>& vcc_cl,
@@ -99,7 +90,6 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 	heap_array<rr_float, Params::maxn>& tyy_cl);
 void update_internal_state_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_float, Params::maxn>& u_cl,
 	const heap_array<rr_float, Params::maxn>& txx_cl,
 	const heap_array<rr_float, Params::maxn>& txy_cl,
 	const heap_array<rr_float, Params::maxn>& tyy_cl,
@@ -112,8 +102,6 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& mass_cl,
 	const heap_array<rr_float, Params::maxn>& rho_cl,
 	const heap_array<rr_float, Params::maxn>& eta_cl,
-	const heap_array<rr_float, Params::maxn>& u_cl,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
 	const heap_array<rr_float, Params::maxn>& vcc_cl,
@@ -129,8 +117,6 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& mass_cl,
 	const heap_array<rr_float, Params::maxn>& rho_cl,
 	const heap_array<rr_float, Params::maxn>& eta_cl,
-	const heap_array<rr_float, Params::maxn>& u_cl,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
 	const heap_array<rr_float, Params::maxn>& vcc_cl,
@@ -147,8 +133,6 @@ void int_force_gpu(
 	const heap_array<rr_float2, Params::maxn>& r,
 	const heap_array<rr_float2, Params::maxn>& v,
 	const heap_array<rr_float, Params::maxn>& rho,
-	const heap_array<rr_float, Params::maxn>& u,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count,
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours,
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w,
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr,

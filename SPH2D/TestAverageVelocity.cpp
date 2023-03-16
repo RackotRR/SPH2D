@@ -20,7 +20,6 @@ namespace {
 	heap_array<rr_float, Params::maxn> u;	// specific internal energy
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
 
-	heap_array<rr_uint, Params::maxn> neighbours_count; // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
@@ -47,14 +46,12 @@ namespace {
 			r,
 			grid,
 			cells_start_in_grid,
-			neighbours_count,
 			neighbours,
 			w,
 			dwdr);
 
 		sum_density(ntotal,
 			mass,
-			neighbours_count,
 			neighbours,
 			w,
 			rho);
@@ -64,8 +61,6 @@ namespace {
 			r,
 			v,
 			rho,
-			u,
-			neighbours_count,
 			neighbours,
 			w, dwdr,
 			c, p,
@@ -78,7 +73,6 @@ void average_velocity_gpu(rr_uint ntotal,
 	const heap_array<rr_float2, Params::maxn>& r_cl,
 	const heap_array<rr_float2, Params::maxn>& v_cl,
 	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count_cl,
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w_cl,
 	heap_array<rr_float2, Params::maxn>& av_cl) 
@@ -91,7 +85,6 @@ void average_velocity_gpu(rr_uint ntotal,
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass_cl);
 	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count_cl);
 	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
 	auto w_ = makeBufferCopyHost(CL_MEM_READ_ONLY, w_cl);
 
@@ -101,9 +94,9 @@ void average_velocity_gpu(rr_uint ntotal,
 	kernel(
 		r_, v_,
 		mass_, rho_,
-		neighbours_count_, neighbours_, w_,
+		neighbours_, w_,
 		av_
-	).execute(ntotal, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(av_, av_cl.begin(), av_cl.end());
 }
@@ -118,12 +111,12 @@ bool Test::test_average_velocity() {
 
 	average_velocity(ntotal,
 		mass, r, v, rho,
-		neighbours_count, neighbours, w,
+		neighbours, w,
 		av);
 
 	average_velocity_gpu(ntotal,
 		mass, r, v, rho,
-		neighbours_count, neighbours, w,
+		neighbours, w,
 		av_cl);
 
 	return difference("av", av, av_cl, ntotal) == 0;

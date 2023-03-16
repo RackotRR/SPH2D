@@ -2,7 +2,6 @@
 
 inline void p_art_water(
     const rr_float rho,
-    const rr_float u,
     rr_float* p,
     rr_float* c)
 {
@@ -30,10 +29,10 @@ inline void p_art_water(
 #else
 
     // artificial EOS, Form (Monaghan, 1994)
-#define eos_gamma 7.f
+#define eos_gamma 7
 #define eos_mg_B (eos_cSqr * eos_rho0 / eos_gamma)
     if (rho > eos_rho0) {
-        *p = eos_mg_B * (powun(rho / eos_rho0, eos_gamma) - 1.f);
+        *p = (powun(rho / eos_rho0, eos_gamma) - 1.f) * eos_mg_B;
     }
     else {
         *p = 0.f;

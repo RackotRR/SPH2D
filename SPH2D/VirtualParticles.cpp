@@ -40,7 +40,7 @@ void virt_part(
 	Params::y_boundary_min = Params::y_fluid_min - Params::hsml;
 	Params::x_boundary_max = Params::x_fluid_max + Params::hsml;
 	Params::y_boundary_max = Params::y_maxgeom;
-	Params::boundary_delta = Params::delta / 4;
+	Params::boundary_delta = Params::delta * 2;
 	printlog("boundary delta ")(Params::boundary_delta)();
 	printlog("boundary xmin ")(Params::x_boundary_min)();
 	printlog("boundary xmax ")(Params::x_boundary_max)();
@@ -65,7 +65,7 @@ void virt_part(
 		itype(i) = Params::TYPE_BOUNDARY;
 
 		rr_float c = 0.f;
-		p_art_water(rho(i), u(i), p(i), c);
+		p_art_water(rho(i), p(i), c);
 	}
 }
 

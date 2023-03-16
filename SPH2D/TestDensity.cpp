@@ -7,7 +7,6 @@
 #pragma region SUM_DENSITY
 void sum_density_gpu(const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	heap_array<rr_float, Params::maxn>& rho) // out, density
@@ -17,7 +16,6 @@ void sum_density_gpu(const rr_uint ntotal,
 	static RRKernel kernel(makeProgram("Density.cl"), "sum_density");
 
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
 	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
 	auto w_ = makeBufferCopyHost(CL_MEM_READ_ONLY, w);
 
@@ -25,11 +23,10 @@ void sum_density_gpu(const rr_uint ntotal,
 
 	kernel(
 		mass_, 
-		neighbours_count_, 
 		neighbours_, 
 		w_,
 		rho_
-	).execute(ntotal, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(rho_, rho.begin(), rho.end());
 }
@@ -49,15 +46,13 @@ bool Test::test_sum_density() {
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 
-	heap_array<rr_uint, Params::maxn> neighbours_count; // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
-	grid_find(ntotal, r, neighbours_count, neighbours, w, dwdr);
+	grid_find(ntotal, r, neighbours, w, dwdr);
 
 	sum_density(ntotal,
 		mass,
-		neighbours_count,
 		neighbours,
 		w,
 		rho);
@@ -65,7 +60,6 @@ bool Test::test_sum_density() {
 	heap_array<rr_float, Params::maxn> rho_cl;
 	sum_density_gpu(ntotal,
 		mass,
-		neighbours_count,
 		neighbours,
 		w,
 		rho_cl);
@@ -79,7 +73,6 @@ void con_density_gpu(
 	const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& mass,
 	const heap_array<rr_float2, Params::maxn>& v,
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, 
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours,
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, 
 	const heap_array<rr_float, Params::maxn>& rho,
@@ -91,7 +84,6 @@ void con_density_gpu(
 
 	auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY, mass);
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v);
-	auto neighbours_count_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_count);
 	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours);
 	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr);
 	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho);
@@ -100,10 +92,10 @@ void con_density_gpu(
 
 	kernel(
 		mass_, v_,
-		neighbours_count_, neighbours_, dwdr_,
+		neighbours_, dwdr_,
 		rho_,
 		drhodt_
-	).execute(ntotal, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(drhodt_, drhodt_cl.begin(), drhodt_cl.end());
 }
@@ -123,23 +115,22 @@ bool Test::test_con_density() {
 	heap_array<rr_float, Params::maxn> c;	// sound velocity 
 	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 
-	heap_array<rr_uint, Params::maxn> neighbours_count; // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
-	grid_find(ntotal, r, neighbours_count, neighbours, w, dwdr);
+	grid_find(ntotal, r, neighbours, w, dwdr);
 
 	heap_array<rr_float, Params::maxn> drhodt;
 	con_density(ntotal, 
 		mass, v, 
-		neighbours_count, neighbours, dwdr, 
+		neighbours, dwdr, 
 		rho, 
 		drhodt);
 
 	heap_array<rr_float, Params::maxn> drhodt_cl;
 	con_density_gpu(ntotal, 
 		mass, v, 
-		neighbours_count, neighbours, dwdr, 
+		neighbours, dwdr, 
 		rho, 
 		drhodt_cl);
 

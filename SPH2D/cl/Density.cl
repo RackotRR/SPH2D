@@ -3,7 +3,6 @@
 
 __kernel void sum_density(
     __global const rr_float* mass,
-    __global const rr_uint* neighbours_count,
     __global const rr_uint* neighbours,
     __global const rr_float* w,
 
@@ -17,10 +16,11 @@ __kernel void sum_density(
     smoothing_kernel(0.f, 0.f, &wjj, &dwdrjj);
     rr_float rho_temp = mass[j] * wjj;
 
-    rr_uint nc = neighbours_count[j];
-    for (rr_uint n = 0; n < nc; ++n) {
-        rr_uint i = neighbours[at(n, j)];
-
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != params_ntotal; // particle near
+        ++n)
+    {
         rho_temp += mass[i] * w[at(n, j)];
     }
 
@@ -30,7 +30,6 @@ __kernel void sum_density(
 __kernel void con_density(
     __global const rr_float* mass,
     __global const rr_float2* v,
-    __global const rr_uint* neighbours_count,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
     __global const rr_float* rho,
@@ -42,10 +41,11 @@ __kernel void con_density(
 
     rr_float drho_temp = 0;
 
-    rr_uint nc = neighbours_count[j];
-    for (rr_uint n = 0; n < nc; ++n) {
-        rr_uint i = neighbours[at(n, j)];
-
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != params_ntotal; // particle near
+        ++n) 
+    {
         rr_float2 dvx = v[i] - v[j];
         rr_float vcc = dot(dvx, dwdr[at(n, j)]);
         drho_temp += mass[i] * vcc;

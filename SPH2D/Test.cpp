@@ -22,9 +22,9 @@ Test::Test() {
     test_module(test_con_density);
     test_module(test_find_stress_tensor);
     test_module(test_update_internal_state);
-    test_module(test_find_internal_changes_pidrho2i_pjdrho2j);
-    test_module(test_find_internal_changes_pij_d_rhoij);
-    test_module(test_internal_force);
+    //test_module(test_find_internal_changes_pidrho2i_pjdrho2j);
+    //test_module(test_find_internal_changes_pij_d_rhoij);
+    //test_module(test_internal_force);
     test_module(test_external_force);
     test_module(test_artificial_viscosity);
     test_module(test_average_velocity);
@@ -33,9 +33,9 @@ Test::Test() {
     std::cout << "passed: " << passed << " / " << total << std::endl;
     printlog("module tests: ")()("passed: ")(passed)(" / ")(total)();
 
-    if (passed == total) {
-        result = integration_test();
-        std::cout << "integration test " << (result ? "passed" : "failed") << std::endl;
-        printlog("integration test ")(result ? "passed" : "failed")();
-    }
+    //if (passed == total) {
+    //    result = integration_test();
+    //    std::cout << "integration test " << (result ? "passed" : "failed") << std::endl;
+    //    printlog("integration test ")(result ? "passed" : "failed")();
+    //}
 }

@@ -26,7 +26,6 @@ namespace {
 	heap_array<rr_float, Params::maxn> drho;
 	heap_array<rr_float, Params::maxn> du;
 
-	heap_array<rr_uint, Params::maxn> neighbours_count; // size of subarray of neighbours
 	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
 	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
 	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
@@ -68,7 +67,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 		drho_, du_, a_,
 		rho_, u_, v_,
 		rho_predict_, u_predict_, v_predict_
-	).execute(ntotal, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(rho_predict_, rho_predict_cl.begin(), rho_predict_cl.end());
 	cl::copy(u_predict_, u_predict_cl.begin(), u_predict_cl.end());
@@ -144,7 +143,7 @@ void correct_step_gpu(const rr_uint ntotal,
 		itype_, drho_, du_, a_,
 		rho_predict_, u_predict_, v_predict_, av_,
 		rho_, u_, v_, r_
-	).execute(ntotal, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(rho_, rho_cl.begin(), rho_cl.end());
 	cl::copy(u_, u_cl.begin(), u_cl.end());
@@ -174,7 +173,7 @@ void make_waves_gpu(
 
 	kernel(
 		v_, r_, time
-	).execute(ntotal, Params::localThreads);
+	).execute(Params::maxn, Params::localThreads);
 
 	cl::copy(v_, v_cl.begin(), v_cl.end());
 	cl::copy(r_, r_cl.begin(), r_cl.end());

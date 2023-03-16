@@ -33,52 +33,51 @@ void single_step(
 	static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
 	static heap_array<rr_float, Params::maxn> avdudt, ahdudt;
 
-	static heap_array<rr_uint, Params::maxn> neighbours_count;
 	static heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours;
 	static heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w;
 	static heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr;
 
 	grid_find(ntotal,
 		r,
-		neighbours_count, neighbours, w, dwdr);
+		neighbours, w, dwdr);
 
 	if constexpr (Params::summation_density) {
 		sum_density(ntotal,
 			mass,
-			neighbours_count, neighbours, w,
+			neighbours, w,
 			rho);
 	}
 	else {
 		con_density(ntotal,
 			mass, v,
-			neighbours_count, neighbours, dwdr,
+			neighbours, dwdr,
 			rho,
 			drho);
 	}
 
 	int_force(ntotal, 
-		mass, r, v, rho, u, 
-		neighbours_count, neighbours, w, dwdr,
+		mass, r, v, rho,
+		neighbours, w, dwdr,
 		c, p, indvxdt, du);
 
 	if constexpr (Params::visc_artificial) {
 		artificial_viscosity(ntotal, 
 			mass, r, v, rho, c, 
-			neighbours_count, neighbours, dwdr, 
+			neighbours, dwdr, 
 			arvdvxdt, avdudt);
 	}
 
 	if constexpr (Params::ex_force) {
 		external_force(ntotal,
 			mass, r, 
-			neighbours_count, neighbours, itype, 
+			neighbours, itype, 
 			exdvxdt);
 	}
 
 	if constexpr (Params::heat_artificial) {
 		art_heat(ntotal, 
 			mass, r, v, rho, u, c, 
-			neighbours_count, neighbours, dwdr,
+			neighbours, dwdr,
 			ahdudt);
 	}
 
@@ -86,7 +85,7 @@ void single_step(
 	if constexpr (Params::average_velocity) {
 		average_velocity(nfluid,
 			mass, r, v, rho, 
-			neighbours_count, neighbours, w, 
+			neighbours, w, 
 			av);
 	}
 

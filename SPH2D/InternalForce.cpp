@@ -10,7 +10,6 @@ void find_stress_tensor(
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	heap_array<rr_float, Params::maxn>& vcc,
@@ -27,10 +26,11 @@ void find_stress_tensor(
 		txy(j) = 0.f;
 		tyy(j) = 0.f;
 
-		rr_uint nc = neighbours_count(j);
-		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
-			rr_uint i = neighbours(n, j); // particle near
-
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
 			rr_float dwdx = dwdr(n, j).x;
 			rr_float dwdy = dwdr(n, j).y;
 			rr_float2 dvx = v(j) - v(i);
@@ -59,8 +59,6 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,	// density
 	const heap_array<rr_float, Params::maxn>& eta,	// dynamic viscosity
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	const heap_array<rr_float, Params::maxn>& vcc,
@@ -81,10 +79,11 @@ void find_internal_changes_pij_d_rhoij(
 		a(j) = { 0.f };
 		dedt(j) = 0.f;
 
-		rr_uint nc = neighbours_count(j);
-		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
-			rr_uint i = neighbours(n, j); // particle near
-
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
 			rr_float2 h = -dwdr(n, j) * (p(i) + p(j));
 			rr_float rhoij = 1.f / (rho(i) * rho(j));
 			rr_float he = dot(h, v(j) - v(i));
@@ -112,8 +111,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_array<rr_float, Params::maxn>& mass,// particle masses
 	const heap_array<rr_float, Params::maxn>& rho,	// density
 	const heap_array<rr_float, Params::maxn>& eta,	// dynamic viscosity
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
 	const heap_array<rr_float, Params::maxn>& vcc,
@@ -134,10 +131,11 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 		a(j) = { 0.f };
 		dedt(j) = 0.f;
 
-		rr_uint nc = neighbours_count(j);
-		for (rr_iter n = 0; n < nc; ++n) { // run through index of neighbours 
-			rr_uint i = neighbours(n, j); // particle near
-
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
 			rr_float2 h = -dwdr(n, j) * (p(i) / sqr(rho(i)) + p(j) / sqr(rho(j)));
 			rr_float he = dot(h, v(j) - v(i));
 
@@ -162,7 +160,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 void update_internal_state(
 	const rr_uint ntotal,
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
 	const heap_array<rr_float, Params::maxn>& txx,
 	const heap_array<rr_float, Params::maxn>& txy,	
 	const heap_array<rr_float, Params::maxn>& tyy,	
@@ -181,7 +178,7 @@ void update_internal_state(
 		}
 
 		// pressure from equation of state 
-		p_art_water(rho(i), u(i), p(i), c(i));
+		p_art_water(rho(i), p(i), c(i));
 	}
 }
 
@@ -197,8 +194,6 @@ void int_force(
 	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
 	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
 	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-	const heap_array<rr_uint, Params::maxn>& neighbours_count, // size of subarray of neighbours
 	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
 	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
 	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
@@ -221,27 +216,27 @@ void int_force(
 	if constexpr (Params::visc) {
 		find_stress_tensor(ntotal,
 			v, mass, rho,
-			neighbours_count, neighbours, dwdr,
+			neighbours, dwdr,
 			vcc, txx, txy, tyy);
 	}
 
 	update_internal_state(ntotal,
-		rho, u,
+		rho,
 		txx, txy, tyy,
 		eta, tdsdt, c, p);
 
 	if constexpr (Params::pa_sph == 1) {
 		find_internal_changes_pij_d_rhoij(ntotal,
-			v, mass, rho, eta, u,
-			neighbours_count, neighbours, dwdr,
+			v, mass, rho, eta,
+			neighbours, dwdr,
 			vcc, txx, txy, tyy,
 			p, tdsdt,
 			a, dedt);
 	}
 	else {
 		find_internal_changes_pidrho2i_pjdrho2j(ntotal,
-			v, mass, rho, eta, u,
-			neighbours_count, neighbours, dwdr,
+			v, mass, rho, eta,
+			neighbours, dwdr,
 			vcc, txx, txy, tyy,
 			p, tdsdt,
 			a, dedt);
