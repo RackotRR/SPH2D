@@ -5,7 +5,7 @@
 #include "Params.h"
 #include "GridUtils.h"
 #include "Logger.h"
-#include "RR\Memory\RRHeapArray.h" 
+#include "RR\Memory\HeapArray.h" 
 
 using namespace RR::Memory;
 
