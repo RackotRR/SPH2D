@@ -17,7 +17,7 @@ static void ground(
 	rr_uint& nvirt,
 	heap_array<rr_float2, Params::maxn>& r);
 
-static constexpr rr_uint LAYERS_NUM = 2;
+static constexpr rr_uint LAYERS_NUM = 3;
 
 // determine the information of virtual particles
 // here only the Monaghan type virtual particles for the 2d shear
@@ -36,12 +36,10 @@ void virt_part(
 	printlog()(__func__)();
 	nvirt = 0;
 
-	Params::x_boundary_min = Params::x_fluid_min - Params::hsml;
-	Params::y_boundary_min = Params::y_fluid_min - Params::hsml;
-	Params::x_boundary_max = Params::x_fluid_max + Params::hsml;
+	Params::x_boundary_min = Params::x_fluid_min - 2 * Params::hsml;
+	Params::y_boundary_min = Params::y_fluid_min - 2 * Params::hsml;
+	Params::x_boundary_max = Params::x_fluid_max + 2 * Params::hsml;
 	Params::y_boundary_max = Params::y_maxgeom;
-	Params::boundary_delta = Params::delta;
-	printlog("boundary delta ")(Params::boundary_delta)();
 	printlog("boundary xmin ")(Params::x_boundary_min)();
 	printlog("boundary xmax ")(Params::x_boundary_max)();
 	printlog("boundary ymin ")(Params::y_boundary_min)();

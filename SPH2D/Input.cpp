@@ -28,8 +28,10 @@ void initConsts() {
 
 	Params::delta = delta;
 	Params::hsml = delta * 1.5f;
+	Params::boundary_delta = delta * 2;
 	printlog("dx=dy=delta: ")(Params::delta)();
 	printlog("hsml: ")(Params::hsml)();
+	printlog("boundary delta: ")(Params::boundary_delta)();
 
 	Params::fluid_particles_per_d = particlesPer_d;
 	Params::x_fluid_particles = fluid_particles_x;
@@ -69,7 +71,7 @@ void initConsts() {
 	printlog("eos_csqr_k: ")(Params::eos_csqr_k)();
 	printlog("average_velocity_epsilon: ")(Params::average_velocity_epsilon)();
 
-	Params::save_step = 5000;
+	Params::save_step = 2500;
 	Params::normal_check_step = Params::save_step;
 	Params::simulation_time = 2.f;
 	Params::dt = 1.e-5f;
