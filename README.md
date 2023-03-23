@@ -6,7 +6,7 @@ Implementation for 2D SPH simulation of water
 Two-dimensional water simulation with smoothed particle hydrodynamics (SPH) method. This code is based on fortran code from ["Liu G.R., Liu M.B. - Smoothed Particle Hydrodynamics A Meshfree Particle Method 2003" book](https://www.worldscientific.com/worldscibooks/10.1142/5340).
 
 ### General
-Here are two versions of the program: based on **OpenMP** (I'll call it SPH2D_OMP) and based on **OpenCL** (SPH2D_OCL). Currently you can choose version in *SPH.cpp* (there'll be several projects to do so soon).
+Here are two versions of the program: based on **OpenMP** (SPH2D_OMP) and based on **OpenCL** (SPH2D_CL). 
 Generally they are the same except NNPS (nearest neighbour particle search) modules:
 - SPH2D_OMP uses counting sort here;
 - SPH2D_OCL uses bitonic sort (so here the maximum number of particles should be a power of 2) and binary search.
@@ -20,10 +20,11 @@ All the input is in `Input.cpp` and `Params.h` files. I'm going to add option to
 
 ### Using
 You can use this project however you want. I hope it just can be helpful or just interesting to see.
-Currently I'm using Visual Studio solution and project system. Cross platform Cmake version is coming soon.
 
-Additional dependencies: **OpenCL** and **nlohmann-json** and some my common headers like **RRTime.h**.
-When compilation is done you have to provide executable file with **cl** directory so it'll be able to find opencl programs.
+Project requires C++20 and format library, so it can be compiled by clang or msvc.
+Here are two executables: SPH2D_OMP and SPH2D_CL. Installation of SPH2D_CL also copies its OpenCL code to destination folder.
+
+Catch2 library used as testing service for CTest.
 
 ### Output
 - If something goes wrong, there's log. It contains all experiment params, device info and experiment flow.
