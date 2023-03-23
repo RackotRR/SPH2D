@@ -2,9 +2,9 @@
 #include <iostream>
 #include "CommonIncl.h"
 
-struct Test {
-    static constexpr rr_float float_epsilon = 0.00001f;
-    static bool relativeToleranceCompare(rr_float a, rr_float b) {
+namespace Test {
+    constexpr rr_float float_epsilon = 0.00001f;
+    inline bool relativeToleranceCompare(rr_float a, rr_float b) {
         auto maxAB = std::max(fabs(a), fabs(b));
         if (maxAB > 1) {
             return std::fabs(a - b) <= float_epsilon * maxAB;
@@ -14,15 +14,15 @@ struct Test {
         }
     }
     template<typename T>
-    static bool equals(T a, T b) {
+    bool equals(T a, T b) {
         return a == b;
     }
     template<>
-    static bool equals(rr_float a, rr_float b) {
+    inline bool equals(rr_float a, rr_float b) {
         return relativeToleranceCompare(a, b);
     }
     template<>
-    static bool equals(rr_float2 a, rr_float2 b) {
+    inline bool equals(rr_float2 a, rr_float2 b) {
         bool x = equals(a.x, b.x);
         bool y = equals(a.y, b.y);
         rr_float max_a = std::max(fabs(a.x), fabs(a.y));
@@ -30,10 +30,34 @@ struct Test {
         return x && y;// || equals(max_a, max_b);
     }
 
-    
-    static constexpr bool SHOW_ALL_DIFFERENCE = true;
+
+    constexpr bool SHOW_ALL_DIFFERENCE = true;
+    template<typename T>
+    void showDifference(const T& value1, const T& value2) {
+        std::cout << value1 << " : " << value2 << std::endl;
+    }
+    template<>
+    inline void showDifference(const rr_float2& value1, const rr_float2& value2) {
+        std::cout << "(" << value1.x << "; " << value1.y << ")" <<
+            " : (" << value2.x << "; " << value2.y << ")" << std::endl;
+    }
+
+    inline void showErrors(const char* name, rr_uint err_count) {
+        if constexpr (SHOW_ALL_DIFFERENCE) {
+            if (err_count) {
+                std::cout << name << ": err_count = " << err_count << std::endl;
+            }
+        }
+    }
+    inline void showWhere(const char* name, size_t idx) {
+        std::cout << name << " " << idx << ") ";
+    }
+    inline void showWhere(const char* name, size_t n, size_t j) {
+        std::cout << name << " " << n << " " << j << ") ";
+    }
+
     template<typename T, size_t size>
-    static rr_uint difference(const char* name, const heap_array<T, size>& A, const heap_array<T, size>& B, size_t ntotal ) {
+    rr_uint difference(const char* name, const heap_array<T, size>& A, const heap_array<T, size>& B, size_t ntotal ) {
         rr_uint err_count = 0;
         for (size_t j = 0; j < ntotal; ++j) {
             auto& a = A(j);
@@ -50,7 +74,7 @@ struct Test {
         return err_count;
     }
     template<typename T, size_t dim, size_t size>
-    static rr_uint difference(const char* name, const heap_array_md<T, dim, size>& A, const heap_array_md<T, dim, size>& B,
+    rr_uint difference(const char* name, const heap_array_md<T, dim, size>& A, const heap_array_md<T, dim, size>& B,
         size_t ntotal, const heap_array<rr_uint, size>& neighbours_count)
     {
         rr_uint err_count = 0;
@@ -68,29 +92,5 @@ struct Test {
         }
         showErrors(name, err_count);
         return err_count;
-    }
-    template<typename T>
-    static void showDifference(const T& value1, const T& value2) {
-        std::cout << value1 << " : " << value2 << std::endl;
-    }
-    template<>
-    static void showDifference(const rr_float2& value1, const rr_float2& value2) {
-        std::cout << "(" << value1.x << "; " << value1.y << ")" <<
-            " : (" << value2.x << "; " << value2.y << ")" << std::endl;
-    }
-
-private:
-    static void showErrors(const char* name, rr_uint err_count) {
-        if constexpr (SHOW_ALL_DIFFERENCE) {
-            if (err_count) {
-                std::cout << name << ": err_count = " << err_count << std::endl;
-            }
-        }
-    }
-    static void showWhere(const char* name, size_t idx) {
-        std::cout << name << " " << idx << ") ";
-    }
-    static void showWhere(const char* name, size_t n, size_t j) {
-        std::cout << name << " " << n << " " << j << ") ";
     }
 };

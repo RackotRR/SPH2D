@@ -75,7 +75,8 @@ inline void init_logger() {
 }
 #else
 struct DontPrintLog {
-	DontPrintLog& operator()(...) { return *this; }
+	template<typename ...Args>
+	DontPrintLog& operator()(Args&&...) { return *this; }
 };
 
 #define init_logger(...)

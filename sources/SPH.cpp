@@ -32,18 +32,6 @@ void sph() {
 #endif // SPH2D_OMP
 }
 
-//void testing() {
-//	try {
-//		Params::experimentName = "test";
-//		setupOutput();
-//		initConsts();
-//		Test{};
-//	}
-//	catch (const std::exception& ex) {
-//		std::cerr << "error at " << ex.what() << std::endl;
-//	}
-//}
-
 void simulation() {
 	std::cout << "Experiment name: ";
 	std::getline(std::cin, Params::experimentName);

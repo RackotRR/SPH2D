@@ -10,23 +10,23 @@ set(SPH2D_COMMON_SOURCES
 )
 
 set(SPH2D_OMP_SOURCES
-    sources/ArtificialHeat.cpp
-    sources/ArtificialViscosity.cpp
-    sources/AverageVelocity.cpp
-    sources/Density.cpp
-    sources/EOS.cpp
-    sources/ExternalForce.cpp
-    sources/GridFind.cpp
-    sources/InternalForce.cpp
-    sources/Kernel.cpp
-    sources/SingleStep.cpp
-    sources/TimeIntegration.cpp
-    sources/WaveMaker.cpp
+    sources/SPH2D_OMP/ArtificialHeat.cpp
+    sources/SPH2D_OMP/ArtificialViscosity.cpp
+    sources/SPH2D_OMP/AverageVelocity.cpp
+    sources/SPH2D_OMP/Density.cpp
+    sources/SPH2D_OMP/EOS.cpp
+    sources/SPH2D_OMP/ExternalForce.cpp
+    sources/SPH2D_OMP/GridFind.cpp
+    sources/SPH2D_OMP/InternalForce.cpp
+    sources/SPH2D_OMP/Kernel.cpp
+    sources/SPH2D_OMP/SingleStep.cpp
+    sources/SPH2D_OMP/TimeIntegration.cpp
+    sources/SPH2D_OMP/WaveMaker.cpp
 )
 
 set(SPH2D_CL_SOURCES
-    sources/CLCommon.cpp
-    sources/CLTimeIntegration.cpp
+    sources/SPH2D_CL/CLCommon.cpp
+    sources/SPH2D_CL/CLTimeIntegration.cpp
 )
 
 set(CMAKE_CXX_STANDARD 20)
@@ -93,7 +93,7 @@ add_custom_command(TARGET SPH2D_CL POST_BUILD
                     make_directory $<TARGET_FILE_DIR:SPH2D_CL>/cl)
 add_custom_command(TARGET SPH2D_CL POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E 
-                    copy_directory ${CMAKE_SOURCE_DIR}/cl/ $<TARGET_FILE_DIR:SPH2D_CL>/cl)
+                    copy_directory ${CMAKE_SOURCE_DIR}/sources/SPH2D_CL/cl/ $<TARGET_FILE_DIR:SPH2D_CL>/cl)
 add_custom_command(TARGET SPH2D_CL POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E
                     copy ${CMAKE_SOURCE_DIR}/include/GridUtils.h $<TARGET_FILE_DIR:SPH2D_CL>/cl/GridUtils.h)
@@ -102,7 +102,7 @@ add_custom_command(TARGET SPH2D_CL POST_BUILD
 
 # install copies
 install(TARGETS SPH2D_CL DESTINATION SPH2D)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/cl DESTINATION SPH2D)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/sources/SPH2D_CL/cl DESTINATION SPH2D)
 install(FILES ${PROJECT_SOURCE_DIR}/include/GridUtils.h DESTINATION SPH2D/cl)
                    
 # tests
