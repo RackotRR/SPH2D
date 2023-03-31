@@ -29,7 +29,7 @@ Catch2 library used as testing service for CTest.
 ### Output
 - If something goes wrong, there's log. It contains all experiment params, device info and experiment flow.
 - Experiments take a lot of time, so program provides time estimate every `Params::print_time_est_step` steps based on previous iterations.
-- Every `Params::save_step` steps program dumps all particles state into a file (in separate thread) with format string, so you can read it later.
+- Every `params.save_step` steps program dumps all particles state into a file (in separate thread) with format string, so you can read it later.
 - To find out all the parameters used to perform experiment program also dumps generated `clparams.h` file, copy of that is used in calculations by SPH2D_OCL.
 
 In order to visualize output data I'm working on [SPH2D_Drawer](https://github.com/RackotRR/SPH2D_Drawer). You just have to provide it with path to experiment directory.

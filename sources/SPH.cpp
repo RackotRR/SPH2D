@@ -1,6 +1,7 @@
 #ifdef SPH2D_OMP
 #include "TimeIntegration.h" 
 #else
+#include "CLCommon.h"
 #include "CLAdapter.h"
 #endif // !SPH2D_OMP
 
@@ -10,52 +11,49 @@
 
 #include "CommonIncl.h"
 #include "Input.h"
-#include "Output.h"
 
-void sph() {  
+void simulation() {
 	rr_uint ntotal; // number of particles 
 	rr_uint nfluid; 
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> rho; // density
-	heap_array<rr_float, Params::maxn> p;	// pressure
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
-	heap_array<rr_float, Params::maxn> c;	// sound velocity 
+	heap_darray<rr_float> mass(0); // particle masses
+	heap_darray<rr_int> itype(0); // material type of particles
+	heap_darray<rr_float2> r(0); // coordinates of all particles
+	heap_darray<rr_float2> v(0); // velocities of all particles
+	heap_darray<rr_float> rho(0); // density
+	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_float> u(0); // specific internal energy
+	heap_darray<rr_float> c(0); // sound velocity 
 
-	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+	repl(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
+
+#ifndef SPH2D_OMP
+	logCLInfo();
+#endif // !SPH2D_OMP
+
+	printlog("Experiment: ")(params.experiment_name)();
+
+	RR::Timer timer;
+	timer.start();
 #ifdef SPH2D_OMP
 	time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 #else
 	cl_time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 #endif // SPH2D_OMP
+	timer.finish();
+
+	std::cout << "total time in minutes: " << timer.value<std::chrono::minutes>() << std::endl;
 }
 
-void simulation() {
-	std::cout << "Experiment name: ";
-	std::getline(std::cin, Params::experimentName);
-	setupOutput();
-
-	printlog("Experiment: ")(Params::experimentName)();
-
+int main(int arc, const char* argv[]) {
 	try {
-		RR::Timer timer;
-
-		timer.start();
-		sph();
-		timer.finish();
-
-		std::cout << "total time in minutes: " << timer.value<std::chrono::minutes>() << std::endl;
+		simulation();
 	}
 	catch (const std::exception& ex) {
 		printlog("catch exception: ")(ex.what())();
 	}
 
+#ifdef _WIN32
 	system("pause");
-}
-
-int main(int arc, const char* argv[]) {
-	simulation();
+#endif // _WIN32
 	return 0;
 }

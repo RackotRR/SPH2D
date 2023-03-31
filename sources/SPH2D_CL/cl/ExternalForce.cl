@@ -14,16 +14,12 @@ __kernel void external_force(
 	rr_float2 a_temp;
 
 	a_temp.x = 0.f;
-#ifdef params_self_gravity
 	a_temp.y = -params_g;
-#else
-	a_temp.y = 0.f;
-#endif
 
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
 #define ext_force_rr0 params_hsml
-#define ext_force_D (5.f * params_g * params_d)
+#define ext_force_D (5.f * params_g * params_depth)
 #define ext_force_p1 12
 #define ext_force_p2 4
 

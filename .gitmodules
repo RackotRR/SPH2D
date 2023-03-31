@@ -1,0 +1,7 @@
+[submodule "3d_party/fmt"]
+	path = 3d_party/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "tools/SPH2D_Drawer"]
+	path = tools/SPH2D_Drawer
+	url = https://github.com/RackotRR/SPH2D_Drawer
+	branch = cmake

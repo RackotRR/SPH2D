@@ -83,7 +83,7 @@ __kernel void update_boundaries(
 	if (time < params_generator_time_wait) return;
 
 #define generator_phase (-params_freq * params_generator_time_wait)
-	rr_float v_x = params_A * params_freq * cos(params_freq * time + generator_phase);
+	rr_float v_x = params_piston_amp * params_freq * cos(params_freq * time + generator_phase);
 
 	r[i].x = r[i].x + v_x * params_dt;
 	v[i].x = v_x;

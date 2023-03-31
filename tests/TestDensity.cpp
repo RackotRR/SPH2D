@@ -8,10 +8,10 @@
 
 #pragma region SUM_DENSITY
 void sum_density_gpu(const rr_uint ntotal,
-	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
-	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
-	heap_array<rr_float, Params::maxn>& rho) // out, density
+	const heap_darray<rr_float>& mass,// particle masses
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	const heap_darray_md<rr_float>& w, // precomputed kernel
+	heap_darray<rr_float>& rho) // out, density
 {
 	printlog_debug(__func__)();
 
@@ -28,7 +28,7 @@ void sum_density_gpu(const rr_uint ntotal,
 		neighbours_, 
 		w_,
 		rho_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(rho_, rho.begin(), rho.end());
 }
@@ -38,19 +38,19 @@ TEST_CASE("Test density summation") {
 
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> rho; // density
-	heap_array<rr_float, Params::maxn> p;	// pressure
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
-	heap_array<rr_float, Params::maxn> c;	// sound velocity 
-	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+	heap_darray<rr_float> mass(0); // particle masses
+	heap_darray<rr_int> itype(0); // material type of particles
+	heap_darray<rr_float2> r(0); // coordinates of all particles
+	heap_darray<rr_float2> v(0); // velocities of all particles
+	heap_darray<rr_float> rho(0); // density
+	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_float> u(0); // specific internal energy
+	heap_darray<rr_float> c(0); // sound velocity 
+	input(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 
-	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
-	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
-	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
+	heap_darray_md<rr_uint> neighbours(0, 0); // neighbours indices
+	heap_darray_md<rr_float> w(0, 0); // precomputed kernel
+	heap_darray_md<rr_float2> dwdr(0, 0); // precomputed kernel derivative
 	grid_find(ntotal, r, neighbours, w, dwdr);
 
 	sum_density(ntotal,
@@ -59,7 +59,7 @@ TEST_CASE("Test density summation") {
 		w,
 		rho);
 
-	heap_array<rr_float, Params::maxn> rho_cl;
+	heap_darray<rr_float> rho_cl(params.maxn);
 	sum_density_gpu(ntotal,
 		mass,
 		neighbours,
@@ -73,12 +73,12 @@ TEST_CASE("Test density summation") {
 #pragma region CON_DENSITY
 void con_density_gpu(
 	const rr_uint ntotal,
-	const heap_array<rr_float, Params::maxn>& mass,
-	const heap_array<rr_float2, Params::maxn>& v,
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours,
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, 
-	const heap_array<rr_float, Params::maxn>& rho,
-	heap_array<rr_float, Params::maxn>& drhodt_cl) 
+	const heap_darray<rr_float>& mass,
+	const heap_darray<rr_float2>& v,
+	const heap_darray_md<rr_uint>& neighbours,
+	const heap_darray_md<rr_float2>& dwdr, 
+	const heap_darray<rr_float>& rho,
+	heap_darray<rr_float>& drhodt_cl) 
 {
 	printlog_debug(__func__)();
 
@@ -97,7 +97,7 @@ void con_density_gpu(
 		neighbours_, dwdr_,
 		rho_,
 		drhodt_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(drhodt_, drhodt_cl.begin(), drhodt_cl.end());
 }
@@ -107,29 +107,29 @@ TEST_CASE("Test continuity equation") {
 
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> rho; // density
-	heap_array<rr_float, Params::maxn> p;	// pressure
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
-	heap_array<rr_float, Params::maxn> c;	// sound velocity 
-	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+	heap_darray<rr_float> mass(0); // particle masses
+	heap_darray<rr_int> itype(0); // material type of particles
+	heap_darray<rr_float2> r(0); // coordinates of all particles
+	heap_darray<rr_float2> v(0); // velocities of all particles
+	heap_darray<rr_float> rho(0); // density
+	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_float> u(0); // specific internal energy
+	heap_darray<rr_float> c(0); // sound velocity 
+	input(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 
-	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
-	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
-	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
+	heap_darray_md<rr_uint> neighbours(0, 0); // neighbours indices
+	heap_darray_md<rr_float> w(0, 0); // precomputed kernel
+	heap_darray_md<rr_float2> dwdr(0, 0); // precomputed kernel derivative
 	grid_find(ntotal, r, neighbours, w, dwdr);
 
-	heap_array<rr_float, Params::maxn> drhodt;
+	heap_darray<rr_float> drhodt(params.maxn);
 	con_density(ntotal, 
 		mass, v, 
 		neighbours, dwdr, 
 		rho, 
 		drhodt);
 
-	heap_array<rr_float, Params::maxn> drhodt_cl;
+	heap_darray<rr_float> drhodt_cl(params.maxn);
 	con_density_gpu(ntotal, 
 		mass, v, 
 		neighbours, dwdr, 

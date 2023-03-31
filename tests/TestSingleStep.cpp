@@ -10,13 +10,13 @@
 #include "SingleStep.h"
 
 void update_change_rate_gpu(rr_uint nfluid,
-	const heap_array<rr_float2, Params::maxn>& indvxdt_cl,
-	const heap_array<rr_float2, Params::maxn>& exdvxdt_cl,
-	const heap_array<rr_float2, Params::maxn>& arvdvxdt_cl,
-	const heap_array<rr_float, Params::maxn>& arvdudt_cl,
-	const heap_array<rr_float, Params::maxn>& ahdudt_cl,
-	heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& dudt_cl)
+	const heap_darray<rr_float2>& indvxdt_cl,
+	const heap_darray<rr_float2>& exdvxdt_cl,
+	const heap_darray<rr_float2>& arvdvxdt_cl,
+	const heap_darray<rr_float>& arvdudt_cl,
+	const heap_darray<rr_float>& ahdudt_cl,
+	heap_darray<rr_float2>& a_cl,
+	heap_darray<rr_float>& dudt_cl)
 {
 	printlog_debug(__func__)();
 
@@ -37,7 +37,7 @@ void update_change_rate_gpu(rr_uint nfluid,
 		arvdvxdt_,
 		dudt_,
 		a_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dudt_, dudt_cl.begin(), dudt_cl.end());

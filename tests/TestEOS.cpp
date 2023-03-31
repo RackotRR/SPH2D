@@ -3,6 +3,7 @@
 #include "CLCommon.h"
 #include "Test.h"
 #include "EOS.h"
+#include "Output.h"
 #include "Input.h"
 
 static auto cpu_eos(rr_float rho) {
@@ -42,7 +43,8 @@ static auto gpu_eos(rr_float rho) {
 TEST_CASE("Test eos") {
     printlog(__func__)();
 
-    makeParamsHeader(0, 0, 0);
+    loadDefaultParams();
+    params.makeHeader("cl/clparams.h");
 
     rr_float rho = 1111.f;
 

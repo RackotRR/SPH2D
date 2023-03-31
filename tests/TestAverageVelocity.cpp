@@ -13,31 +13,31 @@
 namespace {
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> rho; // density
-	heap_array<rr_float, Params::maxn> p;	// pressure
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
-	heap_array<rr_float, Params::maxn> c;	// sound velocity 
+	heap_darray<rr_float> mass(0); // particle masses
+	heap_darray<rr_int> itype(0); // material type of particles
+	heap_darray<rr_float2> r(0); // coordinates of all particles
+	heap_darray<rr_float2> v(0); // velocities of all particles
+	heap_darray<rr_float> rho(0); // density
+	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_float> u(0); // specific internal energy
+	heap_darray<rr_float> c(0); // sound velocity 
 
-	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
-	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
-	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
+	heap_darray_md<rr_uint> neighbours(0, 0); // neighbours indices
+	heap_darray_md<rr_float> w(0, 0); // precomputed kernel
+	heap_darray_md<rr_float2> dwdr(0, 0); // precomputed kernel derivative
 
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> dedt;
+	heap_darray<rr_float2> a(0);
+	heap_darray<rr_float> dedt(0);
 
 	void init_once() {
 		static bool once = false;
 		if (once) return;
 		once = true;
 
-		input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+		input(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 
-		heap_array<rr_uint, Params::maxn> grid;
-		heap_array<rr_uint, Params::max_cells> cells_start_in_grid;
+		heap_darray<rr_uint> grid(params.maxn);
+		heap_darray<rr_uint> cells_start_in_grid(params.max_cells);
 
 		make_grid(ntotal,
 			r,
@@ -71,13 +71,13 @@ namespace {
 }
 
 void average_velocity_gpu(rr_uint ntotal,
-	const heap_array<rr_float, Params::maxn>& mass_cl,
-	const heap_array<rr_float2, Params::maxn>& r_cl,
-	const heap_array<rr_float2, Params::maxn>& v_cl,
-	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
-	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w_cl,
-	heap_array<rr_float2, Params::maxn>& av_cl) 
+	const heap_darray<rr_float>& mass_cl,
+	const heap_darray<rr_float2>& r_cl,
+	const heap_darray<rr_float2>& v_cl,
+	const heap_darray<rr_float>& rho_cl,
+	const heap_darray_md<rr_uint>& neighbours_cl,
+	const heap_darray_md<rr_float>& w_cl,
+	heap_darray<rr_float2>& av_cl) 
 {
 	printlog_debug(__func__)();
 
@@ -90,7 +90,7 @@ void average_velocity_gpu(rr_uint ntotal,
 	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
 	auto w_ = makeBufferCopyHost(CL_MEM_READ_ONLY, w_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto av_ = makeBuffer<rr_float2>(CL_MEM_WRITE_ONLY, elements);
 
 	kernel(
@@ -98,7 +98,7 @@ void average_velocity_gpu(rr_uint ntotal,
 		mass_, rho_,
 		neighbours_, w_,
 		av_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(av_, av_cl.begin(), av_cl.end());
 }
@@ -108,8 +108,8 @@ TEST_CASE("Average Velocity") {
 
 	init_once();
 
-	heap_array<rr_float2, Params::maxn> av;
-	heap_array<rr_float2, Params::maxn> av_cl;
+	heap_darray<rr_float2> av(params.maxn);
+	heap_darray<rr_float2> av_cl(params.maxn);
 
 	average_velocity(ntotal,
 		mass, r, v, rho,

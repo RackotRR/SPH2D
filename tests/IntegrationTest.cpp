@@ -23,25 +23,33 @@ namespace integration_test {
     static void single_step(
         const rr_uint nfluid, // number of fluid particles
         const rr_uint ntotal, // number of particles 
-        const heap_array<rr_float, Params::maxn>& mass,// particle masses
-        const heap_array<rr_int, Params::maxn>& itype,	// material type of particles
-        const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
-        const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-        const heap_array<rr_float, Params::maxn>& u,	// specific internal energy 
-        heap_array<rr_float, Params::maxn>& rho,	// out, density
-        heap_array<rr_float, Params::maxn>& p,	// out, pressure 
-        heap_array<rr_float, Params::maxn>& c,	// out, sound velocity
-        heap_array<rr_float2, Params::maxn>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
-        heap_array<rr_float, Params::maxn>& du,	// out, du = d(u)/dt
-        heap_array<rr_float, Params::maxn>& drho,	// out, drho = d(rho)/dt
-        heap_array<rr_float2, Params::maxn>& av) // out, Monaghan average velocity
+        const heap_darray<rr_float>& mass,// particle masses
+        const heap_darray<rr_int>& itype,	// material type of particles
+        const heap_darray<rr_float2>& r,	// coordinates of all particles
+        const heap_darray<rr_float2>& v,	// velocities of all particles
+        const heap_darray<rr_float>& u,	// specific internal energy 
+        heap_darray<rr_float>& rho,	// out, density
+        heap_darray<rr_float>& p,	// out, pressure 
+        heap_darray<rr_float>& c,	// out, sound velocity
+        heap_darray<rr_float2>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
+        heap_darray<rr_float>& du,	// out, du = d(u)/dt
+        heap_darray<rr_float>& drho,	// out, drho = d(rho)/dt
+        heap_darray<rr_float2>& av) // out, Monaghan average velocity
     {
-        static heap_array<rr_float2, Params::maxn> indvxdt, exdvxdt, arvdvxdt, nwmdvxdt;
-        static heap_array<rr_float, Params::maxn> avdudt, ahdudt;
+        static heap_darray<rr_float2> indvxdt(params.maxn);
+        static heap_darray<rr_float2> exdvxdt(params.maxn);
+        static heap_darray<rr_float2> arvdvxdt(params.maxn);
+        static heap_darray<rr_float2> nwmdvxdt(params.maxn);
 
-        static heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours, neighbours_cl;
-        static heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w, w_cl;
-        static heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr, dwdr_cl;
+        static heap_darray<rr_float> avdudt(params.maxn);
+        static heap_darray<rr_float> ahdudt(params.maxn);
+
+        static heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn);
+        static heap_darray_md<rr_uint> neighbours_cl(params.max_neighbours, params.maxn);
+        static heap_darray_md<rr_float> w(params.max_neighbours, params.maxn);
+        static heap_darray_md<rr_float> w_cl(params.max_neighbours, params.maxn);
+        static heap_darray_md<rr_float2> dwdr(params.max_neighbours, params.maxn);
+        static heap_darray_md<rr_float2> dwdr_cl(params.max_neighbours, params.maxn);
 
         grid_find(ntotal,
             r,
@@ -58,7 +66,7 @@ namespace integration_test {
         //failed_test += Test::difference("grid_find: w", w, w_cl, ntotal, neighbours_count);
         //failed_test += Test::difference("grid_find: dwdr", dwdr, dwdr_cl, ntotal, neighbours_count);
 
-        if constexpr (Params::summation_density) {
+        if (params.summation_density) {
             auto rho_cl = rho.copy();
             sum_density(ntotal,
                 mass,
@@ -102,42 +110,38 @@ namespace integration_test {
         failed_test += Test::difference("int_force: indvxdt", indvxdt, indvxdt_cl, ntotal);
         failed_test += Test::difference("int_force: du", du, du_cl, ntotal);
 
-        if constexpr (Params::visc_artificial) {
-            auto arvdvxdt_cl = arvdvxdt.copy();
-            auto arvdudt_cl = avdudt.copy();
-            artificial_viscosity(ntotal,
-                mass, r, v, rho, c,
-                neighbours, dwdr,
-                arvdvxdt, avdudt);
-            artificial_viscosity_gpu(ntotal,
-                mass, r, v, rho, c,
-                neighbours, dwdr,
-                arvdvxdt_cl, arvdudt_cl);
-            failed_test += Test::difference("art_visc: arvdvxdt", arvdvxdt, arvdvxdt_cl, ntotal);
-            failed_test += Test::difference("art_visc: arvdudt", avdudt, arvdudt_cl, ntotal);
-        }
+        auto arvdvxdt_cl = arvdvxdt.copy();
+        auto arvdudt_cl = avdudt.copy();
+        artificial_viscosity(ntotal,
+            mass, r, v, rho, c,
+            neighbours, dwdr,
+            arvdvxdt, avdudt);
+        artificial_viscosity_gpu(ntotal,
+            mass, r, v, rho, c,
+            neighbours, dwdr,
+            arvdvxdt_cl, arvdudt_cl);
+        failed_test += Test::difference("art_visc: arvdvxdt", arvdvxdt, arvdvxdt_cl, ntotal);
+        failed_test += Test::difference("art_visc: arvdudt", avdudt, arvdudt_cl, ntotal);
 
-        if constexpr (Params::ex_force) {
-            auto exdvxdt_cl = exdvxdt.copy();
-            external_force(ntotal,
-                mass, r,
-                neighbours, itype,
-                exdvxdt);
-            external_force_gpu(ntotal,
-                mass, r,
-                neighbours, itype,
-                exdvxdt_cl);
-            failed_test += Test::difference("external_force: exdvxdt", exdvxdt, exdvxdt_cl, ntotal);
-        }
+        auto exdvxdt_cl = exdvxdt.copy();
+        external_force(ntotal,
+            mass, r,
+            neighbours, itype,
+            exdvxdt);
+        external_force_gpu(ntotal,
+            mass, r,
+            neighbours, itype,
+            exdvxdt_cl);
+        failed_test += Test::difference("external_force: exdvxdt", exdvxdt, exdvxdt_cl, ntotal);
 
-        if constexpr (Params::heat_artificial) {
+        if (params.heat_artificial) {
             art_heat(ntotal,
                 mass, r, v, rho, u, c,
                 neighbours, dwdr,
                 ahdudt);
         }
 
-        if constexpr (Params::average_velocity) {
+        if (params.average_velocity) {
             auto av_cl = av.copy();
             average_velocity(nfluid,
                 mass, r, v, rho,
@@ -163,31 +167,37 @@ namespace integration_test {
         failed_test += Test::difference("update_change_rate: a", a, a_cl, ntotal);
         failed_test += Test::difference("update_change_rate: du", du, du_cl, ntotal);
     }
+
     static void time_integration(
-        heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles
-        heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-        heap_array<rr_float, Params::maxn>& mass,// particle masses
-        heap_array<rr_float, Params::maxn>& rho,	// out, density
-        heap_array<rr_float, Params::maxn>& p,	// out, pressure
-        heap_array<rr_float, Params::maxn>& u,	// specific internal energy
-        heap_array<rr_float, Params::maxn>& c,	// sound velocity 
-        heap_array<rr_int, Params::maxn>& itype, // material type: >0: material, <0: virtual
+        heap_darray<rr_float2>& r,	// coordinates of all particles
+        heap_darray<rr_float2>& v,	// velocities of all particles
+        heap_darray<rr_float>& mass,// particle masses
+        heap_darray<rr_float>& rho,	// out, density
+        heap_darray<rr_float>& p,	// out, pressure
+        heap_darray<rr_float>& u,	// specific internal energy
+        heap_darray<rr_float>& c,	// sound velocity 
+        heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
         const rr_uint ntotal, // total particle number at t = 0
         const rr_uint nfluid)  // fluid particles 
     {
-        heap_array<rr_float, Params::maxn> u_predict, rho_predict, du, drho;
-        heap_array<rr_float, Params::maxn>* rho_predicted;
-        if constexpr (Params::summation_density) {
+        heap_darray<rr_float> u_predict(params.maxn);
+        heap_darray<rr_float> rho_predict(params.maxn);
+        heap_darray<rr_float> du(params.maxn);
+        heap_darray<rr_float> drho(params.maxn);
+        heap_darray<rr_float>* rho_predicted;
+        if (params.summation_density) {
             rho_predicted = &rho;
         }
         else {
             rho_predicted = &rho_predict;
         }
-        heap_array<rr_float2, Params::maxn> v_predict, a, av;
+        heap_darray<rr_float2> v_predict(params.maxn);
+        heap_darray<rr_float2> a(params.maxn);
+        heap_darray<rr_float2> av(params.maxn);
 
         rr_float time = 0;
-        for (rr_uint itimestep = 0; itimestep <= Params::maxtimestep; itimestep++) {
-            time = itimestep * Params::dt;
+        for (rr_uint itimestep = 0; itimestep <= params.maxtimestep; itimestep++) {
+            time = itimestep * params.dt;
 
             auto rho_predicted_cl = rho_predicted->copy();
             auto u_predict_cl = u_predict.copy();
@@ -231,7 +241,7 @@ namespace integration_test {
             failed_test += Test::difference("correct_step: r", r, r_cl, ntotal);
 
 
-            if constexpr (Params::nwm) {
+            if (params.nwm) {
                 auto r_cl = r.copy();
                 auto v_cl = v.copy();
                 auto a_cl = a.copy();
@@ -242,7 +252,7 @@ namespace integration_test {
                 failed_test += Test::difference("make_waves: a", a, a_cl, ntotal);
             }
 
-            time += Params::dt;
+            time += params.dt;
         }
     }
 }
@@ -252,15 +262,15 @@ TEST_CASE("Integration test", "[integration test]") {
 
     rr_uint ntotal; // number of particles
     rr_uint nfluid;
-    heap_array<rr_float, Params::maxn> mass; // particle masses
-    heap_array<rr_int, Params::maxn> itype;// material type of particles
-    heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-    heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-    heap_array<rr_float, Params::maxn> rho; // density
-    heap_array<rr_float, Params::maxn> p;	// pressure
-    heap_array<rr_float, Params::maxn> u;	// specific internal energy
-    heap_array<rr_float, Params::maxn> c;	// sound velocity 
-    input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+    heap_darray<rr_float> mass(0); // particle masses
+    heap_darray<rr_int> itype(0); // material type of particles
+    heap_darray<rr_float2> r(0); // coordinates of all particles
+    heap_darray<rr_float2> v(0); // velocities of all particles
+    heap_darray<rr_float> rho(0); // density
+    heap_darray<rr_float> p(0); // pressure
+    heap_darray<rr_float> u(0); // specific internal energy
+    heap_darray<rr_float> c(0); // sound velocity 
+    input(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 
     integration_test::failed_test = 0;
     integration_test::time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);

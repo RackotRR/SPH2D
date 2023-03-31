@@ -11,26 +11,26 @@
 namespace {
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> rho; // density
-	heap_array<rr_float, Params::maxn> p;	// pressure
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
-	heap_array<rr_float, Params::maxn> c;	// sound velocity 
+	heap_darray<rr_float> mass(0); // particle masses
+	heap_darray<rr_int> itype(0); // material type of particles
+	heap_darray<rr_float2> r(0); // coordinates of all particles
+	heap_darray<rr_float2> v(0); // velocities of all particles
+	heap_darray<rr_float> rho(0); // density
+	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_float> u(0); // specific internal energy
+	heap_darray<rr_float> c(0); // sound velocity 
 
-	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
-	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
-	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
+	heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn); // neighbours indices
+	heap_darray_md<rr_float> w(params.max_neighbours, params.maxn); // precomputed kernel
+	heap_darray_md<rr_float2> dwdr(params.max_neighbours, params.maxn); // precomputed kernel derivative
 
-	heap_array<rr_float, Params::maxn> vcc;
-	heap_array<rr_float, Params::maxn> txx;
-	heap_array<rr_float, Params::maxn> txy;
-	heap_array<rr_float, Params::maxn> tyy;
+	heap_darray<rr_float> vcc(params.maxn);
+	heap_darray<rr_float> txx(params.maxn);
+	heap_darray<rr_float> txy(params.maxn);
+	heap_darray<rr_float> tyy(params.maxn);
 
-	heap_array<rr_float, Params::maxn> tdsdt;
-	heap_array<rr_float, Params::maxn> eta;
+	heap_darray<rr_float> tdsdt(params.maxn);
+	heap_darray<rr_float> eta(params.maxn);
 
 
 	void init_once() {
@@ -38,10 +38,10 @@ namespace {
 		if (once) return;
 		once = true;
 
-		input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+		input(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 
-		heap_array<rr_uint, Params::maxn> grid;
-		heap_array<rr_uint, Params::max_cells> cells_start_in_grid;
+		heap_darray<rr_uint> grid(params.maxn);
+		heap_darray<rr_uint> cells_start_in_grid(params.max_cells);
 		make_grid(ntotal,
 			r,
 			grid,
@@ -65,15 +65,15 @@ namespace {
 
 #pragma region FIND_STRESS_TENSOR
 void find_stress_tensor_gpu(const rr_uint ntotal,
-	const heap_array<rr_float2, Params::maxn>& v_cl,
-	const heap_array<rr_float, Params::maxn>& mass_cl,
-	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
-	heap_array<rr_float, Params::maxn>& vcc_cl,
-	heap_array<rr_float, Params::maxn>& txx_cl,
-	heap_array<rr_float, Params::maxn>& txy_cl,
-	heap_array<rr_float, Params::maxn>& tyy_cl)
+	const heap_darray<rr_float2>& v_cl,
+	const heap_darray<rr_float>& mass_cl,
+	const heap_darray<rr_float>& rho_cl,
+	const heap_darray_md<rr_uint>& neighbours_cl,
+	const heap_darray_md<rr_float2>& dwdr_cl,
+	heap_darray<rr_float>& vcc_cl,
+	heap_darray<rr_float>& txx_cl,
+	heap_darray<rr_float>& txy_cl,
+	heap_darray<rr_float>& tyy_cl)
 {
 	printlog_debug(__func__)();
 
@@ -85,7 +85,7 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 	auto neighbours_ = makeBufferCopyHost(CL_MEM_READ_ONLY, neighbours_cl);
 	auto dwdr_ = makeBufferCopyHost(CL_MEM_READ_ONLY, dwdr_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto vcc_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
 	auto txx_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
 	auto txy_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
@@ -101,7 +101,7 @@ void find_stress_tensor_gpu(const rr_uint ntotal,
 		txx_,
 		txy_,
 		tyy_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(vcc_, vcc_cl.begin(), vcc_cl.end());
 	cl::copy(txx_, txx_cl.begin(), txx_cl.end());
@@ -114,10 +114,10 @@ TEST_CASE("Test find stress tensor") {
 
 	init_once();
 
-	heap_array<rr_float, Params::maxn> vcc;
-	heap_array<rr_float, Params::maxn> txx;
-	heap_array<rr_float, Params::maxn> txy;
-	heap_array<rr_float, Params::maxn> tyy;
+	heap_darray<rr_float> vcc(params.maxn);
+	heap_darray<rr_float> txx(params.maxn);
+	heap_darray<rr_float> txy(params.maxn);
+	heap_darray<rr_float> tyy(params.maxn);
 	find_stress_tensor(ntotal,
 		v,
 		mass,
@@ -127,10 +127,10 @@ TEST_CASE("Test find stress tensor") {
 		vcc, txx, txy, tyy);
 
 
-	heap_array<rr_float, Params::maxn> vcc_cl;
-	heap_array<rr_float, Params::maxn> txx_cl;
-	heap_array<rr_float, Params::maxn> txy_cl;
-	heap_array<rr_float, Params::maxn> tyy_cl;
+	heap_darray<rr_float> vcc_cl(params.maxn);
+	heap_darray<rr_float> txx_cl(params.maxn);
+	heap_darray<rr_float> txy_cl(params.maxn);
+	heap_darray<rr_float> tyy_cl(params.maxn);
 	find_stress_tensor_gpu(ntotal,
 		v,
 		mass,
@@ -150,26 +150,26 @@ TEST_CASE("Test find stress tensor") {
 
 #pragma region UPDATE_INTERNAL_STATE
 void update_internal_state_gpu(const rr_uint ntotal,
-	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_float, Params::maxn>& txx_cl,
-	const heap_array<rr_float, Params::maxn>& txy_cl,
-	const heap_array<rr_float, Params::maxn>& tyy_cl,
-	heap_array<rr_float, Params::maxn>& eta_cl,
-	heap_array<rr_float, Params::maxn>& tdsdt_cl,
-	heap_array<rr_float, Params::maxn>& c_cl,
-	heap_array<rr_float, Params::maxn>& p_cl)
+	const heap_darray<rr_float>& rho_cl,
+	const heap_darray<rr_float>& txx_cl,
+	const heap_darray<rr_float>& txy_cl,
+	const heap_darray<rr_float>& tyy_cl,
+	heap_darray<rr_float>& eta_cl,
+	heap_darray<rr_float>& tdsdt_cl,
+	heap_darray<rr_float>& c_cl,
+	heap_darray<rr_float>& p_cl)
 {
 	printlog_debug(__func__)();
 
 	static RRKernel kernel(makeProgram("InternalForce.cl"), "update_internal_state");
-	heap_array<rr_float, Params::maxn> zeros;
+	heap_darray<rr_float> zeros(params.maxn);
 
 	auto txx_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txx_cl);
 	auto txy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, txy_cl);
 	auto tyy_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tyy_cl);
 	auto rho_ = makeBufferCopyHost(CL_MEM_READ_ONLY, rho_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto eta_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
 	auto tdsdt_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
 	auto p_ = makeBuffer<rr_float>(CL_MEM_WRITE_ONLY, elements);
@@ -180,7 +180,7 @@ void update_internal_state_gpu(const rr_uint ntotal,
 		txx_, txy_, tyy_,
 		eta_, tdsdt_, 
 		p_, c_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(eta_, eta_cl.begin(), eta_cl.end());
 	cl::copy(tdsdt_, tdsdt_cl.begin(), tdsdt_cl.end());
@@ -200,19 +200,19 @@ TEST_CASE("Test update internal state") {
 		dwdr,
 		vcc, txx, txy, tyy);
 
-	heap_array<rr_float, Params::maxn> tdsdt;
-	heap_array<rr_float, Params::maxn> eta;
-	heap_array<rr_float, Params::maxn> c;
-	heap_array<rr_float, Params::maxn> p;
+	heap_darray<rr_float> tdsdt(params.maxn);
+	heap_darray<rr_float> eta(params.maxn);
+	heap_darray<rr_float> c(params.maxn);
+	heap_darray<rr_float> p(params.maxn);
 	update_internal_state(ntotal,
 		rho,
 		txx, txy, tyy,
 		eta, tdsdt, c, p);
 
-	heap_array<rr_float, Params::maxn> eta_cl;
-	heap_array<rr_float, Params::maxn> tdsdt_cl;
-	heap_array<rr_float, Params::maxn> p_cl;
-	heap_array<rr_float, Params::maxn> c_cl;
+	heap_darray<rr_float> eta_cl(params.maxn);
+	heap_darray<rr_float> tdsdt_cl(params.maxn);
+	heap_darray<rr_float> p_cl(params.maxn);
+	heap_darray<rr_float> c_cl(params.maxn);
 	update_internal_state_gpu(ntotal,
 		rho,
 		txx, txy, tyy,
@@ -229,20 +229,20 @@ TEST_CASE("Test update internal state") {
 
 #pragma region FIND_INTERNAL_CHANGES_Pij_d_RHOij
 void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
-	const heap_array<rr_float2, Params::maxn>& v_cl,
-	const heap_array<rr_float, Params::maxn>& mass_cl,
-	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_float, Params::maxn>& eta_cl,
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
-	const heap_array<rr_float, Params::maxn>& vcc_cl,
-	const heap_array<rr_float, Params::maxn>& txx_cl,
-	const heap_array<rr_float, Params::maxn>& txy_cl,
-	const heap_array<rr_float, Params::maxn>& tyy_cl,
-	const heap_array<rr_float, Params::maxn>& p_cl,
-	const heap_array<rr_float, Params::maxn>& tdsdt_cl,
-	heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& dedt_cl)
+	const heap_darray<rr_float2>& v_cl,
+	const heap_darray<rr_float>& mass_cl,
+	const heap_darray<rr_float>& rho_cl,
+	const heap_darray<rr_float>& eta_cl,
+	const heap_darray_md<rr_uint>& neighbours_cl,
+	const heap_darray_md<rr_float2>& dwdr_cl,
+	const heap_darray<rr_float>& vcc_cl,
+	const heap_darray<rr_float>& txx_cl,
+	const heap_darray<rr_float>& txy_cl,
+	const heap_darray<rr_float>& tyy_cl,
+	const heap_darray<rr_float>& p_cl,
+	const heap_darray<rr_float>& tdsdt_cl,
+	heap_darray<rr_float2>& a_cl,
+	heap_darray<rr_float>& dedt_cl)
 {
 	printlog_debug(__func__)();
 
@@ -261,7 +261,7 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 	auto p_ = makeBufferCopyHost(CL_MEM_READ_ONLY, p_cl);
 	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto a_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, elements);
 	auto dedt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, elements);
 
@@ -271,7 +271,7 @@ void find_internal_changes_pij_d_rhoij_gpu(const rr_uint ntotal,
 		vcc_, txx_, txy_, tyy_,
 		p_, tdsdt_,
 		a_, dedt_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end());
@@ -294,8 +294,8 @@ TEST_CASE("Test find internal changes pij d rhoij") {
 		eta, tdsdt, c, p);
 
 
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> dedt;
+	heap_darray<rr_float2> a(params.maxn);
+	heap_darray<rr_float> dedt(params.maxn);
 	find_internal_changes_pij_d_rhoij(ntotal,
 		v, mass, rho, eta,
 		neighbours, dwdr,
@@ -303,8 +303,8 @@ TEST_CASE("Test find internal changes pij d rhoij") {
 		p, tdsdt,
 		a, dedt);
 
-	heap_array<rr_float2, Params::maxn> a_cl;
-	heap_array<rr_float, Params::maxn> dedt_cl;
+	heap_darray<rr_float2> a_cl(params.maxn);
+	heap_darray<rr_float> dedt_cl(params.maxn);
 	find_internal_changes_pij_d_rhoij_gpu(ntotal,
 		v, mass, rho, eta,
 		neighbours, dwdr,
@@ -321,20 +321,20 @@ TEST_CASE("Test find internal changes pij d rhoij") {
 
 #pragma region FIND_INTERNAL_CHANGES_PiRHO2i_PiRHO2j
 void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
-	const heap_array<rr_float2, Params::maxn>& v_cl,
-	const heap_array<rr_float, Params::maxn>& mass_cl,
-	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_float, Params::maxn>& eta_cl,
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours_cl,
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr_cl,
-	const heap_array<rr_float, Params::maxn>& vcc_cl,
-	const heap_array<rr_float, Params::maxn>& txx_cl,
-	const heap_array<rr_float, Params::maxn>& txy_cl,
-	const heap_array<rr_float, Params::maxn>& tyy_cl,
-	const heap_array<rr_float, Params::maxn>& p_cl,
-	const heap_array<rr_float, Params::maxn>& tdsdt_cl,
-	heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& dedt_cl)
+	const heap_darray<rr_float2>& v_cl,
+	const heap_darray<rr_float>& mass_cl,
+	const heap_darray<rr_float>& rho_cl,
+	const heap_darray<rr_float>& eta_cl,
+	const heap_darray_md<rr_uint>& neighbours_cl,
+	const heap_darray_md<rr_float2>& dwdr_cl,
+	const heap_darray<rr_float>& vcc_cl,
+	const heap_darray<rr_float>& txx_cl,
+	const heap_darray<rr_float>& txy_cl,
+	const heap_darray<rr_float>& tyy_cl,
+	const heap_darray<rr_float>& p_cl,
+	const heap_darray<rr_float>& tdsdt_cl,
+	heap_darray<rr_float2>& a_cl,
+	heap_darray<rr_float>& dedt_cl)
 {
 	printlog_debug(__func__)();
 
@@ -353,7 +353,7 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 	auto p_ = makeBufferCopyHost(CL_MEM_READ_ONLY, p_cl);
 	auto tdsdt_ = makeBufferCopyHost(CL_MEM_READ_ONLY, tdsdt_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto a_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, elements);
 	auto dedt_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, elements);
 
@@ -363,7 +363,7 @@ void find_internal_changes_pidrho2i_pjdrho2j_gpu(const rr_uint ntotal,
 		vcc_, txx_, txy_, tyy_,
 		p_, tdsdt_,
 		a_, dedt_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(a_, a_cl.begin(), a_cl.end());
 	cl::copy(dedt_, dedt_cl.begin(), dedt_cl.end()); 
@@ -386,8 +386,8 @@ TEST_CASE("Test find internal changes pidrho2i pjdrho2j") {
 		eta, tdsdt, c, p);
 
 
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> dedt;
+	heap_darray<rr_float2> a(params.maxn);
+	heap_darray<rr_float> dedt(params.maxn);
 	find_internal_changes_pidrho2i_pjdrho2j(ntotal,
 		v, mass, rho, eta,
 		neighbours, dwdr,
@@ -395,8 +395,8 @@ TEST_CASE("Test find internal changes pidrho2i pjdrho2j") {
 		p, tdsdt,
 		a, dedt);
 
-	heap_array<rr_float2, Params::maxn> a_cl;
-	heap_array<rr_float, Params::maxn> dedt_cl;
+	heap_darray<rr_float2> a_cl(params.maxn);
+	heap_darray<rr_float> dedt_cl(params.maxn);
 	find_internal_changes_pidrho2i_pjdrho2j_gpu(ntotal,
 		v, mass, rho, eta,
 		neighbours, dwdr,
@@ -414,30 +414,30 @@ TEST_CASE("Test find internal changes pidrho2i pjdrho2j") {
 
 void int_force_gpu(
 	const rr_uint ntotal, // number of particles, 
-	const heap_array<rr_float, Params::maxn>& mass,// particle masses
-	const heap_array<rr_float2, Params::maxn>& r,	// coordinates of all particles 
-	const heap_array<rr_float2, Params::maxn>& v,	// velocities of all particles
-	const heap_array<rr_float, Params::maxn>& rho,	// density
-	const heap_array_md<rr_uint, Params::max_neighbours, Params::maxn>& neighbours, // neighbours indices
-	const heap_array_md<rr_float, Params::max_neighbours, Params::maxn>& w, // precomputed kernel
-	const heap_array_md<rr_float2, Params::max_neighbours, Params::maxn>& dwdr, // precomputed kernel derivative
-	heap_array<rr_float, Params::maxn>& c,	// particle sound speed
-	heap_array<rr_float, Params::maxn>& p,	// particle pressure
-	heap_array<rr_float2, Params::maxn>& a,	// acceleration with respect to x, y, z
-	heap_array<rr_float, Params::maxn>& dedt)	// change of specific internal energy
+	const heap_darray<rr_float>& mass,// particle masses
+	const heap_darray<rr_float2>& r,	// coordinates of all particles 
+	const heap_darray<rr_float2>& v,	// velocities of all particles
+	const heap_darray<rr_float>& rho,	// density
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	const heap_darray_md<rr_float>& w, // precomputed kernel
+	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
+	heap_darray<rr_float>& c,	// particle sound speed
+	heap_darray<rr_float>& p,	// particle pressure
+	heap_darray<rr_float2>& a,	// acceleration with respect to x, y, z
+	heap_darray<rr_float>& dedt)	// change of specific internal energy
 {
 	printlog_debug(__func__)();
 
-	static heap_array<rr_float, Params::maxn> vcc;
-	static heap_array<rr_float, Params::maxn> txx;
-	static heap_array<rr_float, Params::maxn> tyy;
-	static heap_array<rr_float, Params::maxn> txy;
-	static heap_array<rr_float, Params::maxn> tdsdt; // production of viscous entropy
-	static heap_array<rr_float, Params::maxn> eta; // dynamic viscosity
+	static heap_darray<rr_float> vcc(params.maxn);
+	static heap_darray<rr_float> txx(params.maxn);
+	static heap_darray<rr_float> tyy(params.maxn);
+	static heap_darray<rr_float> txy(params.maxn);
+	static heap_darray<rr_float> tdsdt(params.maxn); // production of viscous entropy
+	static heap_darray<rr_float> eta(params.maxn); // dynamic viscosity
 
 	// shear tensor, velocity divergence, viscous energy, internal energy, acceleration
 
-	if constexpr (Params::visc) {
+	if (params.visc) {
 		find_stress_tensor_gpu(ntotal,
 			v, mass, rho,
 			neighbours, dwdr,
@@ -449,7 +449,7 @@ void int_force_gpu(
 		txx, txy, tyy,
 		eta, tdsdt, c, p);
 
-	if constexpr (Params::pa_sph == 1) {
+	if (params.pa_sph == 1) {
 		find_internal_changes_pij_d_rhoij_gpu(ntotal,
 			v, mass, rho, eta,
 			neighbours, dwdr,
@@ -472,19 +472,19 @@ TEST_CASE("Test internal force") {
 
 	init_once();
 
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> dedt;
-	heap_array<rr_float, Params::maxn> c;
-	heap_array<rr_float, Params::maxn> p;
+	heap_darray<rr_float2> a(params.maxn);
+	heap_darray<rr_float> dedt(params.maxn);
+	heap_darray<rr_float> c(params.maxn);
+	heap_darray<rr_float> p(params.maxn);
 	int_force(ntotal,
 		mass, r, v, rho,
 		neighbours, w, dwdr,
 		c, p, a, dedt);
 
-	heap_array<rr_float2, Params::maxn> a_cl;
-	heap_array<rr_float, Params::maxn> dedt_cl;
-	heap_array<rr_float, Params::maxn> c_cl;
-	heap_array<rr_float, Params::maxn> p_cl;
+	heap_darray<rr_float2> a_cl(params.maxn);
+	heap_darray<rr_float> dedt_cl(params.maxn);
+	heap_darray<rr_float> c_cl(params.maxn);
+	heap_darray<rr_float> p_cl(params.maxn);
 	int_force_gpu(ntotal,
 		mass, r, v, rho,
 		neighbours, w, dwdr,

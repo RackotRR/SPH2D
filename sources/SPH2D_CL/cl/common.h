@@ -1,6 +1,5 @@
 #ifndef CL_SPH_COMMON_H
 #define CL_SPH_COMMON_H
-#define KERNEL_INCLUDE
 
 #include "clparams.h"
 

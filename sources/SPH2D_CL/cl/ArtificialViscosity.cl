@@ -15,10 +15,6 @@ __kernel void artificial_viscosity(
 	size_t j = get_global_id(0);
 	if (j >= params_ntotal) return;
 
-	a[j] = 0.f;
-	dedt[j] = 0.f;
-
-#ifdef params_visc_artificial
 	rr_float2 a_temp = 0;
 	rr_float dedt_temp = 0;
 
@@ -54,5 +50,4 @@ __kernel void artificial_viscosity(
 
 	dedt[j] = dedt_temp * 0.5f;
 	a[j] = a_temp;
-#endif // params_visc_artificial
 }

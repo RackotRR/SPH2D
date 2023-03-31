@@ -1,4 +1,3 @@
-#define KERNEL_INCLUDE
 #include "common.h"
 
 inline void smoothing_kernel(

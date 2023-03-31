@@ -15,40 +15,36 @@
 namespace {
 	rr_uint ntotal; // number of particles
 	rr_uint nfluid;
-	heap_array<rr_float, Params::maxn> mass; // particle masses
-	heap_array<rr_int, Params::maxn> itype;// material type of particles
-	heap_array<rr_float2, Params::maxn> r;	// coordinates of all particles
-	heap_array<rr_float2, Params::maxn> v;// velocities of all particles
-	heap_array<rr_float, Params::maxn> rho; // density
-	heap_array<rr_float, Params::maxn> p;	// pressure
-	heap_array<rr_float, Params::maxn> u;	// specific internal energy
-	heap_array<rr_float, Params::maxn> c;	
+	heap_darray<rr_float> mass(0); // particle masses
+	heap_darray<rr_int> itype(0); // material type of particles
+	heap_darray<rr_float2> r(0); // coordinates of all particles
+	heap_darray<rr_float2> v(0); // velocities of all particles
+	heap_darray<rr_float> rho(0); // density
+	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_float> u(0); // specific internal energy
+	heap_darray<rr_float> c(0); // sound velocity 
 
-	heap_array<rr_float2, Params::maxn> a;
-	heap_array<rr_float, Params::maxn> drho;
-	heap_array<rr_float, Params::maxn> du;
+	heap_darray<rr_float2> a(params.maxn);
+	heap_darray<rr_float> drho(params.maxn);
+	heap_darray<rr_float> du(params.maxn);
 
-	heap_array_md<rr_uint, Params::max_neighbours, Params::maxn> neighbours; // neighbours indices
-	heap_array_md<rr_float, Params::max_neighbours, Params::maxn> w; // precomputed kernel
-	heap_array_md<rr_float2, Params::max_neighbours, Params::maxn> dwdr; // precomputed kernel derivative
-
-	heap_array<rr_float, Params::maxn> u_predict;
-	heap_array<rr_float, Params::maxn> rho_predict;
-	heap_array<rr_float2, Params::maxn> v_predict;
+	heap_darray<rr_float> u_predict(params.maxn);
+	heap_darray<rr_float> rho_predict(params.maxn);
+	heap_darray<rr_float2> v_predict(params.maxn);
 
 }
 
 #pragma region PREDICT_HALF_STEP
 void predict_half_step_gpu(rr_uint ntotal,
-	const heap_array<rr_float, Params::maxn>& rho_cl,
-	const heap_array<rr_float, Params::maxn>& drho_cl,
-	const heap_array<rr_float, Params::maxn>& u_cl,
-	const heap_array<rr_float, Params::maxn>& du_cl,
-	const heap_array<rr_float2, Params::maxn>& v_cl,
-	const heap_array<rr_float2, Params::maxn>& a_cl,
-	heap_array<rr_float, Params::maxn>& rho_predict_cl,
-	heap_array<rr_float, Params::maxn>& u_predict_cl,
-	heap_array<rr_float2, Params::maxn>& v_predict_cl)
+	const heap_darray<rr_float>& rho_cl,
+	const heap_darray<rr_float>& drho_cl,
+	const heap_darray<rr_float>& u_cl,
+	const heap_darray<rr_float>& du_cl,
+	const heap_darray<rr_float2>& v_cl,
+	const heap_darray<rr_float2>& a_cl,
+	heap_darray<rr_float>& rho_predict_cl,
+	heap_darray<rr_float>& u_predict_cl,
+	heap_darray<rr_float2>& v_predict_cl)
 {
 	printlog_debug(__func__)();
 	static RRKernel kernel(makeProgram("TimeIntegration.cl"), "predict_half_step");
@@ -60,7 +56,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_cl);
 	auto a_ = makeBufferCopyHost(CL_MEM_READ_ONLY, a_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto u_predict_ = makeBufferCopyHost(CL_MEM_READ_WRITE, u_predict_cl);
 	auto rho_predict_ = makeBufferCopyHost(CL_MEM_READ_WRITE, rho_predict_cl);
 	auto v_predict_ = makeBufferCopyHost(CL_MEM_READ_WRITE, v_predict_cl);
@@ -69,7 +65,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 		drho_, du_, a_,
 		rho_, u_, v_,
 		rho_predict_, u_predict_, v_predict_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(rho_predict_, rho_predict_cl.begin(), rho_predict_cl.end());
 	cl::copy(u_predict_, u_predict_cl.begin(), u_predict_cl.end());
@@ -79,7 +75,7 @@ void predict_half_step_gpu(rr_uint ntotal,
 TEST_CASE("Test predict half step", "[general]") {
 	printlog(__func__)();
 
-	input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+	input(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
 
 	predict_half_step(ntotal,
 		rho, drho,
@@ -88,9 +84,9 @@ TEST_CASE("Test predict half step", "[general]") {
 		rho_predict, u_predict, v_predict);
 
 
-	heap_array<rr_float, Params::maxn> u_predict_cl;
-	heap_array<rr_float, Params::maxn> rho_predict_cl;
-	heap_array<rr_float2, Params::maxn> v_predict_cl;
+	heap_darray<rr_float> u_predict_cl(params.maxn);
+	heap_darray<rr_float> rho_predict_cl(params.maxn);
+	heap_darray<rr_float2> v_predict_cl(params.maxn);
 	predict_half_step_gpu(ntotal,
 		rho, drho,
 		u, du,
@@ -108,18 +104,18 @@ TEST_CASE("Test predict half step", "[general]") {
 
 #pragma region CORRECT_STEP
 void correct_step_gpu(const rr_uint ntotal,
-	const heap_array<rr_int, Params::maxn>& itype_cl,
-	const heap_array<rr_float, Params::maxn>& drho_cl,
-	const heap_array<rr_float, Params::maxn>& du_cl,
-	const heap_array<rr_float2, Params::maxn>& a_cl,
-	const heap_array<rr_float, Params::maxn>& rho_predict_cl,
-	const heap_array<rr_float, Params::maxn>& u_predict_cl,
-	const heap_array<rr_float2, Params::maxn>& v_predict_cl,
-	const heap_array<rr_float2, Params::maxn>& av_cl,
-	heap_array<rr_float, Params::maxn>& rho_cl,
-	heap_array<rr_float, Params::maxn>& u_cl,
-	heap_array<rr_float2, Params::maxn>& v_cl,
-	heap_array<rr_float2, Params::maxn>& r_cl)
+	const heap_darray<rr_int>& itype_cl,
+	const heap_darray<rr_float>& drho_cl,
+	const heap_darray<rr_float>& du_cl,
+	const heap_darray<rr_float2>& a_cl,
+	const heap_darray<rr_float>& rho_predict_cl,
+	const heap_darray<rr_float>& u_predict_cl,
+	const heap_darray<rr_float2>& v_predict_cl,
+	const heap_darray<rr_float2>& av_cl,
+	heap_darray<rr_float>& rho_cl,
+	heap_darray<rr_float>& u_cl,
+	heap_darray<rr_float2>& v_cl,
+	heap_darray<rr_float2>& r_cl)
 {
 	printlog_debug(__func__)();
 
@@ -135,7 +131,7 @@ void correct_step_gpu(const rr_uint ntotal,
 	auto v_predict_ = makeBufferCopyHost(CL_MEM_READ_ONLY, v_predict_cl);
 	auto av_ = makeBufferCopyHost(CL_MEM_READ_ONLY, av_cl);
 
-	size_t elements = Params::maxn;
+	size_t elements = params.maxn;
 	auto u_ = makeBufferCopyHost(CL_MEM_READ_WRITE, u_cl);
 	auto rho_ = makeBufferCopyHost(CL_MEM_READ_WRITE, rho_cl);
 	auto v_ = makeBufferCopyHost(CL_MEM_READ_WRITE, v_cl);
@@ -145,7 +141,7 @@ void correct_step_gpu(const rr_uint ntotal,
 		itype_, drho_, du_, a_,
 		rho_predict_, u_predict_, v_predict_, av_,
 		rho_, u_, v_, r_
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(rho_, rho_cl.begin(), rho_cl.end());
 	cl::copy(u_, u_cl.begin(), u_cl.end());
@@ -156,9 +152,9 @@ void correct_step_gpu(const rr_uint ntotal,
 
 #pragma region DYNAMIC_BOUNDARIES
 void make_waves_gpu(
-	heap_array<rr_float2, Params::maxn>& r_cl,
-	heap_array<rr_float2, Params::maxn>& v_cl,
-	heap_array<rr_float2, Params::maxn>& a_cl,
+	heap_darray<rr_float2>& r_cl,
+	heap_darray<rr_float2>& v_cl,
+	heap_darray<rr_float2>& a_cl,
 	const rr_uint nfluid,
 	const rr_uint ntotal,
 	const rr_float time) 
@@ -172,7 +168,7 @@ void make_waves_gpu(
 
 	kernel(
 		v_, r_, time
-	).execute(Params::maxn, Params::localThreads);
+	).execute(params.maxn, params.local_threads);
 
 	cl::copy(v_, v_cl.begin(), v_cl.end());
 	cl::copy(r_, r_cl.begin(), r_cl.end());

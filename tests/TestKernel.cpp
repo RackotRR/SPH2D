@@ -3,6 +3,7 @@
 #include "CLCommon.h"
 #include "Test.h"
 #include "Kernel.h"
+#include "Output.h"
 #include "Input.h"
 
 static auto cpu_kernel(rr_float dist, rr_float2 diff) {
@@ -43,9 +44,10 @@ static auto gpu_kernel(rr_float dist, rr_float2 diff) {
 TEST_CASE("Test smoothing kernel") {
     printlog(__func__)();
 
-    makeParamsHeader(0, 0, 0);
+    loadDefaultParams();
+    params.makeHeader("cl/clparams.h");
 
-    rr_float2 diff = rr_float2{ 1.5f, 1.05f } * Params::hsml;
+    rr_float2 diff = rr_float2{ 1.5f, 1.05f } * params.hsml;
     rr_float dist = length(diff);
 
     auto [w, dwdr] = cpu_kernel(dist, diff);

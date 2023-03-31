@@ -6,7 +6,7 @@ inline void p_art_water(
     rr_float* c)
 {
 #define eos_rho0 1000.f
-#define eos_cSqr (200.f * params_g * params_d * params_eos_csqr_k)
+#define eos_cSqr (200.f * params_g * params_depth * params_eos_csqr_k)
     *c = sqrt(eos_cSqr);
 
 #if params_eos == 1
