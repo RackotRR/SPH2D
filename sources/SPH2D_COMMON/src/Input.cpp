@@ -201,8 +201,8 @@ void fileInput(
 	}
 
 	// temp sultion with format line
-	const char fmt_string[] = "fmt: ";
-	std::string_view str(mmap.begin(), mmap.end());
+	const char fmt_string[] = "fmt: "; 
+	std::string_view str(mmap.data(), mmap.size());
 	size_t format_line_size = str.find('\n');
 	if (format_line_size == str.npos) {
 		throw std::runtime_error{ "file " + std::string{ particles_filename } + " was empty" };

@@ -9,6 +9,9 @@ add_library(SPH2D_COMMON STATIC
     "src/Repl.cpp"
 )
 target_include_directories(SPH2D_COMMON PUBLIC include)
+
+find_package(Threads REQUIRED)
+target_link_libraries(SPH2D_COMMON PRIVATE Threads::Threads)
 target_link_libraries(SPH2D_COMMON PUBLIC
     SPH2D_PARAMS
     RR

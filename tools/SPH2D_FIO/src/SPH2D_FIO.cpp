@@ -120,7 +120,7 @@ void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer, co
 
 	// format
 	const char fmt_string[] = "fmt: ";
-	std::string_view str(mmap.begin(), mmap.end());
+	std::string_view str(mmap.data(), mmap.size());
 	size_t format_line_size = str.find('\n');
 	if (format_line_size == str.npos) {
 		throw std::runtime_error{ "file " + std::string{ filename } + " was empty" };
@@ -150,13 +150,16 @@ void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer, co
 			additional_values[value_name] = value;
 		}
 
-		layer.emplace_back(
-			x, y, type,
-			additional_values[VX_NAME],
-			additional_values[VY_NAME],
-			additional_values[P_NAME],
-			additional_values[RHO_NAME],
-			additional_values[U_NAME]);
+		layer.push_back(Particle{
+			.x = x,
+			.y = y,
+			.itype = type,
+			.vx = additional_values[VX_NAME],
+			.vy = additional_values[VY_NAME],
+			.p = additional_values[P_NAME],
+			.rho = additional_values[RHO_NAME],
+			.u = additional_values[U_NAME]
+			});
 	}
 
 	std::filesystem::path path = filename;

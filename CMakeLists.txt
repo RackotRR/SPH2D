@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(RRSPH2D)
+project(RRSPH2D VERSION 1.1)
 
 set(CMAKE_CXX_STANDARD 20)
 
