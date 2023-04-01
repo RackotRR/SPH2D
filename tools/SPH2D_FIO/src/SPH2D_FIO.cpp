@@ -82,7 +82,7 @@ SPHFIO::SPHFIO(std::string experiment_name) {
 	this->analysis_directory = experiment_directory + "analysis/";
 
 	if (!PrintLog::instance().initialized()) {
-		init_logger(experiment_name + "SPHFIO_log.txt");
+		init_logger(experiment_directory + "SPHFIO_log.txt");
 	}
 
 	initDrawingFilesystem();
