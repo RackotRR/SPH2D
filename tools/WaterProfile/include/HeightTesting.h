@@ -7,22 +7,20 @@
 #include "HeightTestingParams.h"
 
 class HeightTesting {
-    HeightTestingParams testing_params;
     const Grid& grid;
 public:
-    HeightTesting(HeightTestingParams testing_params, const SPHFIO& sphfio) :
-        testing_params{ testing_params },
+    HeightTesting(const SPHFIO& sphfio) :
         grid{ sphfio.getGrid() }
     {
     }
 
-    double maxInLayer(const TimeLayer& layer, double x, const HeightTestingParams& testing_params) {
-        double searchRadius = testing_params.search_n * params.hsml;
+    double maxInLayer(const TimeLayer& layer, double x, double search_n) {
+        double search_radius = search_n * params.hsml;
 
-        std::vector<double> maxValues;
+        std::vector<double> max_values;
 #pragma omp critical 
         {
-            maxValues = std::vector<double>(omp_get_max_threads());
+            max_values = std::vector<double>(omp_get_max_threads());
         }
 
 #pragma omp parallel 
@@ -31,14 +29,14 @@ public:
 #pragma omp for
             for (int i = 0; i < layer.size(); ++i) {
                 auto& particle = layer[i];
-                if (std::fabs(particle.x - x) < searchRadius) {
-                    maxValues[thread] = std::max(maxValues[thread], particle.y);
+                if (std::fabs(particle.x - x) < search_radius) {
+                    max_values[thread] = std::max(max_values[thread], particle.y);
                 }
             }
         }
 
-        std::sort(std::begin(maxValues), std::end(maxValues), std::greater<double>());
-        return maxValues[0];
+        std::sort(std::begin(max_values), std::end(max_values), std::greater<double>());
+        return max_values[0];
     }
 
     const TimeLayer& findLayerAtTimePoint(double t) {
@@ -51,19 +49,29 @@ public:
         }
     }
 
-    std::vector<double> spaceProfile(HeightTestingParams testing_params) {
+    std::vector<double> timeProfile(double x, double search_n) {
+        std::vector<double> waves_height(grid.size());
+
+#pragma omp parallel for
+        for (int i = 0; i < grid.size(); ++i) {
+            waves_height[i] = maxInLayer(grid[i], x, search_n);
+        }
+        return waves_height;
+    }
+
+    std::vector<double> spaceProfile(double t, double search_n) {
         double width = params.x_maxgeom - params.x_mingeom;
         int N = static_cast<int>(width / params.delta);
-        std::vector<double> wavesHeight(N);
+        std::vector<double> waves_height(N);
 
-        auto& layer = findLayerAtTimePoint(testing_params.t);
+        auto& layer = findLayerAtTimePoint(t);
 
 #pragma omp parallel for
         for (int i = 0; i < N; ++i) {
             double x = params.x_mingeom + params.delta * i;
-            wavesHeight[i] = maxInLayer(layer, x, testing_params);
+            waves_height[i] = maxInLayer(layer, x, search_n);
         }
-        return wavesHeight;
+        return waves_height;
     }
 
 
