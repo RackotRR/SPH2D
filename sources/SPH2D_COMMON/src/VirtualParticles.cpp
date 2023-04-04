@@ -26,7 +26,6 @@ void virt_part(
 	heap_darray<rr_float2>& r,	// out, coordinates of all particles
 	heap_darray<rr_float2>& v,	// out, velocities of all particles
 	heap_darray<rr_float>& rho,	// out, density
-	heap_darray<rr_float>& u,	// out, specific internal energy
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype) // out, material type: 1 - ideal gas, 2 - water
 {
@@ -56,7 +55,6 @@ void virt_part(
 		rho(i) = 1000.f;
 		mass(i) = rho(i) * params.boundary_delta * params.boundary_delta;
 		p(i) = 0.f;
-		u(i) = 357.1f;
 		itype(i) = params.TYPE_BOUNDARY;
 	}
 }

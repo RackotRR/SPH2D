@@ -69,6 +69,10 @@ void loadDefaultParams() {
 		throw std::runtime_error{ "maxtimestep error" };
 	}
 	params.maxtimestep = static_cast<size_t>(steps);
+	if (params.maxtimestep % params.save_step != 0) { // fix last save step
+		params.maxtimestep = params.maxtimestep + (params.save_step - params.maxtimestep % params.save_step);
+	}
+
 	params.print_time_est_step = 500;
 	params.generator_time_wait = 0.f;
 	params.local_threads = 256;
@@ -82,7 +86,6 @@ static void generateParticles(
 	heap_darray<rr_float>& mass,// particle masses
 	heap_darray<rr_float>& rho, // particle densities
 	heap_darray<rr_float>& p,	 // particle pressure
-	heap_darray<rr_float>& u,	 // particle internal energy
 	heap_darray<rr_int>& itype,	 // particle material type
 	rr_uint& nfluid) // total particle number
 {
@@ -103,7 +106,6 @@ static void generateParticles(
 
 		rho(i) = 1000.f;
 		mass(i) = params.delta * params.delta * rho(i);
-		u(i) = 357.1f;
 		itype(i) = params.TYPE_WATER;
 		p(i) = 0;
 	}
@@ -116,7 +118,6 @@ void input(
 	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_float>& u,	// particle internal energy
 	heap_darray<rr_int>& itype,	// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
@@ -135,15 +136,14 @@ void input(
 	mass = heap_darray<rr_float>(params.maxn);
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
-	u = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
 	ntotal = 0;
 	nfluid = 0;
 	rr_uint nvirt = 0;
 
-	generateParticles(r, v, mass, rho, p, u, itype, nfluid);
-	virt_part(nfluid, nvirt, mass, r, v, rho, u, p, itype);
+	generateParticles(r, v, mass, rho, p, itype, nfluid);
+	virt_part(nfluid, nvirt, mass, r, v, rho, p, itype);
 	ntotal = nfluid + nvirt;
 
 	params.nfluid = nfluid;
@@ -160,7 +160,6 @@ void fileInput(
 	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_float>& u,	// particle internal energy
 	heap_darray<rr_int>& itype,// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
@@ -180,7 +179,6 @@ void fileInput(
 	mass = heap_darray<rr_float>(params.maxn, 1000.f * params.delta * params.delta);
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
-	u = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
 	ntotal = params.ntotal;
@@ -223,7 +221,6 @@ void fileInput(
 		v(j).x = std::strtod(iter, &iter);
 		v(j).y = std::strtod(iter, &iter);
 		rho(j) = std::strtod(iter, &iter);
-		u(j) = std::strtod(iter, &iter);
 		p(j) = std::strtod(iter, &iter);
 	}
 

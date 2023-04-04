@@ -32,7 +32,6 @@ namespace {
 		heap_darray<rr_int>&& itype,
 		heap_darray<rr_float2>&& v,
 		heap_darray<rr_float>&& rho,
-		heap_darray<rr_float>&& u,
 		heap_darray<rr_float>&& p,
 		const rr_uint itimestep)
 	{
@@ -43,7 +42,6 @@ namespace {
 			stream << itype(i) << std::endl;
 			stream << v(i).x << std::endl << v(i).y << std::endl;
 			stream << rho(i) << std::endl;
-			stream << u(i) << std::endl;
 			stream << p(i) << std::endl;
 		}
 	}
@@ -53,7 +51,6 @@ namespace {
 		heap_darray<rr_int>&& itype,
 		std::optional<heap_darray<rr_float2>> v,
 		std::optional<heap_darray<rr_float>> rho,
-		std::optional<heap_darray<rr_float>> u,
 		std::optional<heap_darray<rr_float>> p,
 		const rr_uint itimestep)
 	{
@@ -68,7 +65,6 @@ namespace {
 			};
 			add_format_specifier("vx vy", v);
 			add_format_specifier("rho", rho);
-			add_format_specifier("u", u);
 			add_format_specifier("p", p);
 			stream << std::endl;
 
@@ -82,9 +78,6 @@ namespace {
 				}
 				if (rho) {
 					stream << rho.value().at(i) << std::endl;
-				}
-				if (u) {
-					stream << u.value().at(i) << std::endl;
 				}
 				if (p) {
 					stream << p.value().at(i) << std::endl;
@@ -118,7 +111,6 @@ void dump(
 	heap_darray<rr_int>&& itype,
 	heap_darray<rr_float2>&& v,
 	heap_darray<rr_float>&& rho,
-	heap_darray<rr_float>&& u,
 	heap_darray<rr_float>&& p,
 	const rr_uint itimestep) 
 {
@@ -129,7 +121,6 @@ void dump(
 		std::move(itype),
 		std::move(v),
 		std::move(rho),
-		std::move(u),
 		std::move(p),
 		itimestep
 	).detach();
@@ -142,7 +133,6 @@ void output(
 	heap_darray<rr_int>&& itype,
 	std::optional<heap_darray<rr_float2>> v,
 	std::optional<heap_darray<rr_float>> rho,
-	std::optional<heap_darray<rr_float>> u,
 	std::optional<heap_darray<rr_float>> p,
 	const rr_uint itimestep)
 {
@@ -153,7 +143,6 @@ void output(
 		std::move(itype),
 		std::move(v),
 		std::move(rho),
-		std::move(u),
 		std::move(p),
 		itimestep
 	).detach();

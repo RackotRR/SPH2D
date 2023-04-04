@@ -15,20 +15,15 @@ __kernel void single_step(
 
 __kernel void predict_half_step(
 	__global const rr_float* drho,
-	__global const rr_float* du,
 	__global const rr_float2* a,
 	__global const rr_float* rho,
-	__global const rr_float* u,
 	__global const rr_float2* v,
 
 	__global rr_float* rho_predict,
-	__global rr_float* u_predict,
 	__global rr_float2* v_predict)
 {
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
-
-	u_predict[i] = max(u[i] + du[i] * params_dt * 0.5f, (rr_float)0.f);
 
 #ifndef params_summation_density
 	rho_predict[i] = rho[i] + drho[i] * params_dt * 0.5f;
@@ -40,23 +35,18 @@ __kernel void predict_half_step(
 __kernel void correct_step(
 	__global const rr_int* itype,
 	__global const rr_float* drho,
-	__global const rr_float* du,
 	__global const rr_float2* a,
 
 	__global const rr_float* rho_predict,
-	__global const rr_float* u_predict,
 	__global const rr_float2* v_predict,
 	__global const rr_float2* av,
 
 	__global rr_float* rho,
-	__global rr_float* u,
 	__global rr_float2* v,
 	__global rr_float2* r)
 {
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
-
-	u[i] = max(u_predict[i] + du[i] * params_dt, (rr_float)0.f);
 
 #ifndef params_summation_density
 	rho[i] = rho_predict[i] + drho[i] * params_dt;

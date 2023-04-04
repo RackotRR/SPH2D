@@ -17,11 +17,9 @@ void single_step(
 	const heap_darray<rr_int>& itype,	// material type of particles
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
-	const heap_darray<rr_float>& u,	// specific internal energy 
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure 
 	heap_darray<rr_float2>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
-	heap_darray<rr_float>& du,	// out, du = d(u)/dt
 	heap_darray<rr_float>& drho,	// out, drho = d(rho)/dt
 	heap_darray<rr_float2>& av) // out, Monaghan average velocity
 {

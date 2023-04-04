@@ -61,7 +61,6 @@ void cl_time_integration(
     const heap_darray<rr_float>& mass,// particle masses
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
-    heap_darray<rr_float>& u,	// specific internal energy
     const heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
@@ -79,16 +78,12 @@ void cl_time_integration(
     auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, mass);
     auto rho_ = makeBufferCopyHost(HOST_INPUT, rho);
     auto p_ = makeBufferCopyHost(HOST_INPUT, p);
-    auto u_ = makeBufferCopyHost(HOST_INPUT, u);
-    auto c_ = makeBufferCopyHost(HOST_INPUT, u);
     auto itype_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, itype);
 
     auto rho_predict_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto u_predict_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto v_predict_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     auto drho_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto du_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto a_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // grid find
@@ -147,16 +142,15 @@ void cl_time_integration(
                 itype.copy(),
                 std::move(v_temp),
                 std::nullopt,
-                std::nullopt,
                 std::move(p_temp),
                 itimestep);
         }
 
         printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(
-            drho_, du_, a_,
-            rho_, u_, v_,
-            rho_predict_, u_predict_, v_predict_
+            drho_, a_,
+            rho_, v_,
+            rho_predict_, v_predict_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("fill in grid")();
@@ -254,9 +248,9 @@ void cl_time_integration(
 
         printlog_debug("correct step")();
         correct_step_kernel(
-            itype_, drho_, du_, a_,
-            rho_predict_, u_predict_, v_predict_, av_,
-            rho_, u_, v_, r_
+            itype_, drho_, a_,
+            rho_predict_, v_predict_, av_,
+            rho_, v_, r_
         ).execute(params.maxn, params.local_threads);
 
         if (params.nwm) {
@@ -277,14 +271,12 @@ void cl_time_integration(
             cl::copy(v_, v_temp.begin(), v_temp.end());
             cl::copy(p_, p_temp.begin(), p_temp.end());
             cl::copy(rho_, rho_temp.begin(), rho_temp.end());
-            cl::copy(u_, u_temp.begin(), u_temp.end());
 
             dump(
                 std::move(r_temp),
                 itype.copy(),
                 std::move(v_temp),
                 std::move(rho_temp),
-                std::move(u_temp),
                 std::move(p_temp),
                 itimestep);
         }

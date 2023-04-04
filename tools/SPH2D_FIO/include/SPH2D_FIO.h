@@ -12,7 +12,6 @@ struct Particle {
 	double vy;
 	double p;
 	double rho;
-	double u;
 
 	double byTag(const std::string& tag) const;
 };

@@ -14,7 +14,6 @@ using namespace RR::Logger;
 static constexpr char VX_NAME[] = " vx ";
 static constexpr char VY_NAME[] = " vy ";
 static constexpr char P_NAME[] = " p ";
-static constexpr char U_NAME[] = " u ";
 static constexpr char RHO_NAME[] = " rho ";
 
 static const double* getParticleVx(const Particle& particle) { return &particle.vx; }
@@ -29,7 +28,6 @@ static auto& getGetterByTag(const std::string& tag) {
 		{VX_NAME, getParticleVx},
 		{VY_NAME, getParticleVy},
 		{P_NAME, getParticleP},
-		{U_NAME, getParticleU},
 		{RHO_NAME, getParticleRho},
 	};
 
@@ -56,7 +54,6 @@ static std::map<size_t, const char*> getAvailableValues(std::string_view format_
 	check_value_availability(VX_NAME);
 	check_value_availability(VY_NAME);
 	check_value_availability(P_NAME);
-	check_value_availability(U_NAME);
 	check_value_availability(RHO_NAME);
 
 	printlog_debug("found ")(available_values.size())(" values")();
@@ -157,8 +154,7 @@ void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer, co
 			.vx = additional_values[VX_NAME],
 			.vy = additional_values[VY_NAME],
 			.p = additional_values[P_NAME],
-			.rho = additional_values[RHO_NAME],
-			.u = additional_values[U_NAME]
+			.rho = additional_values[RHO_NAME]
 			});
 	}
 

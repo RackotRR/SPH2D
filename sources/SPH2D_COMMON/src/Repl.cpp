@@ -45,7 +45,6 @@ void repl(
 	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_float>& u,	// particle internal energy
 	heap_darray<rr_int>& itype,	// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid) // total fluid particles
@@ -63,7 +62,7 @@ void repl(
 				if (!std::filesystem::exists(params_path)) {
 					std::cout << "Can't find Params.json" << std::endl;
 					if (overrideDirectory()) {
-						input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+						input(r, v, mass, rho, p, itype, ntotal, nfluid);
 						return;
 					}
 					else {
@@ -90,11 +89,11 @@ void repl(
 				std::cin.get();
 
 				if (num == -1 && overrideDirectory()) {
-					input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+					input(r, v, mass, rho, p, itype, ntotal, nfluid);
 					return;
 				} // clear and run default
 				else if (num == 0 && overrideDirectory()) {
-					input(r, v, mass, rho, p, u, itype, ntotal, nfluid, false);
+					input(r, v, mass, rho, p, itype, ntotal, nfluid, false);
 					return;
 				} // clear and run from Params.json
 				else if (num <= dumps_path.size()) {
@@ -108,7 +107,7 @@ void repl(
 					std::cout << "loading data... ";
 
 					auto particles_data_path = std::filesystem::path(experiment_directory) / "dump" / chosen_dump;
-					fileInput(r, v, mass, rho, p, u, itype, ntotal, nfluid, particles_data_path.string());
+					fileInput(r, v, mass, rho, p, itype, ntotal, nfluid, particles_data_path.string());
 					std::cout << "completed" << std::endl;
 					return;
 				} // run from dump
@@ -117,7 +116,7 @@ void repl(
 				} // wrong number
 			}
 			else {
-				input(r, v, mass, rho, p, u, itype, ntotal, nfluid);
+				input(r, v, mass, rho, p, itype, ntotal, nfluid);
 				return;
 			}
 		}
