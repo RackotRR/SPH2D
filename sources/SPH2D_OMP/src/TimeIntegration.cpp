@@ -72,7 +72,6 @@ void time_integration(
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_float>& u,	// specific internal energy
-	heap_darray<rr_float>& c,	// sound velocity 
 	heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
 	const rr_uint ntotal, // total particle number at t = 0
 	const rr_uint nfluid)  // fluid particles 
@@ -126,7 +125,7 @@ void time_integration(
 		// definition of variables out of the function vector:
 		single_step(nfluid, ntotal, mass, itype, r, 
 			v_predict, u_predict, *rho_predicted, 
-			p, c, a, du, drho, av);
+			p, a, du, drho, av);
 
 		correct_step(ntotal,
 			itype,

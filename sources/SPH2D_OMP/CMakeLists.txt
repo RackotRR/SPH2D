@@ -9,7 +9,7 @@ message("Can't find OpenMP. Don't add SPH2D_OMP target.")
 endif()
 
 add_library(SPH2D_OMP_SHARED 
-    src/ArtificialHeat.cpp
+    
     src/ArtificialViscosity.cpp
     src/AverageVelocity.cpp
     src/Density.cpp

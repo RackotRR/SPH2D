@@ -4,7 +4,6 @@
 #include "InternalForce.h"
 #include "ArtificialViscosity.h"
 #include "ExtForce.h" 
-#include "ArtificialHeat.h"
 #include "AverageVelocity.h"
 #include "SingleStep.h"
 
@@ -21,7 +20,6 @@ void single_step(
 	const heap_darray<rr_float>& u,	// specific internal energy 
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure 
-	heap_darray<rr_float>& c,	// out, sound velocity
 	heap_darray<rr_float2>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
 	heap_darray<rr_float>& du,	// out, du = d(u)/dt
 	heap_darray<rr_float>& drho,	// out, drho = d(rho)/dt
@@ -32,9 +30,6 @@ void single_step(
 	static heap_darray<rr_float2> indvxdt(params.maxn);
 	static heap_darray<rr_float2> exdvxdt(params.maxn);
 	static heap_darray<rr_float2> arvdvxdt(params.maxn);
-	static heap_darray<rr_float2> nwmdvxdt(params.maxn);
-	static heap_darray<rr_float> avdudt(params.maxn);
-	static heap_darray<rr_float> ahdudt(params.maxn);
 
 	static heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn);
 	static heap_darray_md<rr_float> w(params.max_neighbours, params.maxn);
@@ -61,24 +56,17 @@ void single_step(
 	int_force(ntotal, 
 		mass, r, v, rho,
 		neighbours, w, dwdr,
-		c, p, indvxdt, du);
+		p, indvxdt);
 
 	artificial_viscosity(ntotal,
-		mass, r, v, rho, c,
+		mass, r, v, rho,
 		neighbours, dwdr,
-		arvdvxdt, avdudt);
+		arvdvxdt);
 
 	external_force(ntotal,
 		mass, r,
 		neighbours, itype,
 		exdvxdt);
-
-	if (params.heat_artificial) {
-		art_heat(ntotal, 
-			mass, r, v, rho, u, c, 
-			neighbours, dwdr,
-			ahdudt);
-	}
 
 	// calculating average velocity of each particle for avoiding penetration
 	if (params.average_velocity) {
@@ -88,24 +76,19 @@ void single_step(
 			av);
 	}
 
-	// convert velocity, force and energy to f and dfdt
+	// convert forces to dvdt
 	update_change_rate(nfluid,
 		indvxdt, exdvxdt, arvdvxdt,
-		avdudt, ahdudt,
-		a, du);
+		a);
 }
 
 void update_change_rate(rr_uint nfluid,
 	const heap_darray<rr_float2>& indvxdt,
 	const heap_darray<rr_float2>& exdvxdt,
 	const heap_darray<rr_float2>& arvdvxdt,
-	const heap_darray<rr_float>& arvdudt,
-	const heap_darray<rr_float>& ahdudt,
-	heap_darray<rr_float2>& a,
-	heap_darray<rr_float>& dudt)
+	heap_darray<rr_float2>& a)
 {
 	for (rr_uint i = 0; i < nfluid; i++) {
 		a(i) = indvxdt(i) + exdvxdt(i) + arvdvxdt(i);
-		dudt(i) += arvdudt(i) + ahdudt(i);
 	}
 }

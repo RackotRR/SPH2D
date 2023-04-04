@@ -1,5 +1,6 @@
 #include "CommonIncl.h"
 #include "Kernel.h"
+#include "EOS.h"
 
 // calculate the artificial viscosity (Monaghan, 1992)
 void artificial_viscosity(
@@ -8,11 +9,9 @@ void artificial_viscosity(
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,// density 
-	const heap_darray<rr_float>& c,	// sound velocity
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	heap_darray<rr_float2>& a, // out, acceleration with respect to x, y, z
-	heap_darray<rr_float>& dedt) // out, change of specific internal energy
+	heap_darray<rr_float2>& a) // out, acceleration with respect to x, y, z
 {
 	printlog_debug(__func__)();
 	/// const for the artificial viscosity:
@@ -23,10 +22,11 @@ void artificial_viscosity(
 	// const to avoid singularities
 	static constexpr rr_float etq = 0.1f;
 
+	static const rr_float c_ij = c_art_water();
+
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		a(j) = { 0.f };
-		dedt(j) = 0.f;
 
 		rr_uint i;
 		for (rr_iter n = 0;
@@ -44,16 +44,12 @@ void artificial_viscosity(
 				rr_float muv = params.hsml * vr / (rr + sqr(params.hsml * etq));
 
 				// calculate PIv_ij = (-alpha muv_ij c_ij + beta muv_ij^2) / rho_ij
-				rr_float mc = 0.5f * (c(i) + c(j));
 				rr_float mrho = 0.5f * (rho(i) + rho(j));
-				rr_float piv = (beta * muv - alpha * mc) * muv / mrho;
+				rr_float piv = (beta * muv - alpha * c_ij) * muv / mrho;
 
 				rr_float2 h = -dwdr(n, j) * piv;
 				a(j) -= h * mass(i);
-				dedt(j) -= dot(dv, h) * mass(i);
 			}
 		}
-
-		dedt(j) *= 0.5f;
 	}
 }

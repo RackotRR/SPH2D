@@ -19,6 +19,7 @@ void ExperimentParams::load(const std::string& params_path) {
 		params.version_major = 0;
 		params.version_minor = 1;
 	}
+	ParamsVersion version(params.version_major, params.version_minor);
 
 	load(dim);
 	load(maxn);
@@ -69,7 +70,14 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(average_velocity);
 	load(average_velocity_epsilon);
 	load(visc);
-	load(heat_artificial);
+
+	if (version < ParamsVersion{ 1, 1 }) {
+		params.water_dynamic_visc = 1.e-3f;
+	}
+	else {
+		load(water_dynamic_visc);
+	}
+
 	load(enable_check_consistency);
 	load(inf_stop);
 	load(maxtimestep);

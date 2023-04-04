@@ -1,6 +1,6 @@
 #pragma once
 #define SPH2D_PARAMS_VERSION_MAJOR 1
-#define SPH2D_PARAMS_VERSION_MINOR 0
+#define SPH2D_PARAMS_VERSION_MINOR 1
 
 class ParamsVersion {
 public:
@@ -21,3 +21,5 @@ public:
     const int major;
     const int minor;
 };
+
+// 1.1 - remove artificial heat as it used in gas simulation

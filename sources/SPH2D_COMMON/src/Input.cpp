@@ -18,14 +18,14 @@ void loadDefaultParams() {
 	constexpr rr_float ratio = L / depth;
 	constexpr rr_float tank_length = 8.90f;
 	constexpr rr_float tank_height = 1.f;
-	constexpr rr_uint particlesPer_d = 235;
+	constexpr rr_uint particlesPer_d = 50;
 	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
 	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L);
 	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d);
 	constexpr rr_uint fluid_particles = fluid_particles_x * fluid_particles_y;
 	constexpr rr_float delta = depth / particlesPer_d;
 
-	params.maxn = 1 << 20;
+	params.maxn = 1 << 16;
 	params.max_cells = params.max_neighbours * params.maxn;
 
 	params.delta = delta;
@@ -63,7 +63,7 @@ void loadDefaultParams() {
 	params.dump_step = 10 * params.save_step;
 	params.normal_check_step = params.save_step;
 	params.simulation_time = 1.2f;
-	params.dt = 0.5e-5f;
+	params.dt = 2.5e-5f;
 	rr_float steps = params.simulation_time / params.dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
@@ -117,7 +117,6 @@ void input(
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_float>& u,	// particle internal energy
-	heap_darray<rr_float>& c,	// sound velocity
 	heap_darray<rr_int>& itype,	// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
@@ -137,7 +136,6 @@ void input(
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
 	u = heap_darray<rr_float>(params.maxn);
-	c = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
 	ntotal = 0;
@@ -163,7 +161,6 @@ void fileInput(
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_float>& u,	// particle internal energy
-	heap_darray<rr_float>& c,	// sound velocity
 	heap_darray<rr_int>& itype,// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
@@ -184,7 +181,6 @@ void fileInput(
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
 	u = heap_darray<rr_float>(params.maxn);
-	c = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
 	ntotal = params.ntotal;

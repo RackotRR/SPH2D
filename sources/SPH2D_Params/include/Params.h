@@ -99,10 +99,7 @@ struct ExperimentParams {
 
 	// viscosity on?
 	bool visc{ true };
-
-	// artificial heat on?
-	bool heat_artificial{ false };
-
+	rr_float water_dynamic_visc = 1.e-3f;
 
 	enum {
 		TYPE_BOUNDARY = -2,

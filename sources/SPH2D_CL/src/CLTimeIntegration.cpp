@@ -62,7 +62,6 @@ void cl_time_integration(
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
     heap_darray<rr_float>& u,	// specific internal energy
-    heap_darray<rr_float>& c,	// sound velocity 
     const heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
@@ -81,7 +80,7 @@ void cl_time_integration(
     auto rho_ = makeBufferCopyHost(HOST_INPUT, rho);
     auto p_ = makeBufferCopyHost(HOST_INPUT, p);
     auto u_ = makeBufferCopyHost(HOST_INPUT, u);
-    auto c_ = makeBufferCopyHost(HOST_INPUT, c);
+    auto c_ = makeBufferCopyHost(HOST_INPUT, u);
     auto itype_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, itype);
 
     auto rho_predict_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
@@ -107,14 +106,12 @@ void cl_time_integration(
     auto eta_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tdsdt_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
-    auto indudt_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
 
     // external force
     auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // artificial viscosity
     auto ardvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
-    auto ardudt_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
 
     // average velocity
     auto av_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -218,15 +215,15 @@ void cl_time_integration(
         printlog_debug("update internal state")();
         update_internal_state_kernel(
             rho_predict_, txx_, txy_, tyy_,
-            eta_, tdsdt_, p_, c_
+            tdsdt_, p_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
-            v_predict_, mass_, rho_predict_, eta_,
+            v_predict_, mass_, rho_predict_,
             neighbours_, dwdr_,
             vcc_, txx_, txy_, tyy_, p_, tdsdt_,
-            indvxdt_, indudt_
+            indvxdt_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("external force")();
@@ -237,9 +234,9 @@ void cl_time_integration(
 
         printlog_debug("artificial viscosity")();
         artificial_viscosity_kernel(
-            r_, v_predict_, mass_, rho_predict_, c_,
+            r_, v_predict_, mass_, rho_predict_,
             neighbours_, dwdr_,
-            ardvxdt_, ardudt_
+            ardvxdt_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("average velocity")();
@@ -251,9 +248,8 @@ void cl_time_integration(
 
         printlog_debug("single step")();
         single_step_kernel(
-            indudt_, ardudt_,
             indvxdt_, exdvxdt_, ardvxdt_,
-            du_, a_
+            a_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("correct step")();

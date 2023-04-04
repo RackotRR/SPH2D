@@ -1,20 +1,16 @@
 #include "common.h"
 
 __kernel void single_step(
-	__global const rr_float* indudt, // int force
-	__global const rr_float* ardudt, // art visc
 	__global const rr_float2* indvxdt, // int force
 	__global const rr_float2* exdvxdt, // ext force
 	__global const rr_float2* arvdvxdt, // art visc
 
-	__global rr_float* du,
 	__global rr_float2* a)
 {
 	size_t i = get_global_id(0);
 	if (i >= params_nfluid) return;
 
 	a[i] = indvxdt[i] + exdvxdt[i] + arvdvxdt[i];
-	du[i] = indudt[i] + ardudt[i];
 }
 
 __kernel void predict_half_step(

@@ -10,11 +10,3 @@ void external_force(
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray<rr_int>& itype,	// type of particles 
 	heap_darray<rr_float2>& a); // out, acceleration with respect to x, y, z
-
-// test
-void external_force_gpu(rr_uint ntotal,
-	const heap_darray<rr_float>& mass_cl,
-	const heap_darray<rr_float2>& r_cl,
-	const heap_darray_md<rr_uint>& neighbours_cl,
-	const heap_darray<rr_int>& itype_cl,
-	heap_darray<rr_float2>& a_cl);

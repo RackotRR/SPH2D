@@ -26,12 +26,3 @@ void make_waves(
 	const rr_uint nfluid,
 	const rr_uint ntotal,
 	const rr_float time);
-
-// test
-void make_waves_gpu(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float2>& a,
-	const rr_uint nfluid,
-	const rr_uint ntotal,
-	const rr_float time);

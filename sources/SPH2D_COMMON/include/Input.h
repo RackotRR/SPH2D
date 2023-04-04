@@ -8,7 +8,6 @@ void input(
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_float>& u,	// particle internal energy
-	heap_darray<rr_float>& c,	// sound velocity
 	heap_darray<rr_int>& itype,	// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
@@ -21,7 +20,6 @@ void fileInput(
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_float>& u,	// particle internal energy
-	heap_darray<rr_float>& c,	// sound velocity
 	heap_darray<rr_int>& itype,// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
@@ -36,7 +34,6 @@ void repl(
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_float>& u,	// particle internal energy
-	heap_darray<rr_float>& c,	// sound velocity
 	heap_darray<rr_int>& itype,	// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid); // total fluid particles

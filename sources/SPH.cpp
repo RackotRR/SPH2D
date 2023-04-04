@@ -22,9 +22,8 @@ void simulation() {
 	heap_darray<rr_float> rho(0); // density
 	heap_darray<rr_float> p(0); // pressure
 	heap_darray<rr_float> u(0); // specific internal energy
-	heap_darray<rr_float> c(0); // sound velocity 
 
-	repl(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
+	repl(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 
 #ifndef SPH2D_OMP
 	logCLInfo();
@@ -35,9 +34,9 @@ void simulation() {
 	RR::Timer timer;
 	timer.start();
 #ifdef SPH2D_OMP
-	time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
+	time_integration(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 #else
-	cl_time_integration(r, v, mass, rho, p, u, c, itype, ntotal, nfluid);
+	cl_time_integration(r, v, mass, rho, p, u, itype, ntotal, nfluid);
 #endif // SPH2D_OMP
 	timer.finish();
 

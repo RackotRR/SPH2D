@@ -58,7 +58,6 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float>& rho,	// density
-	const heap_darray<rr_float>& eta,	// dynamic viscosity
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
 	const heap_darray<rr_float>& vcc,
@@ -67,17 +66,16 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_darray<rr_float>& tyy,
 	const heap_darray<rr_float>& p,	// particle pressure
 	const heap_darray<rr_float>& tdsdt,	// production of viscous entropy
-	heap_darray<rr_float2>& a,	// acceleration with respect to x, y, z
-	heap_darray<rr_float>& dedt)	// change of specific internal energy
+	heap_darray<rr_float2>& a)	// acceleration with respect to x, y, z
 {
 	printlog_debug(__func__)();
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
+	rr_float eta = params.water_dynamic_visc;
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		a(j) = { 0.f };
-		dedt(j) = 0.f;
 
 		rr_uint i;
 		for (rr_iter n = 0;
@@ -86,23 +84,19 @@ void find_internal_changes_pij_d_rhoij(
 		{
 			rr_float2 h = -dwdr(n, j) * (p(i) + p(j));
 			rr_float rhoij = 1.f / (rho(i) * rho(j));
-			rr_float he = dot(h, v(j) - v(i));
 
 			if (params.visc) {
 				rr_float dwdx = dwdr(n, j).x;
 				rr_float dwdy = dwdr(n, j).y;
-				h.x += (eta(i) * txx(i) + eta(j) * txx(j)) * dwdx;
-				h.x += (eta(i) * txy(i) + eta(j) * txy(j)) * dwdy;
-				h.y += (eta(i) * txy(i) + eta(j) * txy(j)) * dwdx;
-				h.y += (eta(i) * tyy(i) + eta(j) * tyy(j)) * dwdy;
+
+				h.x += (txx(i) + txx(j)) * dwdx * eta;
+				h.x += (txy(i) + txy(j)) * dwdy * eta;
+				h.y += (txy(i) + txy(j)) * dwdx * eta;
+				h.y += (tyy(i) + tyy(j)) * dwdy * eta;
 			}
 
 			a(j) -= h * mass(i) * rhoij;
-			dedt(j) += mass(i) * he * rhoij;
 		}
-
-		// change of specific internal energy de/dt = T ds/dt - p/rho vc, c:
-		dedt(j) = 0.5f * dedt(j) + tdsdt(j);
 	}
 }
 void find_internal_changes_pidrho2i_pjdrho2j(
@@ -110,7 +104,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float>& rho,	// density
-	const heap_darray<rr_float>& eta,	// dynamic viscosity
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
 	const heap_darray<rr_float>& vcc,
@@ -119,17 +112,16 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_darray<rr_float>& tyy,
 	const heap_darray<rr_float>& p,	// particle pressure
 	const heap_darray<rr_float>& tdsdt,	// production of viscous entropy
-	heap_darray<rr_float2>& a,	// acceleration with respect to x, y, z
-	heap_darray<rr_float>& dedt)	// change of specific internal energy
+	heap_darray<rr_float2>& a)	// acceleration with respect to x, y, z
 {
 	printlog_debug(__func__)();
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
+	rr_float eta = params.water_dynamic_visc;
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		a(j) = { 0.f };
-		dedt(j) = 0.f;
 
 		rr_uint i;
 		for (rr_iter n = 0;
@@ -137,23 +129,19 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 			++n)
 		{
 			rr_float2 h = -dwdr(n, j) * (p(i) / sqr(rho(i)) + p(j) / sqr(rho(j)));
-			rr_float he = dot(h, v(j) - v(i));
 
 			if (params.visc) { // viscous force
 				rr_float dwdx = dwdr(n, j).x;
 				rr_float dwdy = dwdr(n, j).y;
-				h.x += (eta(i) * txx(i) / sqr(rho(i)) + eta(j) * txx(j) / sqr(rho(j))) * dwdx;
-				h.x += (eta(i) * txy(i) / sqr(rho(i)) + eta(j) * txy(j) / sqr(rho(j))) * dwdy;
-				h.y += (eta(i) * txy(i) / sqr(rho(i)) + eta(j) * txy(j) / sqr(rho(j))) * dwdx;
-				h.y += (eta(i) * tyy(i) / sqr(rho(i)) + eta(j) * tyy(j) / sqr(rho(j))) * dwdy;
+
+				h.x += (txx(i) / sqr(rho(i)) + txx(j) / sqr(rho(j))) * dwdx * eta;
+				h.x += (txy(i) / sqr(rho(i)) + txy(j) / sqr(rho(j))) * dwdy * eta;
+				h.y += (txy(i) / sqr(rho(i)) + txy(j) / sqr(rho(j))) * dwdx * eta;
+				h.y += (tyy(i) / sqr(rho(i)) + tyy(j) / sqr(rho(j))) * dwdy * eta;
 			}
 
 			a(j) -= h * mass(i);
-			dedt(j) += mass(i) * he;
 		}
-
-		// change of specific internal energy de/dt = T ds/dt - p/rho vc, c:
-		dedt(j) = 0.5f * dedt(j) + tdsdt(j);
 	}
 }
 
@@ -163,22 +151,19 @@ void update_internal_state(
 	const heap_darray<rr_float>& txx,
 	const heap_darray<rr_float>& txy,	
 	const heap_darray<rr_float>& tyy,	
-	heap_darray<rr_float>& eta,	// dynamic viscosity
 	heap_darray<rr_float>& tdsdt,	// production of viscous entropy
-	heap_darray<rr_float>& c,	// particle sound speed
 	heap_darray<rr_float>& p)	// particle pressure
 {
 	printlog_debug(__func__)();
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		if (params.visc) { // viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
-			eta(i) = 1.e-3f; // water
 			tdsdt(i) = sqr(txx(i)) + 2.f * sqr(txy(i)) + sqr(tyy(i));
-			tdsdt(i) *= 0.5f * eta(i) / rho(i);
+			tdsdt(i) *= 0.5f * params.water_dynamic_visc / rho(i);
 		}
 
 		// pressure from equation of state 
-		p_art_water(rho(i), p(i), c(i));
+		p(i) = p_art_water(rho(i));
 	}
 }
 
@@ -197,10 +182,8 @@ void int_force(
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float>& w, // precomputed kernel
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	heap_darray<rr_float>& c,	// particle sound speed
 	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_float2>& a,	// acceleration with respect to x, y, z
-	heap_darray<rr_float>& dedt)	// change of specific internal energy
+	heap_darray<rr_float2>& a)	// acceleration with respect to x, y, z
 {
 	printlog_debug(__func__)();
 
@@ -209,7 +192,6 @@ void int_force(
 	static heap_darray<rr_float> tyy(params.maxn);
 	static heap_darray<rr_float> txy(params.maxn);
 	static heap_darray<rr_float> tdsdt(params.maxn); // production of viscous entropy
-	static heap_darray<rr_float> eta(params.maxn); // dynamic viscosity
 
 	// shear tensor, velocity divergence, viscous energy, internal energy, acceleration
 
@@ -223,22 +205,22 @@ void int_force(
 	update_internal_state(ntotal,
 		rho,
 		txx, txy, tyy,
-		eta, tdsdt, c, p);
+		tdsdt, p);
 
 	if (params.pa_sph == 1) {
 		find_internal_changes_pij_d_rhoij(ntotal,
-			v, mass, rho, eta,
+			v, mass, rho,
 			neighbours, dwdr,
 			vcc, txx, txy, tyy,
 			p, tdsdt,
-			a, dedt);
+			a);
 	}
 	else {
 		find_internal_changes_pidrho2i_pjdrho2j(ntotal,
-			v, mass, rho, eta,
+			v, mass, rho,
 			neighbours, dwdr,
 			vcc, txx, txy, tyy,
 			p, tdsdt,
-			a, dedt);
+			a);
 	}
 }
