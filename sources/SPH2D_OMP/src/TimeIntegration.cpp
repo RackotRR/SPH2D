@@ -1,6 +1,6 @@
 #include "CommonIncl.h"
 #include "Output.h"
-#include "SingleStep.h"
+#include "UpdateAcceleration.h"
 #include "VirtualParticles.h"
 #include "IsNormalCheck.h"
 #include "WaveMaker.h"
@@ -104,7 +104,7 @@ void time_integration(
 		}
 
 		// definition of variables out of the function vector:
-		single_step(nfluid, ntotal, mass, itype, r, 
+		update_acceleration(nfluid, ntotal, mass, itype, r, 
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 

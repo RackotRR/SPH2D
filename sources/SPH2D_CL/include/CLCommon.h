@@ -2,6 +2,8 @@
 #include <CL/opencl.hpp>
 #include "CommonIncl.h"
 
+static inline std::unordered_map<std::string, long long> times;
+
 class RRKernelFuctor {
 public:
     template<typename... Args>
@@ -10,7 +12,7 @@ public:
     }
     void execute(cl::NDRange global, cl::NDRange local) {
         //printlog_trace("enueueNDRangeKernel ")(kernel.getInfo<CL_KERNEL_FUNCTION_NAME>())();
-
+        
         auto command_queue = cl::CommandQueue::getDefault();
         cl_int err = command_queue.enqueueNDRangeKernel(
             kernel,

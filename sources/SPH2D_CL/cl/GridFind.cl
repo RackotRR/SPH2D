@@ -90,7 +90,6 @@ __kernel void fill_in_grid(__global rr_uint* grid){
     }
 }
 
-
 __kernel void find_neighbours(
     __global const rr_float2* r,
     __global const rr_uint* grid,
@@ -98,7 +97,8 @@ __kernel void find_neighbours(
 
     __global rr_uint* neighbours,
     __global rr_float* w,
-    __global rr_float2* dwdr)
+    __global rr_float2* dwdr,
+    __global rr_float2* intf_dwdr)
 {
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
@@ -130,12 +130,20 @@ __kernel void find_neighbours(
 				}
 				neighbours[at(neighbour_id, j)] = i;
 
+                rr_float dist = sqrt(dist_sqr);
+
 				rr_float wij;
 				rr_float2 dwdrij;
-				smoothing_kernel(sqrt(dist_sqr), diff, &wij, &dwdrij);
-
+				smoothing_kernel(dist, diff, &wij, &dwdrij);
 				w[at(neighbour_id, j)] = wij;
 				dwdr[at(neighbour_id, j)] = dwdrij;
+
+#ifdef params_int_force_kernel
+                intf_dwdr[at(neighbour_id, j)] = intf_kernel(dist, diff);
+#else
+                intf_dwdr[at(neighbour_id, j)] = dwdrij;
+#endif // params_int_force_kernel
+
                 ++neighbour_id;
 			}
 		} // grid_i

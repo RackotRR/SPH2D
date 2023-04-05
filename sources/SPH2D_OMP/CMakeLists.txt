@@ -18,7 +18,7 @@ add_library(SPH2D_OMP_SHARED
     src/GridFind.cpp
     src/InternalForce.cpp
     src/Kernel.cpp
-    src/SingleStep.cpp
+    src/UpdateAcceleration.cpp
     src/TimeIntegration.cpp
     src/WaveMaker.cpp
 )

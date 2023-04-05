@@ -1,35 +1,6 @@
 #include "common.h"
 #include "EOS.cl"
 
-__kernel void find_int_force_dwdr(
-    __global const rr_float2* r,
-    __global const rr_uint* neighbours,
-    __global rr_float2* intf_dwdr)
-{
-    size_t j = get_global_id(0);
-    if (j >= params_ntotal) return;
-
-    rr_uint i = 0;
-    for (rr_iter n = 0;
-        i = neighbours[at(n, j)], i != params_ntotal; // particle near
-        ++n)
-    {
-        if (i == j) continue; // particle isn't neighbour of itself
-
-        rr_float2 diff = r[i] - r[j];
-        rr_float dist = length(diff);
-        rr_float q = dist / params_hsml;
-#define factor (5.f / (16.f * (params_pi) * sqr(params_hsml)))
-        
-        if (q <= 2) {
-            intf_dwdr[at(n, j)] = diff * factor * (-3 * sqr(2 - q));
-        }
-        else {
-            intf_dwdr[at(n, j)] = 0.f;
-        }
-    }
-}
-
 __kernel void find_stress_tensor(
     __global const rr_float2* v,
     __global const rr_float* mass,

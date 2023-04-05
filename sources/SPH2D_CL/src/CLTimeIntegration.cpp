@@ -12,14 +12,13 @@ namespace {
     RRKernel find_neighbours_kernel;
     RRKernel sum_density_kernel;
     RRKernel con_density_kernel;
-    RRKernel find_int_force_dwdr_kernel;
     RRKernel find_stress_tensor_kernel;
     RRKernel update_internal_state_kernel;
     RRKernel find_internal_changes_kernel;
     RRKernel external_force_kernel;
     RRKernel artificial_viscosity_kernel;
     RRKernel average_velocity_kernel;
-    RRKernel single_step_kernel;
+    RRKernel update_acceleration_kernel;
     RRKernel whole_step_kernel;
     RRKernel update_boundaries_kernel;
     RRKernel fill_in_grid_kernel;
@@ -45,14 +44,13 @@ void makePrograms() {
     find_neighbours_kernel = RRKernel(grid_find_program, "find_neighbours");
     sum_density_kernel = RRKernel(density_program, "sum_density");
     con_density_kernel = RRKernel(density_program, "con_density");
-    find_int_force_dwdr_kernel = RRKernel(internal_force_program, "find_int_force_dwdr");
     find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
     update_internal_state_kernel = RRKernel(internal_force_program, "update_internal_state");
     find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
     external_force_kernel = RRKernel(external_force_program, "external_force");
     artificial_viscosity_kernel = RRKernel(artificial_viscosity_program, "artificial_viscosity");
     average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
-    single_step_kernel = RRKernel(time_integration_program, "single_step");
+    update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     update_boundaries_kernel = RRKernel(time_integration_program, "update_boundaries");
 }
@@ -94,6 +92,7 @@ void cl_time_integration(
     auto neighbours_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_neighbours * params.maxn);
     auto w_ = makeBuffer<rr_float>(DEVICE_ONLY, params.max_neighbours * params.maxn);
     auto dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.max_neighbours * params.maxn);
+    auto intf_dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.max_neighbours * params.maxn);
 
     // internal force
     auto vcc_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
@@ -103,7 +102,6 @@ void cl_time_integration(
     auto eta_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tdsdt_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
-    auto intf_dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // external force
     auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -183,7 +181,7 @@ void cl_time_integration(
         printlog_debug("find neighbours")();
         find_neighbours_kernel(
             r_, grid_, cells_,
-            neighbours_, w_, dwdr_
+            neighbours_, w_, dwdr_, intf_dwdr_
         ).execute(params.maxn, params.local_threads);
 
         if (params.summation_density) {
@@ -203,20 +201,9 @@ void cl_time_integration(
             ).execute(params.maxn, params.local_threads);
         }
 
-        cl::Buffer intf_dwdr = params.int_force_kernel ? intf_dwdr_ : dwdr_;
-        if (params.int_force_kernel) {
-            find_int_force_dwdr_kernel(r_, neighbours_, 
-                intf_dwdr_
-            ).execute(params.maxn, params.local_threads);
-            intf_dwdr = intf_dwdr_;
-        }
-        else {
-            intf_dwdr = dwdr_;
-        }
-
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, mass_, rho_predict_, neighbours_, intf_dwdr,
+            v_predict_, mass_, rho_predict_, neighbours_, intf_dwdr_,
             vcc_, txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
@@ -229,7 +216,7 @@ void cl_time_integration(
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, mass_, rho_predict_,
-            neighbours_, intf_dwdr,
+            neighbours_, intf_dwdr_,
             vcc_, txx_, txy_, tyy_, p_, tdsdt_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
@@ -254,8 +241,8 @@ void cl_time_integration(
             av_
         ).execute(params.maxn, params.local_threads);
 
-        printlog_debug("single step")();
-        single_step_kernel(
+        printlog_debug("update acceleration")();
+        update_acceleration_kernel(
             indvxdt_, exdvxdt_, ardvxdt_,
             a_
         ).execute(params.maxn, params.local_threads);

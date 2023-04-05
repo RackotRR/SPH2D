@@ -63,3 +63,20 @@ inline void smoothing_kernel(
 #endif
 #undef factor
 }
+
+inline rr_float2 intf_kernel(
+    rr_float dist,
+    rr_float2 diff)
+{
+    rr_float q = dist / params_hsml;
+#define intf_kernel_factor (5.f / (16.f * (params_pi) * sqr(params_hsml)))
+
+    rr_float2 intf_dwdr;
+    if (q <= 2) {
+        intf_dwdr = -3 * diff * intf_kernel_factor * sqr(2.f - q);
+    }
+    else {
+        intf_dwdr = 0.f;
+    }
+    return intf_dwdr;
+}

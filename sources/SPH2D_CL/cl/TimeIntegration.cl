@@ -1,6 +1,6 @@
 #include "common.h"
 
-__kernel void single_step(
+__kernel void update_acceleration(
 	__global const rr_float2* indvxdt, // int force
 	__global const rr_float2* exdvxdt, // ext force
 	__global const rr_float2* arvdvxdt, // art visc
@@ -47,7 +47,7 @@ __kernel void whole_step(
 	if (i >= params_ntotal) return;
 
 #ifndef params_summation_density
-	rho[i] = rho[i] + drho[i] * params_dt;
+	rho[i] += drho[i] * params_dt;
 #endif // params_summation_density
 
 	if (itype[i] > 0) { 

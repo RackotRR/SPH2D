@@ -3,7 +3,7 @@
 
 // determine the right hand side of a differential equation
 // in a single step for performing integration
-void single_step(
+void update_acceleration(
 	const rr_uint nfluid, // number of fluid particles
 	const rr_uint ntotal, // number of particles 
 	const heap_darray<rr_float>& mass,// particle masses
