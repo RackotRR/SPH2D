@@ -12,6 +12,7 @@ namespace {
     RRKernel find_neighbours_kernel;
     RRKernel sum_density_kernel;
     RRKernel con_density_kernel;
+    RRKernel find_int_force_dwdr_kernel;
     RRKernel find_stress_tensor_kernel;
     RRKernel update_internal_state_kernel;
     RRKernel find_internal_changes_kernel;
@@ -44,6 +45,7 @@ void makePrograms() {
     find_neighbours_kernel = RRKernel(grid_find_program, "find_neighbours");
     sum_density_kernel = RRKernel(density_program, "sum_density");
     con_density_kernel = RRKernel(density_program, "con_density");
+    find_int_force_dwdr_kernel = RRKernel(internal_force_program, "find_int_force_dwdr");
     find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
     update_internal_state_kernel = RRKernel(internal_force_program, "update_internal_state");
     find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
@@ -101,6 +103,7 @@ void cl_time_integration(
     auto eta_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tdsdt_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    auto intf_dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // external force
     auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -200,9 +203,20 @@ void cl_time_integration(
             ).execute(params.maxn, params.local_threads);
         }
 
+        cl::Buffer intf_dwdr = params.int_force_kernel ? intf_dwdr_ : dwdr_;
+        if (params.int_force_kernel) {
+            find_int_force_dwdr_kernel(r_, neighbours_, 
+                intf_dwdr_
+            ).execute(params.maxn, params.local_threads);
+            intf_dwdr = intf_dwdr_;
+        }
+        else {
+            intf_dwdr = dwdr_;
+        }
+
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, mass_, rho_predict_, neighbours_, dwdr_,
+            v_predict_, mass_, rho_predict_, neighbours_, intf_dwdr,
             vcc_, txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
@@ -215,7 +229,7 @@ void cl_time_integration(
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, mass_, rho_predict_,
-            neighbours_, dwdr_,
+            neighbours_, intf_dwdr,
             vcc_, txx_, txy_, tyy_, p_, tdsdt_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);

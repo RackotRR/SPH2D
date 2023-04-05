@@ -51,10 +51,21 @@ void single_step(
 			drho);
 	}
 
-	int_force(ntotal, 
-		mass, r, v, rho,
-		neighbours, w, dwdr,
-		p, indvxdt);
+	if (params.int_force_kernel) {
+		static heap_darray_md<rr_float2> intf_dwdr(params.max_neighbours, params.maxn);
+		find_int_force_kernel(ntotal, r, neighbours,
+			intf_dwdr);
+		int_force(ntotal,
+			mass, r, v, rho,
+			neighbours, intf_dwdr,
+			p, indvxdt);
+	}
+	else {
+		int_force(ntotal,
+			mass, r, v, rho,
+			neighbours, dwdr,
+			p, indvxdt);
+	}
 
 	artificial_viscosity(ntotal,
 		mass, r, v, rho,

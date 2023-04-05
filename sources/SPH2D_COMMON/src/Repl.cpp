@@ -29,7 +29,8 @@ bool overrideDirectory() {
 		std::string answer;
 		std::cin >> answer;
 		if (answer == "y" || answer == "yes") {
-			std::filesystem::remove_all(std::filesystem::current_path().append(params.experiment_name));
+			std::filesystem::remove_all(std::filesystem::current_path() / params.experiment_name / "data");
+			std::filesystem::remove_all(std::filesystem::current_path() / params.experiment_name / "dump");
 			return true;
 		}
 		else if (answer == "n" || answer == "no") {

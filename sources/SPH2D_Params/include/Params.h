@@ -67,6 +67,8 @@ struct ExperimentParams {
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
 	rr_uint skf{ 1 };
+	// enable separate non-clustering smoothing kernel for internal forces calculation
+	bool int_force_kernel{ true };
 
 	// numerical waves maker
 	// nmw = 0 : no waves

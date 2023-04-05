@@ -105,6 +105,7 @@ void calculate(const SPHFIO& sphfio, const std::string& value, double x, double 
     }
 
     std::ofstream output{ fmt::format("{}func_{}_at_{}_{}.txt", sphfio.getAnalysisDirectory(), value, x, y) };
+    std::ofstream csv_output{ fmt::format("{}func_{}_at_{}_{}.csv", sphfio.getAnalysisDirectory(), value, x, y) };
 
     rr_float2 rj = { (rr_float)x, (rr_float)y };
     printlog_debug(fmt::format("target r: ({}; {})", rj.x, rj.y))();
@@ -139,6 +140,7 @@ void calculate(const SPHFIO& sphfio, const std::string& value, double x, double 
 
         double time = params.dt * params.save_step * t;
         output << fmt::format("({}; {})", time, val) << std::endl;
+        csv_output << fmt::format("{},{}", time, val) << std::endl;
         printlog_trace("time: ")(time)();
         printlog_trace("val: ")(val)();
 

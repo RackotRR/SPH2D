@@ -60,6 +60,14 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(eos_csqr_k);
 	load(pa_sph);
 	load(skf);
+
+	if (version < ParamsVersion{ 1, 2 }) {
+		params.int_force_kernel = false;
+	}
+	else {
+		load(int_force_kernel);
+	}
+
 	load(nwm);
 	load(boundary_layers_num);
 	load(hsml);

@@ -62,6 +62,7 @@ namespace {
 			set(eos_csqr_k);
 			set(pa_sph);
 			set(skf);
+			set(int_force_kernel);
 			set(nwm);
 			set(boundary_layers_num);
 			set(hsml);

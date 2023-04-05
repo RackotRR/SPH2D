@@ -167,6 +167,38 @@ void update_internal_state(
 	}
 }
 
+void find_int_force_kernel(
+	const rr_uint ntotal,
+	const heap_darray<rr_float2>& r,	// coordinates of all particles 
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	heap_darray_md<rr_float2>& intf_dwdr) // int_force kernel derivative
+{
+	printlog_debug(__func__)();
+
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
+			if (i == j) continue; // particle isn't neighbour of itself
+
+			rr_float2 diff = r(i) - r(j);
+			rr_float dist = length(diff);
+			rr_float q = dist / params.hsml;
+
+			static rr_float factor = 5.f / (16.f * params.pi * sqr(params.hsml));
+			if (q <= 2) {
+				intf_dwdr(n, j) = diff * factor * (-3 * sqr(2 - q));
+			}
+			else {
+				intf_dwdr(n, j) = { 0.f };
+			}
+		}
+	}
+}
+
 // 144 page, 4.38; 4.41; 4.59; 4.58 equations 
 /*	Calculate the internal forces on the rigth hand side of the Navier-Stokes equations,
 *	i.e  the pressure gradient and the gradient of the viscous stress tensor, used by the time integration.
@@ -180,7 +212,6 @@ void int_force(
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	const heap_darray_md<rr_float>& w, // precomputed kernel
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_float2>& a)	// acceleration with respect to x, y, z
