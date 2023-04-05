@@ -22,13 +22,11 @@ void predict_half_step(
 	heap_darray<rr_float>& rho_predict, // half step for density
 	heap_darray<rr_float2>& v_predict); // half step for velocities
 
-void correct_step(
+void whole_step(
 	const rr_uint ntotal,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& a,	// acceleration
-	const heap_darray<rr_float>& rho_predict, // half step for density
-	const heap_darray<rr_float2>& v_predict,	// half step for velocities
 	const heap_darray<rr_float2>& av,	// average velocity
 	heap_darray<rr_float>& rho, // density
 	heap_darray<rr_float2>& v,	// velocities

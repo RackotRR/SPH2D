@@ -27,13 +27,11 @@ void predict_half_step(
 		v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
 	}
 }
-void correct_step(
+void whole_step(
 	const rr_uint ntotal,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& a,	// acceleration
-	const heap_darray<rr_float>& rho_predict, // half step for density
-	const heap_darray<rr_float2>& v_predict,	// half step for velocities
 	const heap_darray<rr_float2>& av,	// average velocity
 	heap_darray<rr_float>& rho, // density
 	heap_darray<rr_float2>& v,	// velocities
@@ -43,11 +41,11 @@ void correct_step(
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		if (params.summation_density == false) {
-			rho(i) = rho_predict(i) + drho(i) * params.dt;
+			rho(i) = rho(i) + drho(i) * params.dt;
 		}
 
 		if (itype(i) > 0) {
-			v(i) = v_predict(i) + a(i) * params.dt + av(i);
+			v(i) += a(i) * params.dt + av(i);
 			r(i) += v(i) * params.dt;
 		}
 	}
@@ -90,35 +88,34 @@ void time_integration(
 
 		printTimeEstimate(timer.total(), itimestep);
 
-		if (itimestep % params.save_step == 0) {
-			output(
-				r.copy(),
-				itype.copy(),
-				v.copy(),
-				std::nullopt,
-				p.copy(),
-				itimestep);
-		}
-
 		predict_half_step(ntotal,
 			rho, drho, 
 			v, a, 
 			*rho_predicted, v_predict);
+
+		if (itimestep % params.save_step == 0) {
+			output(
+				r.copy(),
+				itype.copy(),
+				v_predict.copy(),
+				std::nullopt,
+				p.copy(),
+				itimestep);
+		}
 
 		// definition of variables out of the function vector:
 		single_step(nfluid, ntotal, mass, itype, r, 
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		correct_step(ntotal,
-			itype,
-			drho, a,
-			*rho_predicted, v_predict, av,
-			rho, v, r);
-
 		if (params.nwm) {
 			make_waves(r, v, a, nfluid, ntotal, time);
 		}
+
+		whole_step(ntotal,
+			itype,
+			drho, a, av,
+			rho, v, r);
 
 		if (params.enable_check_consistency) {
 			if (should_check_normal(itimestep)) {
@@ -131,8 +128,8 @@ void time_integration(
 			dump(
 				r.copy(),
 				itype.copy(),
-				v.copy(),
-				rho.copy(),
+				v_predict.copy(),
+				rho_predicted->copy(),
 				p.copy(),
 				itimestep);
 		}

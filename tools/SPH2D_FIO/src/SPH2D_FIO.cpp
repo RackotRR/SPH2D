@@ -19,7 +19,6 @@ static constexpr char RHO_NAME[] = " rho ";
 static const double* getParticleVx(const Particle& particle) { return &particle.vx; }
 static const double* getParticleVy(const Particle& particle) { return &particle.vy; }
 static const double* getParticleP(const Particle& particle) { return &particle.p; }
-static const double* getParticleU(const Particle& particle) { return &particle.u; }
 static const double* getParticleRho(const Particle& particle) { return &particle.rho; }
 using ParticleVarGetter = const double* (*)(const Particle& particle);
 

@@ -32,13 +32,11 @@ __kernel void predict_half_step(
 	v_predict[i] = v[i] + a[i] * params_dt * 0.5f;
 }
 
-__kernel void correct_step(
+__kernel void whole_step(
 	__global const rr_int* itype,
 	__global const rr_float* drho,
 	__global const rr_float2* a,
 
-	__global const rr_float* rho_predict,
-	__global const rr_float2* v_predict,
 	__global const rr_float2* av,
 
 	__global rr_float* rho,
@@ -49,13 +47,12 @@ __kernel void correct_step(
 	if (i >= params_ntotal) return;
 
 #ifndef params_summation_density
-	rho[i] = rho_predict[i] + drho[i] * params_dt;
+	rho[i] = rho[i] + drho[i] * params_dt;
 #endif // params_summation_density
 
-	if (itype[i] > 0) {
-		rr_float2 v_temp = v_predict[i] + a[i] * params_dt + av[i];
-		v[i] = v_temp;
-		r[i] += v_temp * params_dt;
+	if (itype[i] > 0) { 
+		v[i] += a[i] * params_dt + av[i];
+		r[i] += v[i] * params_dt;
 	}
 }
 

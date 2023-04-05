@@ -19,7 +19,7 @@ namespace {
     RRKernel artificial_viscosity_kernel;
     RRKernel average_velocity_kernel;
     RRKernel single_step_kernel;
-    RRKernel correct_step_kernel;
+    RRKernel whole_step_kernel;
     RRKernel update_boundaries_kernel;
     RRKernel fill_in_grid_kernel;
     RRKernel sort_kernel;
@@ -51,7 +51,7 @@ void makePrograms() {
     artificial_viscosity_kernel = RRKernel(artificial_viscosity_program, "artificial_viscosity");
     average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
     single_step_kernel = RRKernel(time_integration_program, "single_step");
-    correct_step_kernel = RRKernel(time_integration_program, "correct_step");
+    whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     update_boundaries_kernel = RRKernel(time_integration_program, "update_boundaries");
 }
 
@@ -69,7 +69,7 @@ void cl_time_integration(
 
     makePrograms();
 
-    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE;// | CL_MEM_HOST_WRITE_ONLY;
+    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
     constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 
     // common
@@ -124,13 +124,20 @@ void cl_time_integration(
 
         printTimeEstimate(timer.total(), itimestep);
 
+        printlog_debug("predict_half_step_kernel")();
+        predict_half_step_kernel(
+            drho_, a_,
+            rho_, v_,
+            rho_predict_, v_predict_
+        ).execute(params.maxn, params.local_threads);
+
         if (itimestep % params.save_step == 0) {
             heap_darray<rr_float2> r_temp(params.maxn);
             heap_darray<rr_float2> v_temp(params.maxn);
             heap_darray<rr_float> p_temp(params.maxn);
 
             cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_, v_temp.begin(), v_temp.end());
+            cl::copy(v_predict_, v_temp.begin(), v_temp.end());
             cl::copy(p_, p_temp.begin(), p_temp.end());
 
             if (params.enable_check_consistency) {
@@ -145,13 +152,6 @@ void cl_time_integration(
                 std::move(p_temp),
                 itimestep);
         }
-
-        printlog_debug("predict_half_step_kernel")();
-        predict_half_step_kernel(
-            drho_, a_,
-            rho_, v_,
-            rho_predict_, v_predict_
-        ).execute(params.maxn, params.local_threads);
 
         printlog_debug("fill in grid")();
         fill_in_grid_kernel(
@@ -246,19 +246,18 @@ void cl_time_integration(
             a_
         ).execute(params.maxn, params.local_threads);
 
-        printlog_debug("correct step")();
-        correct_step_kernel(
-            itype_, drho_, a_,
-            rho_predict_, v_predict_, av_,
-            rho_, v_, r_
-        ).execute(params.maxn, params.local_threads);
-
         if (params.nwm) {
             printlog_debug("update boundaries")();
             update_boundaries_kernel(
                 v_, r_, time
             ).execute(params.maxn, params.local_threads);
         }
+
+        printlog_debug("whole step")();
+        whole_step_kernel(
+            itype_, drho_, a_, av_,
+            rho_, v_, r_
+        ).execute(params.maxn, params.local_threads);
 
         if (itimestep && itimestep % params.dump_step == 0) {
             heap_darray<rr_float2> r_temp(params.maxn);
@@ -268,9 +267,9 @@ void cl_time_integration(
             heap_darray<rr_float> u_temp(params.maxn);
 
             cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_, v_temp.begin(), v_temp.end());
+            cl::copy(v_predict_, v_temp.begin(), v_temp.end());
             cl::copy(p_, p_temp.begin(), p_temp.end());
-            cl::copy(rho_, rho_temp.begin(), rho_temp.end());
+            cl::copy(rho_predict_, rho_temp.begin(), rho_temp.end());
 
             dump(
                 std::move(r_temp),

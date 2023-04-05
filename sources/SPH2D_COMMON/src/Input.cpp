@@ -63,7 +63,7 @@ void loadDefaultParams() {
 	params.dump_step = 10 * params.save_step;
 	params.normal_check_step = params.save_step;
 	params.simulation_time = 1.2f;
-	params.dt = 2.5e-5f;
+	params.dt = 5.0e-5f;
 	rr_float steps = params.simulation_time / params.dt;
 	if (steps < 0) {
 		throw std::runtime_error{ "maxtimestep error" };
