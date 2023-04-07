@@ -3,7 +3,8 @@ project(SPH2D_FIO)
 
 add_library(SPH2D_FIO
     src/SPH2D_FIO.cpp
-)
+    src/SPHFIO_REPL.cpp
+ )
 target_include_directories(SPH2D_FIO PUBLIC include)
 
 
@@ -11,6 +12,7 @@ target_link_libraries(SPH2D_FIO PRIVATE
     nlohmann::json
     mio::mio
     RR
+    fmt
 )
 target_link_libraries(SPH2D_FIO PUBLIC SPH2D_PARAMS)
 

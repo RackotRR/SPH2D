@@ -22,6 +22,7 @@ using Square = std::pair<std::pair<double, double>, std::pair<double, double>>;
 
 class SPHFIO {
 public:
+	SPHFIO();
 	SPHFIO(std::string experiment_name);
 
 	const Square& getSquare() const {

@@ -170,19 +170,13 @@ int main(int argc, const char* argv[]) {
 
     try {
         if (argc == 1) {
-            std::cout << "read from experiment: ";
-            std::getline(std::cin, experiment_name);
-            init_logger(experiment_name + "./func_at_point_log.txt");
-
-            SPHFIO sphfio{ experiment_name };
+            SPHFIO sphfio{};
             for (;;) {
                 repl(sphfio);
             }
         }
         else if (argc == 2) {
             experiment_name = argv[1];
-            init_logger(experiment_name + "./func_at_point_log.txt");
-
             SPHFIO sphfio{ experiment_name };
             for (;;) {
                 repl(sphfio);
@@ -190,8 +184,6 @@ int main(int argc, const char* argv[]) {
         }
         else if (argc == 5) {
             experiment_name = argv[1];
-            init_logger(experiment_name + "./func_at_point_log.txt");
-
             std::string value = argv[2];
 
             SPHFIO sphfio{ experiment_name };

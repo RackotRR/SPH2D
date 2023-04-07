@@ -48,19 +48,16 @@ void printWaterHeight(
 }
 
 int main() {
-    std::string experiment_name;
-    std::cout << "[WaterProfile] Experiment directory: ";
-    std::getline(std::cin, experiment_name);
-
+    std::cout << "[WaterProfile tool]" << std::endl;
     std::unique_ptr<SPHFIO> sphfio;
-    std::filesystem::path experiment_directory = experiment_name;
     try {
-        sphfio = std::make_unique<SPHFIO>(experiment_name);
+        sphfio = std::make_unique<SPHFIO>();
     }
     catch (const std::exception& ex) {
         std::cerr << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
+    std::filesystem::path experiment_directory = sphfio->getExperimentDirectory();
 
     for (;;) {
         std::cout << "Press [enter] to load testing params and compute (dir/AnalysisParams.json)" << std::endl;
