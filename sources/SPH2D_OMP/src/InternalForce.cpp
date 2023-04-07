@@ -58,7 +58,6 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_darray<rr_float>& txy,
 	const heap_darray<rr_float>& tyy,
 	const heap_darray<rr_float>& p,	// particle pressure
-	const heap_darray<rr_float>& tdsdt,	// production of viscous entropy
 	heap_darray<rr_float2>& a)	// acceleration with respect to x, y, z
 {
 	printlog_debug(__func__)();
@@ -103,7 +102,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_darray<rr_float>& txy,
 	const heap_darray<rr_float>& tyy,
 	const heap_darray<rr_float>& p,	// particle pressure
-	const heap_darray<rr_float>& tdsdt,	// production of viscous entropy
 	heap_darray<rr_float2>& a)	// acceleration with respect to x, y, z
 {
 	printlog_debug(__func__)();
@@ -143,17 +141,11 @@ void update_internal_state(
 	const heap_darray<rr_float>& txx,
 	const heap_darray<rr_float>& txy,	
 	const heap_darray<rr_float>& tyy,	
-	heap_darray<rr_float>& tdsdt,	// production of viscous entropy
 	heap_darray<rr_float>& p)	// particle pressure
 {
 	printlog_debug(__func__)();
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.visc) { // viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
-			tdsdt(i) = sqr(txx(i)) + 2.f * sqr(txy(i)) + sqr(tyy(i));
-			tdsdt(i) *= 0.5f * params.water_dynamic_visc / rho(i);
-		}
-
 		// pressure from equation of state 
 		p(i) = p_art_water(rho(i));
 	}
@@ -182,7 +174,7 @@ void find_int_force_kernel(
 
 			static rr_float factor = 5.f / (16.f * params.pi * sqr(params.hsml));
 			if (q <= 2) {
-				intf_dwdr(n, j) = diff * factor * (-3 * sqr(2 - q)) / sqr(params.hsml);
+				intf_dwdr(n, j) = diff / dist * factor * (-3 * sqr(2 - q)) / params.hsml;
 			}
 			else {
 				intf_dwdr(n, j) = { 0.f };
@@ -213,17 +205,6 @@ void int_force(
 	static heap_darray<rr_float> txx(params.maxn);
 	static heap_darray<rr_float> tyy(params.maxn);
 	static heap_darray<rr_float> txy(params.maxn);
-	static heap_darray<rr_float> tdsdt(params.maxn); // production of viscous entropy
-
-	// shear tensor, velocity divergence, viscous energy, internal energy, acceleration
-	for (int i = 0; i < ntotal; i += 1000) {
-		for (int n = 0; n != ntotal && n < 3; n++) {
-			rr_float2 vec = dwdr(n, i);
-			std::cout << "(" << vec.x << "; " << vec.y << ") ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "-----------------------------------------------" << std::endl;
 
 	if (params.visc) {
 		find_stress_tensor(ntotal,
@@ -235,14 +216,14 @@ void int_force(
 	update_internal_state(ntotal,
 		rho,
 		txx, txy, tyy,
-		tdsdt, p);
+		p);
 
 	if (params.pa_sph == 1) {
 		find_internal_changes_pij_d_rhoij(ntotal,
 			v, mass, rho,
 			neighbours, dwdr,
 			txx, txy, tyy,
-			p, tdsdt,
+			p,
 			a);
 	}
 	else {
@@ -250,7 +231,7 @@ void int_force(
 			v, mass, rho,
 			neighbours, dwdr,
 			txx, txy, tyy,
-			p, tdsdt,
+			p,
 			a);
 	}
 }

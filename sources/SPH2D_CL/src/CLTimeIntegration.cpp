@@ -99,7 +99,6 @@ void cl_time_integration(
     auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto eta_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto tdsdt_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // external force
@@ -209,14 +208,14 @@ void cl_time_integration(
         printlog_debug("update internal state")();
         update_internal_state_kernel(
             rho_predict_, txx_, txy_, tyy_,
-            tdsdt_, p_
+            p_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, mass_, rho_predict_,
             neighbours_, intf_dwdr_,
-            txx_, txy_, tyy_, p_, tdsdt_,
+            txx_, txy_, tyy_, p_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
 

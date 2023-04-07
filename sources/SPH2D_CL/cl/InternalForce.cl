@@ -55,7 +55,6 @@ __kernel void find_internal_changes_pij_d_rhoij(
     __global const rr_float* txy,
     __global const rr_float* tyy,
     __global const rr_float* p,
-    __global const rr_float* tdsdt,
 
     __global rr_float2* a)
 {
@@ -96,7 +95,6 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
     __global const rr_float* txy,
     __global const rr_float* tyy,
     __global const rr_float* p,
-    __global const rr_float* tdsdt,
 
     __global rr_float2* a)
 {
@@ -135,17 +133,10 @@ __kernel void update_internal_state(
     __global const rr_float* txy,
     __global const rr_float* tyy,
 
-    __global rr_float* tdsdt,
     __global rr_float* p)
 {
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
-
-#ifdef params_visc
-    // viscous entropy Tds/dt = 1/2 eta/rho Tab Tab
-    rr_float tdsdt_tmp = sqr(txx[j]) + 2.f * sqr(txy[j]) + sqr(tyy[j]);
-    tdsdt[j] = tdsdt_tmp * 0.5f * params_water_dynamic_visc / rho[j];
-#endif // params_visc
 
     // pressure from equation of state 
     p[j] = p_art_water(rho[j]);

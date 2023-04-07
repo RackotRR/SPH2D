@@ -17,16 +17,12 @@ inline void smoothing_kernel(
     }
     else if (q <= 2.f) {
         *w = factor * (1.f / 6.f * cube(2.f - q));
-        *dwdr = -diff * (factor * sqr(2.f - q) * 0.5f / params_hsml / dist);
+        *dwdr = -diff / dist * (factor * sqr(2.f - q) * 0.5f / params_hsml);
     }
     else {
         *w = 0.f;
         *dwdr = 0.f;
     }
-
-    //rr_float asdf = (-2.f + 3.f * 0.5f * q);
-    //*w = params_hsml * (15.f / (7.f * params_pi * sqr(params_hsml))) * (-2.f + 3.f * 0.5f * q) / sqr(params_hsml);
-    //*w *= asdf;
 
 #elif params_skf == 2
 #define factor 1.f / (powun(params_hsml, params_dim) * pow(params_pi, params_dim * 0.5f))
@@ -73,7 +69,7 @@ inline rr_float2 intf_kernel(
 
     rr_float2 intf_dwdr;
     if (q <= 2) {
-        intf_dwdr = -3 * diff * intf_kernel_factor * sqr(2.f - q);
+        intf_dwdr = -3.f * diff / dist * intf_kernel_factor * sqr(2.f - q) / params_hsml;
     }
     else {
         intf_dwdr = 0.f;
