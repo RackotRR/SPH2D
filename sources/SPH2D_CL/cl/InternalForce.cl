@@ -8,7 +8,6 @@ __kernel void find_stress_tensor(
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
 
-    __global rr_float* vcc,
     __global rr_float* txx,
     __global rr_float* txy,
     __global rr_float* tyy)
@@ -16,7 +15,6 @@ __kernel void find_stress_tensor(
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
 
-    rr_float vcc_temp = 0.f;
     rr_float txx_temp = 0.f;
     rr_float txy_temp = 0.f;
     rr_float tyy_temp = 0.f;
@@ -40,13 +38,8 @@ __kernel void find_stress_tensor(
         txx_temp += massi * hxx / rhoi;
         txy_temp += massi * hxy / rhoi;
         tyy_temp += massi * hyy / rhoi;
-
-        // calculate SPH sum for vc, c = dvx/dx + dvy/dy + dvz/dz
-        rr_float hvcc = dot(dvx, dwdri);
-        vcc_temp += massi * hvcc / rhoi;
     }
 
-    vcc[j] = vcc_temp;
     txx[j] = txx_temp;
     txy[j] = txy_temp;
     tyy[j] = tyy_temp;
@@ -58,7 +51,6 @@ __kernel void find_internal_changes_pij_d_rhoij(
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
-    __global const rr_float* vcc,
     __global const rr_float* txx,
     __global const rr_float* txy,
     __global const rr_float* tyy,
@@ -88,7 +80,7 @@ __kernel void find_internal_changes_pij_d_rhoij(
         h.y += (tyy[i] + tyy[j]) * dwdri.y * params_water_dynamic_visc;
 #endif // params_visc
 
-        a_temp -= -dwdri * mrhoij * (p[i] + p[j]);
+        a_temp -= h * mrhoij;
     }
 
     a[j] = a_temp;
@@ -100,7 +92,6 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
-    __global const rr_float* vcc,
     __global const rr_float* txx,
     __global const rr_float* txy,
     __global const rr_float* tyy,

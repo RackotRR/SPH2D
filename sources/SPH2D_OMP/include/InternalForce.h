@@ -30,7 +30,6 @@ void find_stress_tensor(
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	heap_darray<rr_float>& vcc,
 	heap_darray<rr_float>& txx,
 	heap_darray<rr_float>& txy,
 	heap_darray<rr_float>& tyy);
@@ -52,7 +51,6 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	const heap_darray<rr_float>& vcc,
 	const heap_darray<rr_float>& txx,
 	const heap_darray<rr_float>& txy,
 	const heap_darray<rr_float>& tyy,
@@ -67,7 +65,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	const heap_darray<rr_float>& vcc,
 	const heap_darray<rr_float>& txx,
 	const heap_darray<rr_float>& txy,
 	const heap_darray<rr_float>& tyy,

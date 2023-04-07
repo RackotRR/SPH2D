@@ -95,7 +95,6 @@ void cl_time_integration(
     auto intf_dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.max_neighbours * params.maxn);
 
     // internal force
-    auto vcc_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
@@ -204,7 +203,7 @@ void cl_time_integration(
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
             v_predict_, mass_, rho_predict_, neighbours_, intf_dwdr_,
-            vcc_, txx_, txy_, tyy_
+            txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("update internal state")();
@@ -217,7 +216,7 @@ void cl_time_integration(
         find_internal_changes_kernel(
             v_predict_, mass_, rho_predict_,
             neighbours_, intf_dwdr_,
-            vcc_, txx_, txy_, tyy_, p_, tdsdt_,
+            txx_, txy_, tyy_, p_, tdsdt_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
 

@@ -52,6 +52,8 @@ int main(int arc, const char* argv[]) {
 
 #ifdef _WIN32
 	system("pause");
+#else // all detached output threads have to finish their work
+	std::this_thread::sleep_for(std::chrono::minutes{ 1 });
 #endif // _WIN32
 	return 0;
 }

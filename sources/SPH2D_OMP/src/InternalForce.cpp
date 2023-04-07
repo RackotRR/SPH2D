@@ -12,7 +12,6 @@ void find_stress_tensor(
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	heap_darray<rr_float>& vcc,
 	heap_darray<rr_float>& txx,
 	heap_darray<rr_float>& txy,
 	heap_darray<rr_float>& tyy)
@@ -21,7 +20,6 @@ void find_stress_tensor(
 	// calculate SPH sum for shear tensor Tab = va,b + vb,a - 2/3 delta_ab vc,c
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
-		vcc(j) = 0.f;
 		txx(j) = 0.f;
 		txy(j) = 0.f;
 		tyy(j) = 0.f;
@@ -44,10 +42,6 @@ void find_stress_tensor(
 			txx(j) += mass(i) * hxx / rho(i);
 			txy(j) += mass(i) * hxy / rho(i);
 			tyy(j) += mass(i) * hyy / rho(i);
-
-			// calculate SPH sum for vc, c = dvx/dx + dvy/dy + dvz/dz
-			rr_float hvcc = dot(dvx, dwdr(n, j));
-			vcc(j) += mass(i) * hvcc / rho(i);
 		}
 	}
 }
@@ -60,7 +54,6 @@ void find_internal_changes_pij_d_rhoij(
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	const heap_darray<rr_float>& vcc,
 	const heap_darray<rr_float>& txx,
 	const heap_darray<rr_float>& txy,
 	const heap_darray<rr_float>& tyy,
@@ -106,7 +99,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	const heap_darray<rr_float>& vcc,
 	const heap_darray<rr_float>& txx,
 	const heap_darray<rr_float>& txy,
 	const heap_darray<rr_float>& tyy,
@@ -190,7 +182,7 @@ void find_int_force_kernel(
 
 			static rr_float factor = 5.f / (16.f * params.pi * sqr(params.hsml));
 			if (q <= 2) {
-				intf_dwdr(n, j) = diff * factor * (-3 * sqr(2 - q));
+				intf_dwdr(n, j) = diff * factor * (-3 * sqr(2 - q)) / sqr(params.hsml);
 			}
 			else {
 				intf_dwdr(n, j) = { 0.f };
@@ -218,19 +210,26 @@ void int_force(
 {
 	printlog_debug(__func__)();
 
-	static heap_darray<rr_float> vcc(params.maxn);
 	static heap_darray<rr_float> txx(params.maxn);
 	static heap_darray<rr_float> tyy(params.maxn);
 	static heap_darray<rr_float> txy(params.maxn);
 	static heap_darray<rr_float> tdsdt(params.maxn); // production of viscous entropy
 
 	// shear tensor, velocity divergence, viscous energy, internal energy, acceleration
+	for (int i = 0; i < ntotal; i += 1000) {
+		for (int n = 0; n != ntotal && n < 3; n++) {
+			rr_float2 vec = dwdr(n, i);
+			std::cout << "(" << vec.x << "; " << vec.y << ") ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "-----------------------------------------------" << std::endl;
 
 	if (params.visc) {
 		find_stress_tensor(ntotal,
 			v, mass, rho,
 			neighbours, dwdr,
-			vcc, txx, txy, tyy);
+			txx, txy, tyy);
 	}
 
 	update_internal_state(ntotal,
@@ -242,7 +241,7 @@ void int_force(
 		find_internal_changes_pij_d_rhoij(ntotal,
 			v, mass, rho,
 			neighbours, dwdr,
-			vcc, txx, txy, tyy,
+			txx, txy, tyy,
 			p, tdsdt,
 			a);
 	}
@@ -250,7 +249,7 @@ void int_force(
 		find_internal_changes_pidrho2i_pjdrho2j(ntotal,
 			v, mass, rho,
 			neighbours, dwdr,
-			vcc, txx, txy, tyy,
+			txx, txy, tyy,
 			p, tdsdt,
 			a);
 	}
