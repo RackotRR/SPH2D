@@ -12,27 +12,27 @@ Generally they are the same except NNPS (nearest neighbour particle search) modu
 - SPH2D_OCL uses bitonic sort (so here the maximum number of particles should be a power of 2) and binary search.
 Though SPH is meshfree method, NNPS here uses mesh in order to accelerate pairs searching (method's described in [my report](https://github.com/RackotRR/SPH2D/files/10994545/_._2021_._._._.pdf)).
 
-There are also several tests to ensure that both versions work the same way.
-
 Here are implemented dynamic boundaries based on Lennard-Jones potential. In several experiments I used them to simulate piston movement and generate waves by its means. Here is [my other report](https://github.com/RackotRR/SPH2D/files/10994558/_._2022_._._._._._._.pdf) on this topic.
 
-All the input is in `Input.cpp` and `Params.h` files. I'm going to add option to load particles and other data from a state dump in order to continue interrupted experiment or start in complex conditions. SPH2D_OCL will efficiently load it in runtime, create `clparams.h` header and compile its programs. There's still a compromise between SPH2D_OMP and SPH2D_OCL so some const variables are defined in `Params.h`, while others defined in `Input.cpp` to make recompilation faster.
+All the input generated in `Input.cpp` and `Params.h` files. Also you can manually fill in Params.json file to run experiment without recompilation. SPH2D_OCL will efficiently load it in runtime, create `clparams.h` header and compile its programs.
 
 ### Using
 You can use this project however you want. I hope it just can be helpful or just interesting to see.
 
-Project requires C++20 and format library, so it can be compiled by clang or msvc.
-Here are two executables: SPH2D_OMP and SPH2D_CL. Installation of SPH2D_CL also copies its OpenCL code to destination folder.
+Project requires C++20. Tested compilation by g++ and msvc.
+Here are two main executables: SPH2D_OMP and SPH2D_CL. Installation of SPH2D_CL also copies its OpenCL code to destination folder.
+There were experiments for several millions particles powered by SPH2D_CL.
 
-Catch2 library used as testing service for CTest.
+There are also several tools: 
+- FuncAtPoint: finds specified function value at point and plots it;
+- WaterProfile: takes AnalysisParams.json file and plots water profile by space or by time with specified transformations;
+- [SPH2D_Drawer](https://github.com/RackotRR/SPH2D_Drawer): my visualizetion tool with heatmap and output customization by commands.
 
 ### Output
 - If something goes wrong, there's log. It contains all experiment params, device info and experiment flow.
 - Experiments take a lot of time, so program provides time estimate every `Params::print_time_est_step` steps based on previous iterations.
 - Every `params.save_step` steps program dumps all particles state into a file (in separate thread) with format string, so you can read it later.
 - To find out all the parameters used to perform experiment program also dumps generated `clparams.h` file, copy of that is used in calculations by SPH2D_OCL.
-
-In order to visualize output data I'm working on [SPH2D_Drawer](https://github.com/RackotRR/SPH2D_Drawer). You just have to provide it with path to experiment directory.
 
 Here are some examples of water simulations:
 ![video_vy_0](https://user-images.githubusercontent.com/60754292/225718496-eba40340-dff1-415e-94d0-2c0ef6b56693.gif)
