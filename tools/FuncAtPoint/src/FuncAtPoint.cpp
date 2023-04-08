@@ -170,12 +170,14 @@ int main(int argc, const char* argv[]) {
 
     try {
         if (argc == 1) {
+            std::cout << "[FuncAtPoint tool]" << std::endl;
             SPHFIO sphfio{};
             for (;;) {
                 repl(sphfio);
             }
         }
         else if (argc == 2) {
+            std::cout << "[FuncAtPoint tool]" << std::endl;
             experiment_name = argv[1];
             SPHFIO sphfio{ experiment_name };
             for (;;) {

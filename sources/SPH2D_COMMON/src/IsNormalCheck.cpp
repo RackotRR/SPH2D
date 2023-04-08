@@ -55,27 +55,33 @@ bool check_particles_are_within_boundaries(
 	printlog_debug(__func__)();
 
 	bool are_within_boundaries = true;
+	rr_iter outside_k = 0;
 
-	for (rr_uint k = 0; k < ntotal; ++k) {
+#pragma omp parallel for
+	for (rr_iter k = 0; k < ntotal; ++k) {
 		if (r(k).x > params.x_maxgeom ||
 			r(k).x < params.x_mingeom ||
 			r(k).y > params.y_maxgeom ||
-			r(k).y < params.y_mingeom)
+			r(k).y < params.y_mingeom ||
+			!std::isfinite(r(k).x) ||
+			!std::isfinite(r(k).y))
 		{
-			if (params.inf_stop) {
-				throw std::runtime_error{
-					fmt::format("encounter particle outside boundaries: \n\t type: {}\n\t r: ({}; {}) // ({} .. {}; {} .. {})\n\t k: {}",
-					itype(k), r(k).x, r(k).y, params.x_mingeom, params.x_maxgeom, params.y_mingeom, params.y_maxgeom, k)
-				};
-			}
-			else {
-				are_within_boundaries = false;
-			}
+			are_within_boundaries = false;
+			outside_k = k;
 		}
 	}
 
 	if (!are_within_boundaries) {
-		std::cerr << "encounter particle outside boundaries!" << std::endl;
+		if (params.inf_stop) {
+			throw std::runtime_error{
+				fmt::format("encounter particle outside boundaries: \n\t type: {}\n\t r: ({}; {}) // ({} .. {}; {} .. {})\n\t k: {}",
+				itype(outside_k), r(outside_k).x, r(outside_k).y, 
+				params.x_mingeom, params.x_maxgeom, params.y_mingeom, params.y_maxgeom, outside_k)
+			};
+		}
+		else {
+			std::cerr << "encounter particle outside boundaries!" << std::endl;
+		}
 	}
 	return are_within_boundaries;
 }

@@ -18,14 +18,14 @@ void loadDefaultParams() {
 	constexpr rr_float ratio = L / depth;
 	constexpr rr_float tank_length = 3.22f;
 	constexpr rr_float tank_height = 2.f;
-	constexpr rr_uint particlesPer_d = 100;
+	constexpr rr_uint particlesPer_d = 250;
 	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
 	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L);
 	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d);
 	constexpr rr_uint fluid_particles = fluid_particles_x * fluid_particles_y;
 	constexpr rr_float delta = depth / particlesPer_d;
 
-	params.maxn = 1 << 15;
+	params.maxn = 1 << 17;
 	params.max_cells = params.max_neighbours * params.maxn;
 
 	params.delta = delta;
@@ -57,11 +57,11 @@ void loadDefaultParams() {
 	params.depth = depth;
 
 	params.eos_csqr_k = 2;
-	params.average_velocity = false;
+	params.average_velocity = true;
 	params.average_velocity_epsilon = 0.3f;
-	params.int_force_kernel = false;
+	params.int_force_kernel = true;
 
-	params.save_step = 2500;
+	params.save_step = 5000;
 	params.dump_step = 10 * params.save_step;
 	params.normal_check_step = params.save_step;
 	params.simulation_time = 2.f;

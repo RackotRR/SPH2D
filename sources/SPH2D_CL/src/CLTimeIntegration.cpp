@@ -74,14 +74,14 @@ void cl_time_integration(
 
     // common
     auto r_ = makeBufferCopyHost(r);
-    auto v_ = makeBufferCopyHost(HOST_INPUT, v);
+    auto v_ = makeBufferCopyHost(v);
     auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, mass);
-    auto rho_ = makeBufferCopyHost(HOST_INPUT, rho);
-    auto p_ = makeBufferCopyHost(HOST_INPUT, p);
-    auto itype_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, itype);
+    auto rho_ = makeBufferCopyHost(rho);
+    auto p_ = makeBufferCopyHost(p);
+    auto itype_ = makeBufferCopyHost(HOST_INPUT, itype);
 
-    auto rho_predict_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto v_predict_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    auto rho_predict_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
+    auto v_predict_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, params.maxn);
 
     auto drho_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto a_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -263,7 +263,6 @@ void cl_time_integration(
             heap_darray<rr_float2> v_temp(params.maxn);
             heap_darray<rr_float> p_temp(params.maxn);
             heap_darray<rr_float> rho_temp(params.maxn);
-            heap_darray<rr_float> u_temp(params.maxn);
 
             cl::copy(r_, r_temp.begin(), r_temp.end());
             cl::copy(v_predict_, v_temp.begin(), v_temp.end());

@@ -35,7 +35,7 @@ void kernel(
 
 		if (q <= 1) { 
 			w = factor * (2.f / 3.f - sqr(q) + cube(q) * 0.5f);
-			dwdx = diff / dist * (factor * (-2.f * q + 3.f * 0.5f * q * q) / hsml);
+			dwdx = diff * (factor * (-2.f + 3.f * 0.5f * q) / sqr(hsml));
 		}
 		else if (q <= 2) {
 			w = factor * (1.f / 6.f * cube(2.f - q));

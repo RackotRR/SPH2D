@@ -12,7 +12,7 @@ target_link_libraries(SPH2D_FIO PRIVATE
     nlohmann::json
     mio::mio
     RR
-    fmt
+    fmt::fmt-header-only
 )
 target_link_libraries(SPH2D_FIO PUBLIC SPH2D_PARAMS)
 
