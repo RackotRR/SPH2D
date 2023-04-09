@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
 #include <RR/Time/Timer.h>
 
 #include "CommonIncl.h"
