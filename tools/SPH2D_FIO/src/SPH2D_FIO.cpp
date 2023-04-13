@@ -86,6 +86,11 @@ SPHFIO::SPHFIO(std::string experiment_name) {
 	printlog_debug("experiment name: ")(this->experiment_name)();
 
 	params.load(experiment_directory + "Params.json");
+	if (params.experiment_name != experiment_name) {
+		params.experiment_name = experiment_name;
+		params.makeJson(experiment_directory + "Params.json");
+	}
+
 	additional_values_index = findAdditionalValues(params);
 	square = loadSquare(params);
 	grid = loadGrid(params, additional_values_index);

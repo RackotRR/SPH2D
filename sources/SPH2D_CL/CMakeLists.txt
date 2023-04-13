@@ -15,9 +15,9 @@ add_library(SPH2D_CL_SHARED STATIC
     "src/CLTimeIntegration.cpp"
 )
 target_include_directories(SPH2D_CL_SHARED PUBLIC include)
-target_compile_definitions(SPH2D_CL_SHARED PUBLIC CL_HPP_TARGET_OPENCL_VERSION=220)
-target_compile_definitions(SPH2D_CL_SHARED PUBLIC CL_HPP_MINIMUM_OPENCL_VERSION=220)
-target_compile_definitions(SPH2D_CL_SHARED PUBLIC CL_TARGET_OPENCL_VERSION=220)
+target_compile_definitions(SPH2D_CL_SHARED PUBLIC CL_HPP_TARGET_OPENCL_VERSION=120)
+target_compile_definitions(SPH2D_CL_SHARED PUBLIC CL_HPP_MINIMUM_OPENCL_VERSION=120)
+target_compile_definitions(SPH2D_CL_SHARED PUBLIC CL_TARGET_OPENCL_VERSION=120)
 target_compile_definitions(SPH2D_CL_SHARED PUBLIC SPH2D_CL)
 target_compile_definitions(SPH2D_CL_SHARED PUBLIC LOGGING_LEVEL=1)
 
