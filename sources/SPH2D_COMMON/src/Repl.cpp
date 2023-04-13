@@ -53,10 +53,10 @@ void repl(
 	while (true) {
 		try {
 			std::cout << "[SPH2D] Experiment name: ";
-			std::string line;
-			std::getline(std::cin, params.experiment_name);
+			std::string experiment_name;
+			std::getline(std::cin, experiment_name);
 
-			auto experiment_directory = std::filesystem::current_path() / params.experiment_name;
+			auto experiment_directory = std::filesystem::current_path() / experiment_name;
 			if (std::filesystem::exists(experiment_directory)) {
 
 				auto params_path = experiment_directory / "Params.json";
@@ -73,6 +73,7 @@ void repl(
 
 				std::cout << "Found experiment" << std::endl;
 				params.load(params_path.string());
+				params.experiment_name = experiment_name;
 				auto data_path = experiment_directory / "data";
 				auto dump_path = experiment_directory / "dump";
 				auto time_layers_path = findTimeLayersPath(data_path, params.save_step);
