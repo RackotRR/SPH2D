@@ -12,6 +12,11 @@
           "type": "PATH"
         },
         {
+          "name": "SDL2_INCLUDE_DIR",
+          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16/include",
+          "type": "PATH"
+        },
+        {
           "name": "SDL2_IMAGE_INCLUDE_DIR",
           "value": "E:/Projects/LIBS/SDL/SDL2_image-2.0.5/include",
           "type": "PATH"
@@ -41,6 +46,11 @@
         {
           "name": "SDL2_DIR",
           "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16",
+          "type": "PATH"
+        },
+        {
+          "name": "SDL2_INCLUDE_DIR",
+          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16/include",
           "type": "PATH"
         },
         {
@@ -85,6 +95,11 @@
         {
           "name": "CMAKE_CXX_COMPILER",
           "value": "${env.BIN_ROOT}/g++.exe",
+          "type": "STRING"
+        },
+        {
+          "name": "SDL2_LIBRARY",
+          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16/lib/x64/SDL2.lib",
           "type": "STRING"
         }
       ],

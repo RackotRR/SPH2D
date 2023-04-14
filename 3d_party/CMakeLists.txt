@@ -10,8 +10,8 @@ add_library(nlohmann INTERFACE)
 add_library(nlohmann::json ALIAS nlohmann)
 target_include_directories(nlohmann INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann)
 
-add_library(mio INTERFACE)
-add_library(mio::mio ALIAS mio)
-target_include_directories(mio INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/mio)
+add_library(csv INTERFACE)
+add_library(csv::csv ALIAS csv)
+target_include_directories(csv INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/csv-parser)
 
 add_subdirectory(fmt EXCLUDE_FROM_ALL)

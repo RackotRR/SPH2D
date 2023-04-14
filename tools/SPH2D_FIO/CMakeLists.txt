@@ -10,7 +10,7 @@ target_include_directories(SPH2D_FIO PUBLIC include)
 
 target_link_libraries(SPH2D_FIO PRIVATE
     nlohmann::json
-    mio::mio
+    csv
     RR
     fmt::fmt-header-only
 )

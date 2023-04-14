@@ -8,10 +8,10 @@ struct Particle {
 	double y;
 	int itype;
 
-	double vx;
-	double vy;
-	double p;
-	double rho;
+	double vx = 0;
+	double vy = 0;
+	double p = 0;
+	double rho = 0;
 
 	double byTag(const std::string& tag) const;
 };
@@ -54,16 +54,16 @@ public:
 		return videos_directory;
 	}
 
-	bool isAdditionalValuePresented(const char* value) const;
+	bool isAdditionalValuePresented(const std::string& value) const;
 
 private:
 	static ExperimentParams loadExperimentParams(std::string_view filePath);
 	static std::vector<std::string> findTimeLayersPath(const ExperimentParams& params);
 	static std::vector<const char*> findAdditionalValues(const ExperimentParams& params);
 	void initDrawingFilesystem();
-	static void loadLayerFromFileMM(std::string_view filename, TimeLayer& layer, const std::vector<const char*>& additional_values_index);
+	static void loadLayerFromFileMM(std::string_view filename, TimeLayer& layer);
 	static Square loadSquare(const ExperimentParams& params);
-	static Grid loadGrid(const ExperimentParams& params, const std::vector<const char*>& additional_values_index);
+	static Grid loadGrid(const ExperimentParams& params);
 private:
 	std::string experiment_name;
 	std::string experiment_directory;
@@ -72,7 +72,6 @@ private:
 	std::string videos_raw_directory;
 	std::string videos_directory;
 
-	std::vector<const char*> additional_values_index;
 	Square square;
 	Grid grid;
 };

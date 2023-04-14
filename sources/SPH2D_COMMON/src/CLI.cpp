@@ -10,7 +10,7 @@ static std::vector<std::string> findTimeLayersPath(const std::filesystem::path& 
 	std::vector<std::string> meta;
 	int current_step = start;
 	while (true) {
-		auto path = directory / std::to_string(current_step);
+		auto path = directory / (std::to_string(current_step) + ".csv");
 		if (std::filesystem::exists(path)) {
 			meta.emplace_back(path.filename().string());
 			current_step += save_step;
@@ -104,13 +104,11 @@ void cli(
 					for (iter++; iter != time_layers_path.end(); ++iter) {
 						auto path_to_remove = experiment_directory / "data" / *iter;
 						std::filesystem::remove(path_to_remove);
-						std::cout << "layer " << *iter << " removed" << std::endl;
+						std::cout << "layer " << path_to_remove.stem() << " removed" << std::endl;
 					}
-					std::cout << "loading data... ";
 
 					auto particles_data_path = std::filesystem::path(experiment_directory) / "dump" / chosen_dump;
 					fileInput(r, v, mass, rho, p, itype, ntotal, nfluid, particles_data_path.string());
-					std::cout << "completed" << std::endl;
 					return;
 				} // run from dump
 				else {

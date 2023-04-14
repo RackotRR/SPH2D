@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
-#include <mio/mio.hpp>
+#include <csv-parser/csv.hpp>
 
 #include "CommonIncl.h"
 #include "Input.h"
@@ -78,8 +78,6 @@ void loadDefaultParams() {
 	params.print_time_est_step = 500;
 	params.generator_time_wait = 0.f;
 	params.local_threads = 256;
-
-	params.format_line = "fmt: vx vy p ";
 }
 
 static void generateParticles(
@@ -186,47 +184,30 @@ void fileInput(
 	ntotal = params.ntotal;
 	nfluid = params.nfluid;
 
-	std::string particles_filename = std::filesystem::path(particles_path).filename().string();
+	std::string particles_filename = std::filesystem::path(particles_path).stem().string();
 	params.starttimestep = atoi(particles_filename.c_str()) + 1;
 
-	printlog("read data...")();
+	std::cout << "read data...";
 
-	std::error_code error;
-	auto mmap = mio::make_mmap_source(particles_path, error);
-	if (error) {
-		throw std::runtime_error("error mapping file " + error.message() + ", exit");
+	auto read_path = std::filesystem::current_path() / params.experiment_name / "dump" / (particles_filename + ".csv");
+	csv::CSVReader reader(read_path.string());
+
+	size_t j = 0;
+	for (const auto& row : reader) {
+		r(j).x = row["x"].get<float>();
+		r(j).y = row["y"].get<float>();
+		itype(j) = row["itype"].get<int>();
+		v(j).x = row["vx"].get<float>();
+		v(j).y = row["vy"].get<float>();
+		rho(j) = row["rho"].get<float>();
+		p(j) = row["p"].get<float>();
+		++j;
 	}
 
-	// temp sultion with format line
-	const char fmt_string[] = "fmt: "; 
-	std::string_view str(mmap.data(), mmap.size());
-	size_t format_line_size = str.find('\n');
-	if (format_line_size == str.npos) {
-		throw std::runtime_error{ "file " + std::string{ particles_filename } + " was empty" };
-	} // empty or one-line file
-	if (!str.starts_with(fmt_string)) {
-		format_line_size = 0;
-	} // no fmt line
-
-	auto begin = std::begin(mmap) + format_line_size;
-	char* iter;
-
-	size_t ntotal_loaded = std::strtoull(begin, &iter, 10);
-	if (ntotal_loaded != params.ntotal) {
-		throw std::runtime_error("read file error: ntotal doesn match params");
+	if (j != params.ntotal) {
+		throw std::runtime_error{ "dump corrupted: dump ntotal doesn't match params.ntotal!" };
 	}
-
-	for (size_t j = 0; iter != std::end(mmap) && j < ntotal; ++j) {
-		r(j).x = std::strtod(iter, &iter);
-		r(j).y = std::strtod(iter, &iter);
-		itype(j) = static_cast<int>(std::strtol(iter, &iter, 10));
-		v(j).x = std::strtod(iter, &iter);
-		v(j).y = std::strtod(iter, &iter);
-		rho(j) = std::strtod(iter, &iter);
-		p(j) = std::strtod(iter, &iter);
-	}
-
-	printlog("...success")();
+	std::cout << "...success" << std::endl;
 
 	printParams();
 }

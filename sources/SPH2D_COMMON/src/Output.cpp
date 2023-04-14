@@ -3,6 +3,8 @@
 #include <iostream>
 #include <thread>
 #include <filesystem>
+#include <csv-parser/csv.hpp>
+#include <array>
 
 #include "Output.h"
 #include "Input.h"
@@ -12,18 +14,23 @@ namespace {
 	std::string experimentRelativePath;
 	std::string dataOutputRelativePath;
 	std::string dumpRelativePath;
+	std::once_flag params_format_line_flag;
 
 	void printFast(
-		const heap_darray<rr_float2>& r,	// coordinates of all particles
-		const heap_darray<rr_int> itype,
+		const heap_darray<rr_float2>& r,
+		const heap_darray<rr_int>& itype,
 		const rr_uint ntotal,
 		const rr_uint itimestep)
 	{
-		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
-		stream << ntotal << std::endl;
+		std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep) + ".csv");
+		auto writer = csv::make_csv_writer(stream);
+		writer << std::vector{ "x", "y", "itype" };
 		for (rr_uint i = 0; i < ntotal; i++) {
-			stream << r(i).x << std::endl << r(i).y << std::endl;
-			stream << itype(i) << std::endl;
+			writer << std::array{
+				std::to_string(r(i).x),
+				std::to_string(r(i).y),
+				std::to_string(itype(i))
+			};
 		}
 	}
 
@@ -35,14 +42,23 @@ namespace {
 		heap_darray<rr_float>&& p,
 		const rr_uint itimestep)
 	{
-		std::ofstream stream(::dumpRelativePath + std::to_string(itimestep));
-		stream << params.ntotal << std::endl;
+		std::ofstream stream(::dumpRelativePath + std::to_string(itimestep) + ".csv");
+		auto writer = csv::make_csv_writer(stream);
+		auto header = std::array{
+			"x", "y", "itype", "vx", "vy", "rho", "p"
+		};
+
+		writer << header;
 		for (rr_uint i = 0; i < params.ntotal; i++) {
-			stream << r(i).x << std::endl << r(i).y << std::endl;
-			stream << itype(i) << std::endl;
-			stream << v(i).x << std::endl << v(i).y << std::endl;
-			stream << rho(i) << std::endl;
-			stream << p(i) << std::endl;
+			writer << std::array{
+				std::to_string(r(i).x),
+				std::to_string(r(i).y),
+				std::to_string(itype(i)),
+				std::to_string(v(i).x),
+				std::to_string(v(i).y),
+				std::to_string(rho(i)),
+				std::to_string(p(i))
+			};
 		}
 	}
 
@@ -55,38 +71,57 @@ namespace {
 		const rr_uint itimestep)
 	{
 		try {
-			std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep));
+			std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep) + ".csv");
+			auto writer = csv::make_csv_writer(stream);
 
-			stream << "fmt: ";
-			auto add_format_specifier = [&](const char* value, auto& opt) {
-				if (opt.has_value()) {
-					stream << value << " ";
-				}
+			std::vector<std::string> header{
+				"x", "y", "itype"
 			};
-			add_format_specifier("vx vy", v);
-			add_format_specifier("rho", rho);
-			add_format_specifier("p", p);
-			stream << std::endl;
+			if (v) {
+				header.emplace_back("vx");
+				header.emplace_back("vy");
+			}
+			if (rho) {
+				header.emplace_back("rho");
+			}
+			if (p) {
+				header.emplace_back("p");
+			}
+			writer << header;
 
-			stream << params.ntotal << std::endl;
+			std::vector<std::string> row;
+			row.reserve(header.size());
 			for (rr_uint i = 0; i < params.ntotal; i++) {
-				stream << r(i).x << std::endl << r(i).y << std::endl;
-				stream << itype(i) << std::endl;
+				row.push_back(std::to_string(r(i).x));
+				row.push_back(std::to_string(r(i).y));
+				row.push_back(std::to_string(itype(i)));
+				if (v.has_value()) {
+					row.push_back(std::to_string(v.value().at(i).x));
+					row.push_back(std::to_string(v.value().at(i).y));
+				}
+				if (rho.has_value()) {
+					row.push_back(std::to_string(rho.value().at(i)));
+				}
+				if (p.has_value()) {
+					row.push_back(std::to_string(p.value().at(i)));
+				}
 
-				if (v) {
-					stream << v.value().at(i).x << std::endl << v.value().at(i).y << std::endl;
-				}
-				if (rho) {
-					stream << rho.value().at(i) << std::endl;
-				}
-				if (p) {
-					stream << p.value().at(i) << std::endl;
-				}
+				writer << row;
+				row.clear();
 			}
 		}
 		catch (std::exception& ex) {
-			printlog("print error :")(ex.what())();
+			printlog("print error: ")(ex.what())();
 		}
+
+		std::call_once(::params_format_line_flag,
+			[&] {
+				params.format_line = "fmt: ";
+				if (v.has_value()) params.format_line += " vx  vy ";
+				if (p.has_value()) params.format_line += " p ";
+				if (rho.has_value()) params.format_line += " rho ";
+				params.makeJson(::experimentRelativePath + "Params.json");
+			});
 	}
 }
 
@@ -151,17 +186,6 @@ void output(
 }
 
 void fast_output(
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
-	const heap_darray<rr_int>& itype,	// material type 
-	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep)// current time step
-{
-	fast_output(r.copy(), itype, ntotal, itimestep);
-
-	std::cout << "fast output: " << itimestep << std::endl;
-}
-
-void fast_output(
 	heap_darray<rr_float2>&& r,	// coordinates of all particles
 	const heap_darray<rr_int>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles
@@ -206,6 +230,5 @@ void printTimeEstimate(long long totalTime_ns, rr_uint timeStep) {
 
 // params and other things
 void printParams() {
-	params.makeJson(experimentRelativePath + "Params.json");
 	params.makeHeader("cl/clparams.h");
 }

@@ -20,11 +20,6 @@ void output(
 	const rr_uint itimestep);
 
 void fast_output(
-	const heap_darray<rr_float2>& r, // coordinates of all particles
-	const heap_darray<rr_int>& itype, // material type 
-	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep);// current time step
-void fast_output(
 	heap_darray<rr_float2>&& r,	// coordinates of all particles
 	const heap_darray<rr_int>& itype,	// material type 
 	const rr_uint ntotal,	// number of particles

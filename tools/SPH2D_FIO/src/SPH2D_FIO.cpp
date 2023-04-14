@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <mio/mio.hpp>
+#include <csv-parser/csv.hpp>
 #include <RR/Logger/Logger.h>
 #include <fstream>
 #include <unordered_map>
@@ -11,10 +11,13 @@
 
 using namespace RR::Logger;
 
-static constexpr char VX_NAME[] = " vx ";
-static constexpr char VY_NAME[] = " vy ";
-static constexpr char P_NAME[] = " p ";
-static constexpr char RHO_NAME[] = " rho ";
+static constexpr char X_NAME[] = "x";
+static constexpr char Y_NAME[] = "y";
+static constexpr char ITYPE_NAME[] = "itype";
+static constexpr char VX_NAME[] = "vx";
+static constexpr char VY_NAME[] = "vy";
+static constexpr char P_NAME[] = "p";
+static constexpr char RHO_NAME[] = "rho";
 
 static const double* getParticleVx(const Particle& particle) { return &particle.vx; }
 static const double* getParticleVy(const Particle& particle) { return &particle.vy; }
@@ -59,19 +62,6 @@ static std::map<size_t, const char*> getAvailableValues(std::string_view format_
 	return available_values;
 }
 
-std::vector<const char*> SPHFIO::findAdditionalValues(const ExperimentParams& params) {
-	printlog_debug(__func__)();
-
-	std::vector<const char*> additional_values_index;
-	auto available_values = getAvailableValues(params.format_line);
-
-	for (auto& [pos, value] : available_values) {
-		additional_values_index.push_back(value);
-	}
-
-	return additional_values_index;
-}
-
 SPHFIO::SPHFIO(std::string experiment_name) {
 	this->experiment_name = experiment_name;
 	this->experiment_directory = experiment_name + '/';
@@ -91,9 +81,8 @@ SPHFIO::SPHFIO(std::string experiment_name) {
 		params.makeJson(experiment_directory + "Params.json");
 	}
 
-	additional_values_index = findAdditionalValues(params);
 	square = loadSquare(params);
-	grid = loadGrid(params, additional_values_index);
+	grid = loadGrid(params);
 }
 
 void SPHFIO::initDrawingFilesystem() {
@@ -110,56 +99,29 @@ void SPHFIO::initDrawingFilesystem() {
 	this->videos_raw_directory = videos_raw_path.string();
 }
 
+void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer) {
+	csv::CSVReader reader(filename);
 
+	for (const auto& row : reader) {
+		layer.emplace_back();
+		auto& particle = layer.back();
 
-void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer, const std::vector<const char*>& additional_values_index) {
-	std::error_code error;
-	auto mmap = mio::make_mmap_source(filename.data(), error);
-	if (error) {
-		throw std::runtime_error("error mapping file " + error.message() + ", exit");
-	}
-
-	// format
-	const char fmt_string[] = "fmt: ";
-	std::string_view str(mmap.data(), mmap.size());
-	size_t format_line_size = str.find('\n');
-	if (format_line_size == str.npos) {
-		throw std::runtime_error{ "file " + std::string{ filename } + " was empty" };
-	}
-
-	// additional values
-	std::unordered_map<const char*, double> additional_values;
-	if (!str.starts_with(fmt_string)) {
-		format_line_size = 0;
-	}
-
-	auto begin = std::begin(mmap) + format_line_size;
-	char* iter;
-
-	size_t ntotal = std::strtoull(begin, &iter, 10);
-	layer.reserve(ntotal);
-
-	double x, y;
-	long type;
-	for (; iter != std::end(mmap) && layer.size() < ntotal;) {
-		x = std::strtod(iter, &iter);
-		y = std::strtod(iter, &iter);
-		type = std::strtol(iter, &iter, 10);
-
-		for (const char* value_name : additional_values_index) {
-			double value = std::strtod(iter, &iter);
-			additional_values[value_name] = value;
+		particle.x = row["x"].get<float>();
+		particle.y = row["y"].get<float>();
+		particle.itype = row["itype"].get<int>();
+		
+		if (reader.index_of("vx") != csv::CSV_NOT_FOUND) {
+			particle.vx = row["vx"].get<float>();
 		}
-
-		layer.push_back(Particle{
-			.x = x,
-			.y = y,
-			.itype = type,
-			.vx = additional_values[VX_NAME],
-			.vy = additional_values[VY_NAME],
-			.p = additional_values[P_NAME],
-			.rho = additional_values[RHO_NAME]
-			});
+		if (reader.index_of("vy") != csv::CSV_NOT_FOUND) {
+			particle.vy = row["vy"].get<float>();
+		}
+		if (reader.index_of("rho") != csv::CSV_NOT_FOUND) {
+			particle.rho = row["rho"].get<float>();
+		}
+		if (reader.index_of("p") != csv::CSV_NOT_FOUND) {
+			particle.p = row["p"].get<float>();
+		}
 	}
 
 	std::filesystem::path path = filename;
@@ -187,7 +149,7 @@ std::vector<std::string> SPHFIO::findTimeLayersPath(const ExperimentParams& para
 	std::vector<std::string> meta;
 	int step = 0;
 	while (true) {
-		auto path = std::filesystem::current_path().append(params.experiment_name + "/data/" + std::to_string(step));
+		auto path = std::filesystem::current_path().append(params.experiment_name + "/data/" + std::to_string(step) + ".csv");
 		if (std::filesystem::exists(path)) {
 			meta.emplace_back(path.string());
 			step += params.save_step;
@@ -199,7 +161,7 @@ std::vector<std::string> SPHFIO::findTimeLayersPath(const ExperimentParams& para
 	return meta;
 }
 
-Grid SPHFIO::loadGrid(const ExperimentParams& params, const std::vector<const char*>& additional_values_index) {
+Grid SPHFIO::loadGrid(const ExperimentParams& params) {
 	printlog_debug(__func__)();
 
 	auto time_layers_path = findTimeLayersPath(params);
@@ -209,7 +171,8 @@ Grid SPHFIO::loadGrid(const ExperimentParams& params, const std::vector<const ch
 
 #pragma omp parallel for
 	for (int i = 0; i < grid.size(); ++i) {
-		SPHFIO::loadLayerFromFileMM(time_layers_path[i], grid[i], additional_values_index);
+		grid[i].reserve(params.ntotal);
+		SPHFIO::loadLayerFromFileMM(time_layers_path[i], grid[i]);
 	}
 	
 	std::cout << "finish loading" << std::endl;
@@ -217,12 +180,7 @@ Grid SPHFIO::loadGrid(const ExperimentParams& params, const std::vector<const ch
 	return grid;
 }
 
-bool SPHFIO::isAdditionalValuePresented(const char* value) const {
-	for (const char* cmp_value : additional_values_index) {
-		if (strcmp(value, cmp_value) == 0) {
-			return true;
-		}
-	}
-	return false;
+bool SPHFIO::isAdditionalValuePresented(const std::string& value) const {
+	return params.format_line.find(' ' + value + ' ') != std::string::npos;
 }
 
