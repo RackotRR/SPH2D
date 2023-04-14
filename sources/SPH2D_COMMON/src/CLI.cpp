@@ -40,7 +40,7 @@ bool overrideDirectory() {
 }
 
 // loading or generating initial particle information
-void repl(
+void cli(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
 	heap_darray<rr_float>& mass,	// particle masses
@@ -118,6 +118,7 @@ void repl(
 				} // wrong number
 			}
 			else {
+				params.experiment_name = experiment_name;
 				input(r, v, mass, rho, p, itype, ntotal, nfluid);
 				return;
 			}

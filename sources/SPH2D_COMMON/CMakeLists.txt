@@ -6,7 +6,7 @@ add_library(SPH2D_COMMON STATIC
     "src/IsNormalCheck.cpp"
     "src/Output.cpp"
     "src/VirtualParticles.cpp"
-    "src/Repl.cpp"
+    "src/CLI.cpp"
 )
 target_include_directories(SPH2D_COMMON PUBLIC include)
 

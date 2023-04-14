@@ -25,7 +25,7 @@ void fileInput(
 	std::string params_path = "");
 
 // loading or generating initial particle information
-void repl(
+void cli(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
 	heap_darray<rr_float>& mass,// particle masses

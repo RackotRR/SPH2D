@@ -23,7 +23,7 @@ void simulation() {
 	heap_darray<rr_float> rho(0); // density
 	heap_darray<rr_float> p(0); // pressure
 
-	repl(r, v, mass, rho, p, itype, ntotal, nfluid);
+	cli(r, v, mass, rho, p, itype, ntotal, nfluid);
 
 #ifndef SPH2D_OMP
 	logCLInfo();
