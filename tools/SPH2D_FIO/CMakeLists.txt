@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.15)
 project(SPH2D_FIO)
 
 add_library(SPH2D_FIO
-    src/SPH2D_FIO.cpp
-    src/SPHFIO_REPL.cpp
+    "src/SPH2D_FIO.cpp"
+    "src/SPHFIO_CLI.cpp"
  )
 target_include_directories(SPH2D_FIO PUBLIC include)
 

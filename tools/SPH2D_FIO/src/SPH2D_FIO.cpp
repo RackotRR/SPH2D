@@ -125,7 +125,7 @@ void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer) {
 	}
 
 	std::filesystem::path path = filename;
-	std::string output = "layer " + path.filename().string() + "\n";
+	std::string output = "layer " + path.stem().string() + "\n";
 	std::cout << output;
 }
 

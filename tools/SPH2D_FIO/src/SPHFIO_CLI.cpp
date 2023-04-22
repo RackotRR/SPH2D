@@ -44,11 +44,11 @@ static std::string getDirectoryToSearch() {
 	std::getline(std::cin, user_directory);
 	return user_directory;
 }
-static std::string repl(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
+static std::string CLI(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
 	auto experiments = findExperiments(experiments_directory);
 	if (experiments.empty()) {
 		std::cout << "Can't find any experiment in here: " << experiments_directory << std::endl;
-		return repl(getDirectoryToSearch());
+		return CLI(getDirectoryToSearch());
 	} // no experiments in directory
 	
 	std::cout << "Found experiments: " << std::endl;
@@ -66,7 +66,7 @@ static std::string repl(std::filesystem::path experiments_directory = std::files
 		std::cin >> experiment_number;
 
 		if (experiment_number == -1) {
-			return repl(getDirectoryToSearch());
+			return CLI(getDirectoryToSearch());
 		}
 		else if (experiment_number >= experiments.size()) {
 			std::cout << "Wrong experiment number provided!" << std::endl;
@@ -78,4 +78,4 @@ static std::string repl(std::filesystem::path experiments_directory = std::files
 	}
 }
 
-SPHFIO::SPHFIO() : SPHFIO{ repl() } {}
+SPHFIO::SPHFIO() : SPHFIO{ CLI() } {}
