@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "Input.h"
-#include "Output.h"
 
 static std::vector<std::string> findTimeLayersPath(const std::filesystem::path& directory, int save_step, int start = 0) {
 	std::vector<std::string> meta;
@@ -22,15 +21,15 @@ static std::vector<std::string> findTimeLayersPath(const std::filesystem::path& 
 	return meta;
 }
 
-bool overrideDirectory() {
+bool overrideDirectory(const std::string& experiment_name) {
 	while (true) {
-		std::cout << "Would you like to write here?: " << params.experiment_name << std::endl;
+		std::cout << "Would you like to write here?: " << experiment_name << std::endl;
 		std::cout << "[y/n]" << std::endl;
 		std::string answer;
 		std::cin >> answer;
 		if (answer == "y" || answer == "yes") {
-			std::filesystem::remove_all(std::filesystem::current_path() / params.experiment_name / "data");
-			std::filesystem::remove_all(std::filesystem::current_path() / params.experiment_name / "dump");
+			std::filesystem::remove_all(std::filesystem::current_path() / experiment_name / "data");
+			std::filesystem::remove_all(std::filesystem::current_path() / experiment_name / "dump");
 			return true;
 		}
 		else if (answer == "n" || answer == "no") {
@@ -62,7 +61,8 @@ void cli(
 				auto params_path = experiment_directory / "Params.json";
 				if (!std::filesystem::exists(params_path)) {
 					std::cout << "Can't find Params.json" << std::endl;
-					if (overrideDirectory()) {
+					if (overrideDirectory(experiment_name)) {
+						params.experiment_name = experiment_name;
 						input(r, v, mass, rho, p, itype, ntotal, nfluid);
 						return;
 					}
@@ -90,11 +90,11 @@ void cli(
 				std::cin >> num;
 				std::cin.get();
 
-				if (num == -1 && overrideDirectory()) {
+				if (num == -1 && overrideDirectory(experiment_name)) {
 					input(r, v, mass, rho, p, itype, ntotal, nfluid);
 					return;
 				} // clear and run default
-				else if (num == 0 && overrideDirectory()) {
+				else if (num == 0 && overrideDirectory(experiment_name)) {
 					input(r, v, mass, rho, p, itype, ntotal, nfluid, false);
 					return;
 				} // clear and run from Params.json

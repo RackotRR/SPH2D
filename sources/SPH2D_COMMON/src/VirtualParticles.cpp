@@ -1,4 +1,5 @@
 #include "CommonIncl.h"
+#include <stdexcept>
 
 static rr_uint get_boundary_particles_y();
 static rr_uint get_boundary_particles_x();
@@ -20,35 +21,27 @@ static void ground(
 // here only the Monaghan type virtual particles for the 2d shear
 // cavity driven probles generated
 void virt_part(
-	const rr_uint ntotal, // number of particles
-	rr_uint& nvirt, // out, number of virtual particles 
-	heap_darray<rr_float>& mass,// out, particle masses
+	const rr_uint nfluid,
 	heap_darray<rr_float2>& r,	// out, coordinates of all particles
 	heap_darray<rr_float2>& v,	// out, velocities of all particles
+	heap_darray<rr_float>& mass,// out, particle masses
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype) // out, material type: 1 - ideal gas, 2 - water
 {
 	printlog()(__func__)();
-	nvirt = 0;
 
-	params.x_boundary_min = params.x_fluid_min - 2 * params.hsml;
-	params.y_boundary_min = params.y_fluid_min - 2 * params.hsml;
-	params.x_boundary_max = params.x_fluid_max + 2 * params.hsml;
-	params.y_boundary_max = params.y_maxgeom;
-	printlog("boundary xmin ")(params.x_boundary_min)();
-	printlog("boundary xmax ")(params.x_boundary_max)();
-	printlog("boundary ymin ")(params.y_boundary_min)();
-	printlog("boundary ymax ")(params.y_boundary_max)();
-
-
-	left_wall(ntotal, nvirt, r);
-	right_wall(ntotal, nvirt, r);
-	ground(ntotal, nvirt, r);
+	rr_uint nvirt = 0;
+	left_wall(nfluid, nvirt, r);
+	right_wall(nfluid, nvirt, r);
+	ground(nfluid, nvirt, r);
+	if (nvirt != params.nvirt) {
+		throw std::runtime_error{ "Generated nvirt doesn't equal to estimated nvirt" };
+	}
 
 	// init all virtual particles
 	for (rr_uint k = 0; k < nvirt; k++) {
-		rr_uint i = ntotal + k;
+		rr_uint i = nfluid + k;
 
 		v(i) = { 0.f };
 
@@ -57,6 +50,12 @@ void virt_part(
 		p(i) = 0.f;
 		itype(i) = params.TYPE_BOUNDARY;
 	}
+}
+
+rr_uint count_virt_part_num() {
+	rr_uint wall_particles = 2 * get_boundary_particles_y() * params.boundary_layers_num;
+	rr_uint ground_particles = get_boundary_particles_x() * params.boundary_layers_num;
+	return wall_particles + ground_particles;
 }
 
 void left_wall(

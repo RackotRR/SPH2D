@@ -363,3 +363,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/sources/SPH2D_PARAMS/src/ParamsVersion.h
