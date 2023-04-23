@@ -14,4 +14,8 @@ add_library(csv INTERFACE)
 add_library(csv::csv ALIAS csv)
 target_include_directories(csv INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/csv-parser)
 
+add_library(cxxopts INTERFACE)
+add_library(cxxopts::cxxopts ALIAS cxxopts)
+target_include_directories(cxxopts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cxxopts)
+
 add_subdirectory(fmt EXCLUDE_FROM_ALL)

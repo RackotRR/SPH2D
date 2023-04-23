@@ -41,6 +41,10 @@ namespace RR::Memory {
 		heap_darray_md(heap_darray_md&) = delete;
 		auto operator=(heap_darray_md&) = delete;
 
+		heap_darray_md() : heap_darray_md(0, 0, T{})
+		{
+		}
+
 		heap_darray_md(size_t dimensions, size_t size_in_dim) : heap_darray_md(dimensions, size_in_dim, T{})
 		{
 		}
@@ -148,6 +152,10 @@ namespace RR::Memory {
 				arr.ptr[i] = ptr[i];
 			}
 			return arr;
+		}
+
+		heap_darray() : heap_darray{ 0, T{} } 
+		{
 		}
 
 		explicit heap_darray(size_t elements) : heap_darray(elements, T{}) 
