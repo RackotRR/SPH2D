@@ -10,10 +10,9 @@ target_link_libraries(WaterProfile PRIVATE
     RR
     fmt::fmt
     nlohmann::json
-    SPH2D_OMP_SHARED
 )
 
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 if (OpenMP_FOUND)
     target_link_libraries(WaterProfile PRIVATE OpenMP::OpenMP_CXX)
 endif()

@@ -18,10 +18,10 @@ void PrintLog::init_stdout() {
 	log_stream = &std::cout;
 }
 void PrintLog::printlog_part(const std::string& line_part) {
-	*log_stream << line_part;
+	if (initialized()) *log_stream << line_part;
 }
 void PrintLog::printlog_end_of_line() {
-	*log_stream << std::endl;
+	if (initialized()) *log_stream << std::endl;
 }
 
 bool PrintLog::initialized() const {

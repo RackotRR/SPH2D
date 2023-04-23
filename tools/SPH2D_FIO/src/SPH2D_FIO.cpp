@@ -130,17 +130,13 @@ void SPHFIO::loadLayerFromFileMM(std::string_view filename, TimeLayer& layer) {
 }
 
 Square SPHFIO::loadSquare(const ExperimentParams& params) {
-	printlog_debug(__func__)();
-
-	Square square;
-	auto& [origin, size] = square;
-	auto& [origin_x, origin_y] = origin;
-	auto& [size_x, size_y] = size;
-	origin_x = params.x_mingeom;
-	origin_y = params.y_mingeom;
-	size_x = params.x_maxgeom - params.x_mingeom;
-	size_y = params.y_maxgeom - params.y_mingeom;
-	return square;
+	printlog_debug(__func__)();	
+	return Square{
+		.origin_x = params.x_mingeom,
+		.origin_y = params.y_mingeom,
+		.size_x = params.x_maxgeom - params.x_mingeom,
+		.size_y = params.y_maxgeom - params.y_mingeom
+	};
 }
 
 std::vector<std::string> SPHFIO::findTimeLayersPath(const ExperimentParams& params) {
@@ -169,7 +165,7 @@ Grid SPHFIO::loadGrid(const ExperimentParams& params) {
 
 	Grid grid = std::vector<TimeLayer>(time_layers_path.size());
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < grid.size(); ++i) {
 		grid[i].reserve(params.ntotal);
 		SPHFIO::loadLayerFromFileMM(time_layers_path[i], grid[i]);

@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.15)
 project(SPH2D_FIO VERSION 2.1)
 
-add_library(SPH2D_FIO
-    "src/SPH2D_FIO.cpp"
-    "src/SPHFIO_CLI.cpp")
+add_library(SPH2D_FIO 
+  "src/SPH2D_FIO.cpp" 
+  "src/LazyGrid.cpp" 
+  "src/TimeLayer.cpp" 
+  "src/SPHFIO_CLI.cpp" 
+  "src/Square.cpp" 
+  "src/Directories.cpp" 
+  "src/Grid.cpp")
 target_include_directories(SPH2D_FIO PUBLIC include)
 
 
 target_link_libraries(SPH2D_FIO PRIVATE
-    nlohmann::json
     csv
     fmt::fmt-header-only
 )

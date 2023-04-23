@@ -49,15 +49,20 @@ void printWaterHeight(
 
 int main() {
     std::cout << "[WaterProfile tool]" << std::endl;
-    std::unique_ptr<SPHFIO> sphfio;
+    std::unique_ptr<sphfio::SPHFIO> sphfio;
     try {
-        sphfio = std::make_unique<SPHFIO>();
+        sphfio = std::make_unique<sphfio::SPHFIO>();
     }
     catch (const std::exception& ex) {
         std::cerr << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
-    std::filesystem::path experiment_directory = sphfio->getExperimentDirectory();
+
+    std::filesystem::path experiment_directory = sphfio->directories.getExperimentDirectory();
+    std::filesystem::path analysis_directory = sphfio->directories.getAnalysisDirectory();
+
+    auto grid = sphfio->makeGrid();
+    auto params = sphfio->getParams();
 
     for (;;) {
         std::cout << "Press [enter] to load testing params and compute (dir/AnalysisParams.json)" << std::endl;
@@ -74,27 +79,26 @@ int main() {
             continue;
         }
 
-        HeightTesting testing{ *sphfio };
+        HeightTesting testing{ grid, params };
 
         auto& mode = testing_params->mode;
-        auto output_perfix = experiment_directory / "analysis";
         if (mode == "time") {
             auto time_testing_params = std::static_pointer_cast<TimeTestingParams>(testing_params);
             auto result = testing.timeProfile(time_testing_params->x, time_testing_params->search_n);
-            auto output_path = output_perfix / ("time_at_" + std::to_string(time_testing_params->x));
+            auto output_path = analysis_directory / ("time_at_" + std::to_string(time_testing_params->x));
             printWaterHeight(output_path, std::move(result),
                 time_testing_params->t0, time_testing_params->t_k,
                 time_testing_params->y0, time_testing_params->y_k,
-                0, params.dt * params.save_step);
+                0, params->dt * params->save_step);
         }
         else if (mode == "space") {
             auto space_testing_params = std::static_pointer_cast<SpaceTestingParams>(testing_params);
             auto result = testing.spaceProfile(space_testing_params->t, space_testing_params->search_n);
-            auto output_path = output_perfix / ("space_at_" + std::to_string(space_testing_params->t));
+            auto output_path = analysis_directory / ("space_at_" + std::to_string(space_testing_params->t));
             printWaterHeight(output_path, std::move(result),
                 space_testing_params->x0, space_testing_params->x_k,
                 space_testing_params->y0, space_testing_params->y_k,
-                params.x_mingeom, params.delta);
+                params->x_mingeom, params->delta);
         }
         else {
             std::cout << "can't choose mode" << std::endl;

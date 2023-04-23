@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <RR/Memory/HeapDArray.h>
 #include <Params.h>
 
 struct Particle {
@@ -18,7 +19,13 @@ struct Particle {
 
 using TimeLayer = std::vector<Particle>;
 using Grid = std::vector<TimeLayer>;
-using Square = std::pair<std::pair<double, double>, std::pair<double, double>>;
+
+struct Square {
+	double origin_x;
+	double origin_y;
+	double size_x;
+	double size_y;
+};
 
 class SPHFIO {
 public:

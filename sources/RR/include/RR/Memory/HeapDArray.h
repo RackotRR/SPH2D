@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <array>
+#include <cassert>
 
 namespace RR::Memory {
 	template<typename T>
