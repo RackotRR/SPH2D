@@ -106,6 +106,12 @@ namespace RR::Memory {
 		size_t size() const {
 			return dimensions * size_in_dim;
 		}
+		size_t size1() const {
+			return dimensions;
+		}
+		size_t size2() const {
+			return size_in_dim;
+		}
 
 		void fill(const T& value) {
 			for (size_t i = 0; i < size(); ++i) {

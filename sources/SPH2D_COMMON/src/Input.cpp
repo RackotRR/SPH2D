@@ -33,6 +33,27 @@ static rr_uint setup_virt_part(
 	return count_virt_part_num();
 }
 
+static void checkCellsCount(
+	rr_float hsml,
+	rr_float x_mingeom,
+	rr_float y_mingeom,
+	rr_float x_maxgeom,
+	rr_float y_maxgeom,
+	rr_float max_cells)
+{
+	rr_uint x_id = get_cell_x_from_coordinate(params.x_maxgeom - params.x_mingeom);
+	rr_uint y_id = get_cell_x_from_coordinate(params.y_maxgeom - params.y_mingeom);
+	rr_uint id = get_cell_idx_by_cell_xy(x_id, y_id);
+
+	if (x_id > UINT16_MAX || y_id > UINT16_MAX) {
+		throw std::runtime_error{ "can't make grid with so many cells" };
+	}
+
+	if (id >= max_cells) {
+		throw std::runtime_error{ "provided max_cells isn't enough for experiment geometry" };
+	}
+}
+
 void loadDefaultParams() {
 	printlog()(__func__)();
 	
@@ -78,6 +99,14 @@ void loadDefaultParams() {
 	params.ntotal = params.nvirt + params.nfluid;
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
 	params.max_cells = params.max_neighbours * params.maxn;
+
+	checkCellsCount(
+		params.hsml,
+		params.x_mingeom,
+		params.y_mingeom,
+		params.x_maxgeom,
+		params.y_maxgeom,
+		params.max_cells);
 
 	constexpr rr_float k = 2.f * params.pi / L;
 	constexpr rr_float kd = k * depth;
