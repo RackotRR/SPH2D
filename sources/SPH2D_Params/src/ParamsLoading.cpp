@@ -86,6 +86,13 @@ void ExperimentParams::load(const std::string& params_path) {
 		load(water_dynamic_visc);
 	}
 
+	if (version < ParamsVersion{ 2, 2 }) {
+		params.mass = 1000 * params.delta * params.delta;
+	}
+	else {
+		load(mass);
+	}
+
 	load(enable_check_consistency);
 	load(inf_stop);
 	load(maxtimestep);

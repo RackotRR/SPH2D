@@ -8,7 +8,6 @@
 */
 void int_force(
 	const rr_uint ntotal, // number of particles, 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float2>& r,	// coordinates of all particles 
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,	// density
@@ -26,7 +25,6 @@ void find_int_force_kernel(
 void find_stress_tensor(
 	const rr_uint ntotal, // number of particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
@@ -46,7 +44,6 @@ void update_internal_state(
 void find_internal_changes_pij_d_rhoij(
 	const rr_uint ntotal, // number of particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
@@ -59,7 +56,6 @@ void find_internal_changes_pij_d_rhoij(
 void find_internal_changes_pidrho2i_pjdrho2j(
 	const rr_uint ntotal, // number of particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative

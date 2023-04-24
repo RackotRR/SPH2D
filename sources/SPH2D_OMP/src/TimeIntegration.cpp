@@ -54,7 +54,6 @@ void whole_step(
 void time_integration(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,// particle masses
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
@@ -104,7 +103,7 @@ void time_integration(
 		}
 
 		// definition of variables out of the function vector:
-		update_acceleration(nfluid, ntotal, mass, itype, r, 
+		update_acceleration(nfluid, ntotal, itype, r, 
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 

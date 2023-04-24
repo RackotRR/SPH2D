@@ -2,7 +2,6 @@
 
 __kernel void external_force(
 	__global const rr_float2* r,
-	__global const rr_float* mass,
 	__global const rr_uint* neighbours,
 	__global const rr_int* itype,
 

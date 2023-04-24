@@ -3,7 +3,6 @@
 
 __kernel void find_stress_tensor(
     __global const rr_float2* v,
-    __global const rr_float* mass,
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
@@ -33,11 +32,10 @@ __kernel void find_stress_tensor(
         hxx *= 2.f / 3.f;
         hyy *= 2.f / 3.f;
 
-        rr_float massi = mass[i];
         rr_float rhoi = rho[i];
-        txx_temp += massi * hxx / rhoi;
-        txy_temp += massi * hxy / rhoi;
-        tyy_temp += massi * hyy / rhoi;
+        txx_temp += params_mass * hxx / rhoi;
+        txy_temp += params_mass * hxy / rhoi;
+        tyy_temp += params_mass * hyy / rhoi;
     }
 
     txx[j] = txx_temp;
@@ -47,7 +45,6 @@ __kernel void find_stress_tensor(
 
 __kernel void find_internal_changes_pij_d_rhoij(
     __global const rr_float2* v,
-    __global const rr_float* mass,
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
@@ -70,7 +67,7 @@ __kernel void find_internal_changes_pij_d_rhoij(
     {
         rr_float2 dwdri = dwdr[at(n, j)];
         rr_float2 h = -dwdri * (p[i] + p[j]);
-        rr_float mrhoij = mass[i] / rho[i] / rho[j];
+        rr_float mrhoij = params_mass / rho[i] / rho[j];
 
 #ifdef params_visc
         h.x += (txx[i] + txx[j]) * dwdri.x * params_water_dynamic_visc;
@@ -87,7 +84,6 @@ __kernel void find_internal_changes_pij_d_rhoij(
 
 __kernel void find_internal_changes_pidrho2i_pjdrho2j(
     __global const rr_float2* v,
-    __global const rr_float* mass,
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
@@ -121,7 +117,7 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
         h.y += (tyy[i] / sqr(rhoi) + tyy[j] / sqr(rhoj)) * dwdri.y * params_water_dynamic_visc;
 #endif // params_visc
 
-        a_temp -= h * mass[i];
+        a_temp -= h * params_mass;
     }
 
     a[j] = a_temp;

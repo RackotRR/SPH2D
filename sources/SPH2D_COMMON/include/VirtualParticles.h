@@ -9,7 +9,6 @@ void virt_part(
 	const rr_uint nfluid,
 	heap_darray<rr_float2>& r,	// out, coordinates of all particles
 	heap_darray<rr_float2>& v,	// out, velocities of all particles
-	heap_darray<rr_float>& mass,// out, particle masses
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype); // out, material type: 2 - water; -2 - boundary

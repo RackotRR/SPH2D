@@ -16,14 +16,13 @@
 void simulation() {
 	rr_uint ntotal; // number of particles 
 	rr_uint nfluid; 
-	heap_darray<rr_float> mass(0); // particle masses
 	heap_darray<rr_int> itype(0); // material type of particles
 	heap_darray<rr_float2> r(0); // coordinates of all particles
 	heap_darray<rr_float2> v(0); // velocities of all particles
 	heap_darray<rr_float> rho(0); // density
 	heap_darray<rr_float> p(0); // pressure
 
-	cli(r, v, mass, rho, p, itype, ntotal, nfluid);
+	cli(r, v, rho, p, itype, ntotal, nfluid);
 
 #ifndef SPH2D_OMP
 	logCLInfo();
@@ -34,9 +33,9 @@ void simulation() {
 	RR::Timer timer;
 	timer.start();
 #ifdef SPH2D_OMP
-	time_integration(r, v, mass, rho, p, itype, ntotal, nfluid);
+	time_integration(r, v, rho, p, itype, ntotal, nfluid);
 #else
-	cl_time_integration(r, v, mass, rho, p, itype, ntotal, nfluid);
+	cl_time_integration(r, v, rho, p, itype, ntotal, nfluid);
 #endif // SPH2D_OMP
 	timer.finish();
 

@@ -5,7 +5,6 @@
 void time_integration(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,// particle masses
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual

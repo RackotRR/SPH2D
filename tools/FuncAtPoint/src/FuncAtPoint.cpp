@@ -18,7 +18,6 @@ rr_float findValue(rr_float2 rj,
     const std::string& value,
     const sphfio::TimeLayer& time_layer,
     const heap_darray<rr_float2>& r,
-    const heap_darray<rr_float>& mass,
     const heap_darray<rr_float>& rho,
     const heap_darray<rr_uint>& grid,
     const heap_darray<rr_uint>& cell_starts_in_grid)
@@ -47,7 +46,7 @@ rr_float findValue(rr_float2 rj,
                 rr_float2 dwdr_ij;
                 kernel(sqrt(dist_sqr), diff, w_ij, dwdr_ij);
 
-                val += time_layer.getByTag(value, i) * w_ij * mass(i) / rho(i);
+                val += time_layer.getByTag(value, i) * w_ij * params.mass / rho(i);
             }
         } // grid_i
     } // cell_idx
@@ -80,7 +79,6 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
     rr_uint maxn = params->maxn;
     rr_uint max_neighbours = params->max_neighbours;
 
-    heap_darray<rr_float> mass(maxn, 1000.f * sqr(params->delta));
     heap_darray<rr_float> rho(maxn);
     heap_darray<rr_uint> grid(maxn);
     heap_darray<rr_uint> cell_starts_in_grid(params->max_cells);
@@ -106,11 +104,11 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
         find_neighbours(time_layer.ntotal, time_layer.r, 
             grid, cell_starts_in_grid, 
             neighbours, w, dwdr);
-        sum_density(time_layer.ntotal, mass, neighbours, w, 
+        sum_density(time_layer.ntotal, neighbours, w, 
             rho);
 
         val += findValue(rj, value, time_layer,
-            time_layer.r, mass, rho, grid, cell_starts_in_grid);
+            time_layer.r, rho, grid, cell_starts_in_grid);
 
         double time = params->dt * params->save_step * t;
         output << fmt::format("({}; {})", time, val) << std::endl;

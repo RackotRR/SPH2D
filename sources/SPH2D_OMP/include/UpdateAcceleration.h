@@ -6,7 +6,6 @@
 void update_acceleration(
 	const rr_uint nfluid, // number of fluid particles
 	const rr_uint ntotal, // number of particles 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_int>& itype,	// material type of particles
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles

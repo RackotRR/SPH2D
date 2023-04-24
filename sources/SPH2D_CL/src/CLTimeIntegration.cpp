@@ -58,7 +58,6 @@ void makePrograms() {
 void cl_time_integration(
     heap_darray<rr_float2>& r,	// coordinates of all particles
     heap_darray<rr_float2>& v,	// velocities of all particles
-    const heap_darray<rr_float>& mass,// particle masses
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
     const heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
@@ -75,7 +74,6 @@ void cl_time_integration(
     // common
     auto r_ = makeBufferCopyHost(r);
     auto v_ = makeBufferCopyHost(v);
-    auto mass_ = makeBufferCopyHost(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, mass);
     auto rho_ = makeBufferCopyHost(rho);
     auto p_ = makeBufferCopyHost(p);
     auto itype_ = makeBufferCopyHost(HOST_INPUT, itype);
@@ -185,14 +183,14 @@ void cl_time_integration(
         if (params.summation_density) {
             printlog_debug("sum density")();
             sum_density_kernel(
-                mass_, neighbours_, w_,
+                neighbours_, w_,
                 rho_predict_
             ).execute(params.maxn, params.local_threads);
         }
         else {
             printlog_debug("con density")();
             con_density_kernel(
-                mass_, v_predict_,
+                v_predict_,
                 neighbours_, dwdr_,
                 rho_predict_,
                 drho_
@@ -201,7 +199,7 @@ void cl_time_integration(
 
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, mass_, rho_predict_, neighbours_, intf_dwdr_,
+            v_predict_, rho_predict_, neighbours_, intf_dwdr_,
             txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
@@ -213,7 +211,7 @@ void cl_time_integration(
 
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
-            v_predict_, mass_, rho_predict_,
+            v_predict_, rho_predict_,
             neighbours_, intf_dwdr_,
             txx_, txy_, tyy_, p_,
             indvxdt_
@@ -221,20 +219,20 @@ void cl_time_integration(
 
         printlog_debug("external force")();
         external_force_kernel(
-            r_, mass_, neighbours_, itype_,
+            r_, neighbours_, itype_,
             exdvxdt_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("artificial viscosity")();
         artificial_viscosity_kernel(
-            r_, v_predict_, mass_, rho_predict_,
+            r_, v_predict_, rho_predict_,
             neighbours_, dwdr_,
             ardvxdt_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("average velocity")();
         average_velocity_kernel(
-            r_, v_predict_, mass_, rho_predict_,
+            r_, v_predict_, rho_predict_,
             neighbours_, w_,
             av_
         ).execute(params.maxn, params.local_threads);

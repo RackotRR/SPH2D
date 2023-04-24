@@ -77,6 +77,7 @@ namespace {
 			set_param("TYPE_BOUNDARY", params.TYPE_BOUNDARY);
 			set_param("TYPE_NON_EXISTENT", params.TYPE_NON_EXISTENT);
 			set_param("TYPE_WATER", params.TYPE_WATER);
+			set(mass);
 			set(enable_check_consistency);
 			set(inf_stop);
 			set(maxtimestep);

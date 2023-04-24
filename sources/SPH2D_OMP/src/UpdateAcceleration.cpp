@@ -13,7 +13,6 @@
 void update_acceleration(
 	const rr_uint nfluid, // number of fluid particles
 	const rr_uint ntotal, // number of particles 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_int>& itype,	// material type of particles
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
@@ -39,13 +38,12 @@ void update_acceleration(
 
 	if (params.summation_density) {
 		sum_density(ntotal,
-			mass,
 			neighbours, w,
 			rho);
 	}
 	else {
 		con_density(ntotal,
-			mass, v,
+			v,
 			neighbours, dwdr,
 			rho,
 			drho);
@@ -56,31 +54,31 @@ void update_acceleration(
 		find_int_force_kernel(ntotal, r, neighbours,
 			intf_dwdr);
 		int_force(ntotal,
-			mass, r, v, rho,
+			r, v, rho,
 			neighbours, intf_dwdr,
 			p, indvxdt);
 	}
 	else {
 		int_force(ntotal,
-			mass, r, v, rho,
+			r, v, rho,
 			neighbours, dwdr,
 			p, indvxdt);
 	}
 
 	artificial_viscosity(ntotal,
-		mass, r, v, rho,
+		r, v, rho,
 		neighbours, dwdr,
 		arvdvxdt);
 
 	external_force(ntotal,
-		mass, r,
+		r,
 		neighbours, itype,
 		exdvxdt);
 
 	// calculating average velocity of each particle for avoiding penetration
 	if (params.average_velocity) {
 		average_velocity(nfluid,
-			mass, r, v, rho, 
+			r, v, rho, 
 			neighbours, w, 
 			av);
 	}

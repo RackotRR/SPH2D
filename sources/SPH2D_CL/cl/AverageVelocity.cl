@@ -3,7 +3,6 @@
 __kernel void average_velocity(
 	__global const rr_float2* r,
 	__global const rr_float2* v,
-	__global const rr_float* mass,
 	__global const rr_float* rho,
 	__global const rr_uint* neighbours,
 	__global const rr_float* w,
@@ -24,7 +23,7 @@ __kernel void average_velocity(
 		++n)
 	{
 		rr_float2 dvx = v[i] - v[j];
-		av_temp += dvx * mass[i] / (rho[i] + rho[j]) * w[at(n, j)] * 2.f;
+		av_temp += dvx * params_mass / (rho[i] + rho[j]) * w[at(n, j)] * 2.f;
 	}
 
 	av[j] = av_temp * params_average_velocity_epsilon;

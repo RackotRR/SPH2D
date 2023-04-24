@@ -5,7 +5,6 @@
 // calculate the artificial viscosity (Monaghan, 1992)
 void artificial_viscosity(
 	const rr_uint ntotal,	// number of particles
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,// density 
@@ -48,7 +47,7 @@ void artificial_viscosity(
 				rr_float piv = (beta * muv - alpha * c_ij) * muv / mrho;
 
 				rr_float2 h = -dwdr(n, j) * piv;
-				a(j) -= h * mass(i);
+				a(j) -= h * params.mass;
 			}
 		}
 	}

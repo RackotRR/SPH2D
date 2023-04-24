@@ -4,7 +4,6 @@
 // calculate the average velocity to correct velocite for preventing penetration (Monaghan, 1992)
 void average_velocity(
 	const rr_uint nfluid, // number of particles
-	const heap_darray<rr_float>& mass, // particle masses 
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,	// density 
@@ -24,7 +23,7 @@ void average_velocity(
 			++n)
 		{
 			rr_float2 dvx = v(i) - v(j);
-			av(j) += dvx * mass(i) / (rho(i) + rho(j)) * w(n, j) * 2.f;
+			av(j) += dvx * params.mass / (rho(i) + rho(j)) * w(n, j) * 2.f;
 		}
 
 		av(j) *= params.average_velocity_epsilon;

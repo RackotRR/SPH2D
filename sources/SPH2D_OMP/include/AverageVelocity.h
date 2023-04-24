@@ -5,7 +5,6 @@
 // calculate the average velocity to correct velocite for preventing penetration (Monaghan, 1992)
 void average_velocity(
 	const rr_uint nfluid, // number of particles
-	const heap_darray<rr_float>& mass, // particle masses 
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,	// density 

@@ -4,7 +4,6 @@
 __kernel void artificial_viscosity(
 	__global const rr_float2* r,
 	__global const rr_float2* v,
-	__global const rr_float* mass,
 	__global const rr_float* rho,
 	__global const rr_uint* neighbours,
 	__global const rr_float2* dwdr,
@@ -41,7 +40,7 @@ __kernel void artificial_viscosity(
 			rr_float piv = (art_visc_beta * muv - art_visc_alpha * art_sound_vel) * muv / mrho;
 			rr_float2 h = -dwdr[at(n, j)] * piv;
 
-			a_temp -= h * mass[i];
+			a_temp -= h * params_mass;
 		}
 	}
 

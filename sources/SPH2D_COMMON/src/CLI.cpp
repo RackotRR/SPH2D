@@ -42,7 +42,6 @@ bool overrideDirectory(const std::string& experiment_name) {
 void cli(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,	// particle material type 
@@ -63,7 +62,7 @@ void cli(
 					std::cout << "Can't find Params.json" << std::endl;
 					if (overrideDirectory(experiment_name)) {
 						params.experiment_name = experiment_name;
-						input(r, v, mass, rho, p, itype, ntotal, nfluid);
+						input(r, v, rho, p, itype, ntotal, nfluid);
 						return;
 					}
 					else {
@@ -91,11 +90,11 @@ void cli(
 				std::cin.get();
 
 				if (num == -1 && overrideDirectory(experiment_name)) {
-					input(r, v, mass, rho, p, itype, ntotal, nfluid);
+					input(r, v, rho, p, itype, ntotal, nfluid);
 					return;
 				} // clear and run default
 				else if (num == 0 && overrideDirectory(experiment_name)) {
-					input(r, v, mass, rho, p, itype, ntotal, nfluid, false);
+					input(r, v, rho, p, itype, ntotal, nfluid, false);
 					return;
 				} // clear and run from Params.json
 				else if (num <= dumps_path.size()) {
@@ -108,7 +107,7 @@ void cli(
 					}
 
 					auto particles_data_path = std::filesystem::path(experiment_directory) / "dump" / chosen_dump;
-					fileInput(r, v, mass, rho, p, itype, ntotal, nfluid, particles_data_path.string());
+					fileInput(r, v, rho, p, itype, ntotal, nfluid, particles_data_path.string());
 					return;
 				} // run from dump
 				else {
@@ -117,7 +116,7 @@ void cli(
 			}
 			else {
 				params.experiment_name = experiment_name;
-				input(r, v, mass, rho, p, itype, ntotal, nfluid);
+				input(r, v, rho, p, itype, ntotal, nfluid);
 				return;
 			}
 		}

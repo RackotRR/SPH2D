@@ -109,6 +109,7 @@ struct ExperimentParams {
 		TYPE_WATER = 2,
 	};
 
+	rr_float mass = 1000 * delta * delta; // mass in 2 dim
 
 	/// control parameters for output
 

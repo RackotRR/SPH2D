@@ -73,6 +73,8 @@ void loadDefaultParams() {
 	params.delta = delta;
 	params.hsml = delta * 1.2f;
 
+	params.mass = 1000 * sqr(delta);
+
 	params.fluid_particles_per_d = particlesPer_d;
 	params.x_fluid_particles = fluid_particles_x;
 	params.y_fluid_particles = fluid_particles_y;
@@ -140,7 +142,6 @@ void loadDefaultParams() {
 static void generateParticles(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,// particle masses
 	heap_darray<rr_float>& rho, // particle densities
 	heap_darray<rr_float>& p,	 // particle pressure
 	heap_darray<rr_int>& itype)	 // particle material type
@@ -164,7 +165,6 @@ static void generateParticles(
 		v(i) = { 0.f };
 
 		rho(i) = 1000.f;
-		mass(i) = params.delta * params.delta * rho(i);
 		itype(i) = params.TYPE_WATER;
 		p(i) = 0;
 	}
@@ -174,7 +174,6 @@ static void generateParticles(
 void input(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,	// particle material type 
@@ -192,7 +191,6 @@ void input(
 
 	r = heap_darray<rr_float2>(params.maxn); 
 	v = heap_darray<rr_float2>(params.maxn);
-	mass = heap_darray<rr_float>(params.maxn);
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
@@ -200,8 +198,8 @@ void input(
 	ntotal = params.ntotal;
 	nfluid = params.nfluid;
 
-	generateParticles(r, v, mass, rho, p, itype);
-	virt_part(nfluid, r, v, mass, rho, p, itype);
+	generateParticles(r, v, rho, p, itype);
+	virt_part(nfluid, r, v, rho, p, itype);
 	printParams();
 }
 
@@ -209,7 +207,6 @@ void input(
 void fileInput(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,// particle material type 
@@ -228,7 +225,6 @@ void fileInput(
 
 	r = heap_darray<rr_float2>(params.maxn);
 	v = heap_darray<rr_float2>(params.maxn);
-	mass = heap_darray<rr_float>(params.maxn, 1000.f * params.delta * params.delta);
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);

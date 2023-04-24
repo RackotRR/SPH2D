@@ -4,7 +4,6 @@
 
 static void density_normalization(
 	const rr_uint ntotal,	// number of particles 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float>& w, // precomputed kernel
 	const heap_darray<rr_float>& rho,	// density of particles
@@ -17,20 +16,19 @@ static void density_normalization(
 		rr_float wjj;
 		rr_float2 dwdrjj;
 		kernel_self(wjj, dwdrjj);
-		normrho(j) = mass(j) / rho(j) * wjj;
+		normrho(j) = params.mass / rho(j) * wjj;
 
 		rr_uint i;
 		for (rr_iter n = 0;
 			i = neighbours(n, j), i != ntotal; // particle near
 			++n)
 		{
-			normrho(j) += mass(i) / rho(i) * w(n, j);
+			normrho(j) += params.mass / rho(i) * w(n, j);
 		}
 	}
 }
 static void density_summation(
 	const rr_uint ntotal,	// number of particles 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float>& w, // precomputed kernel
 	heap_darray<rr_float>& rho)	// out, density of particles
@@ -42,20 +40,19 @@ static void density_summation(
 		rr_float wjj;
 		rr_float2 dwdrjj;
 		kernel_self(wjj, dwdrjj);
-		rho(j) = mass(j) * wjj;
+		rho(j) = params.mass * wjj;
 
 		rr_uint i;
 		for (rr_iter n = 0;
 			i = neighbours(n, j), i != ntotal; // particle near
 			++n)
 		{
-			rho(j) += mass(i) * w(n, j);
+			rho(j) += params.mass * w(n, j);
 		}
 	}
 }
 void sum_density(
 	const rr_uint ntotal,	// number of particles 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float>& w, // precomputed kernel
 	heap_darray<rr_float>& rho) // out, density
@@ -67,7 +64,6 @@ void sum_density(
 	if (params.nor_density) {
 		density_normalization(
 			ntotal,
-			mass,
 			neighbours,
 			w,
 			rho,
@@ -77,7 +73,6 @@ void sum_density(
 	// density integration over a kernel
 	density_summation(
 		ntotal,
-		mass,
 		neighbours,
 		w,
 		rho);
@@ -93,7 +88,6 @@ void sum_density(
 // calculate the density with SPH continuity approach
 void con_density(
 	const rr_uint ntotal,	// number of particles 
-	const heap_darray<rr_float>& mass,// particle masses
 	const heap_darray<rr_float2>& v,// velocity of all particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel
@@ -113,7 +107,7 @@ void con_density(
 		{
 			rr_float2 dvx = v(i) - v(j);
 			rr_float vcc = dot(dvx, dwdr(n, j));
-			drhodt(j) += mass(i) * vcc;
+			drhodt(j) += params.mass * vcc;
 		}
 	}
 }

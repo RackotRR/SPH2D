@@ -4,7 +4,6 @@
 void input(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,	// particle material type 
@@ -15,7 +14,6 @@ void input(
 void fileInput(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,	// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,// particle material type 
@@ -28,7 +26,6 @@ void fileInput(
 void cli(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& mass,// particle masses
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,	// particle material type 
