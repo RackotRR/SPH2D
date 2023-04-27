@@ -58,7 +58,6 @@ namespace {
 			set(dt);
 			set(simulation_time);
 			set(local_threads);
-			set(eos);
 			set(eos_csqr_k);
 			set(pa_sph);
 			set(skf);

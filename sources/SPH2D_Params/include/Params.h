@@ -52,10 +52,6 @@ struct ExperimentParams {
 
 	rr_uint local_threads;
 
-	// form of eos
-	// eos = 1 : Lennard-Jones
-	//		 2 : Monaghan 1994
-	rr_uint eos{ 2 };
 	rr_float eos_csqr_k{ 1.f };
 
 	// SPH algorithm for particle approximation

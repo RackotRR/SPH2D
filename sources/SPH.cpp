@@ -16,11 +16,11 @@
 void simulation() {
 	rr_uint ntotal; // number of particles 
 	rr_uint nfluid; 
-	heap_darray<rr_int> itype(0); // material type of particles
-	heap_darray<rr_float2> r(0); // coordinates of all particles
-	heap_darray<rr_float2> v(0); // velocities of all particles
-	heap_darray<rr_float> rho(0); // density
-	heap_darray<rr_float> p(0); // pressure
+	heap_darray<rr_int> itype; // material type of particles
+	heap_darray<rr_float2> r; // coordinates of all particles
+	heap_darray<rr_float2> v; // velocities of all particles
+	heap_darray<rr_float> rho; // density
+	heap_darray<rr_float> p; // pressure
 
 	cli(r, v, rho, p, itype, ntotal, nfluid);
 

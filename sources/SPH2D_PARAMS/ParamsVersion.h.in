@@ -6,3 +6,5 @@
 //     - add water_dynamic_visc
 // 1.2 - add int_force_kernel
 // 2.1 - new input/output format (.csv)
+// 2.2 - add mass
+// 2.3 - remove LJ eos (no eos param)

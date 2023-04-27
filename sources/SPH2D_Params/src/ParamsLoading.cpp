@@ -1,5 +1,6 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <iostream>
 
 #include "Params.h"
 #include "Version.h"
@@ -16,10 +17,11 @@ void ExperimentParams::load(const std::string& params_path) {
 		load(version_minor);
 	}
 	else {
-		params.version_major = 0;
-		params.version_minor = 1;
+		version_major = 0;
+		version_minor = 1;
 	}
-	ParamsVersion version(params.version_major, params.version_minor);
+	ParamsVersion version(version_major, version_minor);
+	std::cout << "loaded params " << version_major << '.' << version_minor << std::endl;
 
 	load(dim);
 	load(maxn);
@@ -56,13 +58,12 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(dt);
 	load(simulation_time);
 	load(local_threads);
-	load(eos);
 	load(eos_csqr_k);
 	load(pa_sph);
 	load(skf);
 
 	if (version < ParamsVersion{ 1, 2 }) {
-		params.int_force_kernel = false;
+		int_force_kernel = false;
 	}
 	else {
 		load(int_force_kernel);
@@ -80,14 +81,14 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(visc);
 
 	if (version < ParamsVersion{ 1, 1 }) {
-		params.water_dynamic_visc = 1.e-3f;
+		water_dynamic_visc = 1.e-3f;
 	}
 	else {
 		load(water_dynamic_visc);
 	}
 
 	if (version < ParamsVersion{ 2, 2 }) {
-		params.mass = 1000 * params.delta * params.delta;
+		mass = 1000 * delta * delta;
 	}
 	else {
 		load(mass);
