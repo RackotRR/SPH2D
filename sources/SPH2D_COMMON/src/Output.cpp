@@ -70,6 +70,15 @@ namespace {
 		std::optional<heap_darray<rr_float>> p,
 		const rr_uint itimestep)
 	{
+		std::call_once(::params_format_line_flag,
+			[&] {
+				params.format_line = "fmt: ";
+				if (v.has_value()) params.format_line += " vx  vy ";
+				if (p.has_value()) params.format_line += " p ";
+				if (rho.has_value()) params.format_line += " rho ";
+				params.makeJson(::experimentRelativePath + "Params.json");
+			});
+
 		try {
 			std::ofstream stream(::dataOutputRelativePath + std::to_string(itimestep) + ".csv");
 			auto writer = csv::make_csv_writer(stream);
@@ -113,15 +122,6 @@ namespace {
 		catch (std::exception& ex) {
 			printlog("print error: ")(ex.what())();
 		}
-
-		std::call_once(::params_format_line_flag,
-			[&] {
-				params.format_line = "fmt: ";
-				if (v.has_value()) params.format_line += " vx  vy ";
-				if (p.has_value()) params.format_line += " p ";
-				if (rho.has_value()) params.format_line += " rho ";
-				params.makeJson(::experimentRelativePath + "Params.json");
-			});
 	}
 }
 

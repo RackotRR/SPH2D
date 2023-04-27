@@ -1,10 +1,11 @@
 #pragma once 
 #include <string>
 #include "Types.h"
+#include "ParamsVersion.h"
 
 struct ExperimentParams {
-	rr_uint version_major{ 1 };
-	rr_uint version_minor{ 0 };
+	rr_uint version_major{ SPH2D_PARAMS_VERSION_MAJOR };
+	rr_uint version_minor{ SPH2D_PARAMS_VERSION_MINOR };
 	// dimension of the problem (1, 2, 3)
 	rr_uint dim{ 2 };
 

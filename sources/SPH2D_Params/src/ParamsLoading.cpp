@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include "Params.h"
-#include "ParamsVersion.h"
+#include "Version.h"
 
 void ExperimentParams::load(const std::string& params_path) {
 	nlohmann::json json;

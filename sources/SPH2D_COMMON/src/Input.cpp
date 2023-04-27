@@ -63,7 +63,7 @@ void loadDefaultParams() {
 	constexpr rr_float ratio = L / depth;
 	constexpr rr_float tank_length = 3.5f * L;
 	constexpr rr_float tank_height = 2.f;
-	constexpr rr_uint particlesPer_d = 50;
+	constexpr rr_uint particlesPer_d = 25;
 	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
 	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L / L * tank_length);
 	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d);
@@ -137,6 +137,8 @@ void loadDefaultParams() {
 
 	params.print_time_est_step = 500;
 	params.local_threads = 256;
+	params.version_major = SPH2D_PARAMS_VERSION_MAJOR;
+	params.version_minor = SPH2D_PARAMS_VERSION_MINOR;
 }
 
 static void generateParticles(
