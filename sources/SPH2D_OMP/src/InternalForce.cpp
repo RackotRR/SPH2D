@@ -135,9 +135,6 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 void update_internal_state(
 	const rr_uint ntotal,
 	const heap_darray<rr_float>& rho,	// density
-	const heap_darray<rr_float>& txx,
-	const heap_darray<rr_float>& txy,	
-	const heap_darray<rr_float>& tyy,	
 	heap_darray<rr_float>& p)	// particle pressure
 {
 	printlog_debug(__func__)();
@@ -211,7 +208,6 @@ void int_force(
 
 	update_internal_state(ntotal,
 		rho,
-		txx, txy, tyy,
 		p);
 
 	if (params.pa_sph == 1) {

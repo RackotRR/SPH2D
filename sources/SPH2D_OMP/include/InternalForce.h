@@ -35,10 +35,6 @@ void find_stress_tensor(
 void update_internal_state(
 	const rr_uint ntotal,
 	const heap_darray<rr_float>& rho,	// density
-	const heap_darray<rr_float>& txx,
-	const heap_darray<rr_float>& txy,
-	const heap_darray<rr_float>& tyy,
-	heap_darray<rr_float>& c,	// particle sound speed
 	heap_darray<rr_float>& p);	// particle pressure
 
 void find_internal_changes_pij_d_rhoij(
