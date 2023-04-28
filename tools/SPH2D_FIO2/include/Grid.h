@@ -18,7 +18,6 @@ namespace sphfio {
 		RR::Memory::heap_darray<rr_int> itype;
 		RR::Memory::heap_darray<rr_float2> v;
 		RR::Memory::heap_darray<rr_float> p;
-		RR::Memory::heap_darray<rr_float> rho;
 
 		rr_uint ntotal = 0;
 

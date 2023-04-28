@@ -6,7 +6,6 @@
 #include <cxxopts/cxxopts.hpp>
 
 #include <GridFind.h>
-#include <GridUtils.h>
 #include <Kernel.h>
 #include <EOS.h>
 #include <Density.h>
@@ -78,7 +77,8 @@ static void initMesh(const sphfio::Square& square,
     rr_float x0 = square.origin_x + 0.5f * cell_size;
     rr_float y0 = square.origin_y + 0.5f * cell_size;
 
-    for (size_t row = 0; row < rows; ++row) {
+#pragma omp parallel for
+    for (rr_iter row = 0; row < rows; ++row) {
         rr_float y = y0 + row * cell_size;
         for (size_t column = 0; column < columns; ++column) {
             rr_float x = x0 + column * cell_size;
@@ -116,14 +116,12 @@ static void convertPartToGrid(rr_uint nodes, rr_uint ntotal,
     const heap_darray_md<rr_uint>& nodes_neighbours,
     const heap_darray_md<rr_float>& nodes_w,
     heap_darray<rr_float2>& nodes_v,
-    heap_darray<rr_float>& nodes_p,
-    heap_darray<rr_float>& nodes_rho)
+    heap_darray<rr_float>& nodes_p)
 {
 #pragma omp parallel for
     for (rr_iter j = 0; j < nodes; ++j) { // current node
         nodes_p(j) = 0;
         nodes_v(j) = 0;
-        nodes_rho(j) = 0;
 
         rr_uint i;
         for (rr_iter n = 0;
@@ -155,7 +153,6 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
     heap_darray<rr_float2> nodes_r{ nodes };
     heap_darray<rr_float2> nodes_v{ nodes };
     heap_darray<rr_float> nodes_p{ nodes };
-    heap_darray<rr_float> nodes_rho{ nodes };
 
     heap_darray_md<rr_uint> neighbours{ ::params.max_neighbours, nodes };
     heap_darray_md<rr_float> w{ ::params.max_neighbours, nodes };
@@ -165,6 +162,7 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
 
     heap_darray<rr_float> rho_part{ params->maxn };
 
+    // if 'p' available these don't allocate memory
     heap_darray_md<rr_uint> neighbours_part;
     heap_darray_md<rr_float> w_part;
     heap_darray_md<rr_float2> dwdr_part;
@@ -205,7 +203,7 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
         convertPartToGrid(nodes, time_layer.ntotal,
             time_layer.r, time_layer.v, time_layer.p, rho_part,
             neighbours, w,
-            nodes_v, nodes_p, nodes_rho);
+            nodes_v, nodes_p);
 
         gridOutput(sphfio, time_layer_num, ::params.hsml,
             nodes_v.copy(), nodes_p.copy());
@@ -241,8 +239,9 @@ int main(int argc, const char** argv) {
     options.add_option("general", "e", "experiment", "Experiment name", cxxopts::value<std::string>(), "");
     options.add_option("additional", "h", "delta", "Grid cells' size", cxxopts::value<double>(), "");
     options.add_option("additional", "n", "neighbours", "Max neighbour particles for node", cxxopts::value<unsigned>(), "");
+    options.parse_positional({ "experiment", "delta", "neighbours" });
 
-    try {
+    try {        
         auto result = options.parse(argc, argv);
         if (result.count("help")) {
             std::cout << options.help() << std::endl;

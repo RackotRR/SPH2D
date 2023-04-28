@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <SPH2D_FIO.h>
+#include <GridUtils.h>
 
 struct PartToGridParams {
     std::string experiment_name;

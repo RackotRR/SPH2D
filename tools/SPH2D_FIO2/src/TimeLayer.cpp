@@ -11,8 +11,7 @@ static rr_uint loadLayerFromFileMM(const std::string& filename,
 	heap_darray<rr_float2>& r,
 	heap_darray<rr_int>& itype,
 	heap_darray<rr_float2>& v,
-	heap_darray<rr_float>& p,
-	heap_darray<rr_float>& rho) 
+	heap_darray<rr_float>& p) 
 {
 	csv::CSVReader reader(filename);
 
@@ -34,9 +33,6 @@ static rr_uint loadLayerFromFileMM(const std::string& filename,
 		if (reader.index_of("vy") != csv::CSV_NOT_FOUND) {
 			v(j).y = row["vy"].get<rr_float>();
 		}
-		if (reader.index_of("rho") != csv::CSV_NOT_FOUND) {
-			rho(j) = row["rho"].get<rr_float>();
-		}
 		if (reader.index_of("p") != csv::CSV_NOT_FOUND) {
 			p(j) = row["p"].get<rr_float>();
 		}
@@ -52,13 +48,11 @@ TimeLayer::TimeLayer(const std::string& filename, rr_uint maxn) :
 	itype{ maxn },
 	v{ maxn },
 	p{ maxn },
-	rho{ maxn },
 	ntotal{ loadLayerFromFileMM(filename, maxn,
 		r,
 		itype,
 		v,
-		p,
-		rho) }
+		p) }
 {
 }
 
@@ -70,20 +64,17 @@ static constexpr char ITYPE_NAME[] = "itype";
 static constexpr char VX_NAME[] = "vx";
 static constexpr char VY_NAME[] = "vy";
 static constexpr char P_NAME[] = "p";
-static constexpr char RHO_NAME[] = "rho";
 
 static rr_float getParticleVx(const TimeLayer& particles, rr_uint i) { return particles.v(i).x; }
 static rr_float getParticleVy(const TimeLayer& particles, rr_uint i) { return particles.v(i).y; }
 static rr_float getParticleP(const TimeLayer& particles, rr_uint i) { return particles.p(i); }
-static rr_float getParticleRho(const TimeLayer& particles, rr_uint i) { return particles.rho(i); }
 using ParticleVarGetter = rr_float (*)(const TimeLayer& particles, rr_uint i);
 
 static auto& getGetterByTag(const std::string& tag) {
 	static const std::unordered_map<std::string, ParticleVarGetter> dict{
 		{VX_NAME, getParticleVx},
 		{VY_NAME, getParticleVy},
-		{P_NAME, getParticleP},
-		{RHO_NAME, getParticleRho},
+		{P_NAME, getParticleP}
 	};
 
 	return dict.at(tag);
