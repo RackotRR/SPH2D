@@ -85,6 +85,7 @@ void ExperimentParams::load(const std::string& params_path) {
 	load_afterp(2, 2, mass, 1000 * delta * delta);
 	load(enable_check_consistency);
 	load(inf_stop);
+	load_after(2, 5, starttimestep);
 	load(maxtimestep);
 	load(normal_check_step);
 	load(save_step);

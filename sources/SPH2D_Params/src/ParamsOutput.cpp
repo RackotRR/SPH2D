@@ -82,6 +82,7 @@ namespace {
 			set(mass);
 			set(enable_check_consistency);
 			set(inf_stop);
+			set(starttimestep);
 			set(maxtimestep);
 			set(normal_check_step);
 			set(save_step);

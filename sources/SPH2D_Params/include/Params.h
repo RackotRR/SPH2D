@@ -78,7 +78,7 @@ struct ExperimentParams {
 	// solid boundary treatment
 	// sbt = 0 : dynamic particles
 	//       1 : repulsive particles
-	rr_uint sbt{ 0 };
+	rr_uint sbt{ 1 };
 
 	// const smoothing length
 	rr_float hsml;

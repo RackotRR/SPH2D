@@ -14,6 +14,7 @@ void time_integration(
 
 void predict_half_step(
 	const rr_uint ntotal,
+	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& rho, // density
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& v,	// velocities
@@ -23,6 +24,7 @@ void predict_half_step(
 
 void whole_step(
 	const rr_uint ntotal,
+	const rr_uint timestep,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& a,	// acceleration

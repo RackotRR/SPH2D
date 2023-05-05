@@ -1,6 +1,6 @@
 #pragma once
 #define SPH2D_PARAMS_VERSION_MAJOR 2
-#define SPH2D_PARAMS_VERSION_MINOR 4
+#define SPH2D_PARAMS_VERSION_MINOR 5
 
 // 1.1 - remove artificial heat as it used in gas simulation
 //     - add water_dynamic_visc
@@ -9,3 +9,4 @@
 // 2.2 - add mass
 // 2.3 - remove LJ eos (no eos param)
 // 2.4 - add sbt (solid boundary treatment), artificial_{shear || bulk}_visc coef for ArtificialViscosity
+// 2.5 - add starttimestep

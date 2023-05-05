@@ -10,6 +10,7 @@
 
 void predict_half_step(
 	const rr_uint ntotal,
+	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& rho, // density
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& v,	// velocities
@@ -24,11 +25,14 @@ void predict_half_step(
 			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
 		}
 
-		v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
+		if (itype(i) > 0) {
+			v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
+		}
 	}
 }
 void whole_step(
 	const rr_uint ntotal,
+	const rr_uint timestep,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& a,	// acceleration
@@ -39,14 +43,18 @@ void whole_step(
 {
 	printlog()(__func__)();
 
+	rr_float r_dt = params.dt;
+	rr_float v_dt = timestep == params.starttimestep ?
+		params.dt * 0.5f : params.dt;
+
 	for (rr_uint i = 0; i < ntotal; i++) {
 		if (params.summation_density == false) {
-			rho(i) = rho(i) + drho(i) * params.dt;
+			rho(i) = rho(i) + drho(i) * v_dt;
 		}
 
 		if (itype(i) > 0) {
-			v(i) += a(i) * params.dt + av(i);
-			r(i) += v(i) * params.dt;
+			v(i) += a(i) * v_dt + av(i);
+			r(i) += v(i) * r_dt;
 		}
 	}
 }
@@ -88,6 +96,7 @@ void time_integration(
 		printTimeEstimate(timer.total(), itimestep);
 
 		predict_half_step(ntotal,
+			itype,
 			rho, drho, 
 			v, a, 
 			*rho_predicted, v_predict);
@@ -112,6 +121,7 @@ void time_integration(
 		}
 
 		whole_step(ntotal,
+			itimestep,
 			itype,
 			drho, a, av,
 			rho, v, r);

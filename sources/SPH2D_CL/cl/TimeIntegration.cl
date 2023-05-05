@@ -14,6 +14,7 @@ __kernel void update_acceleration(
 }
 
 __kernel void predict_half_step(
+	__global const rr_int* itype,
 	__global const rr_float* drho,
 	__global const rr_float2* a,
 	__global const rr_float* rho,
@@ -29,10 +30,14 @@ __kernel void predict_half_step(
 	rho_predict[i] = rho[i] + drho[i] * params_dt * 0.5f;
 #endif // !params_summation_density
 
-	v_predict[i] = v[i] + a[i] * params_dt * 0.5f;
+	if (itype[i] > 0) {
+		v_predict[i] = v[i] + a[i] * params_dt * 0.5f;
+	}
 }
 
 __kernel void whole_step(
+	const rr_uint timestep,
+
 	__global const rr_int* itype,
 	__global const rr_float* drho,
 	__global const rr_float2* a,
@@ -46,13 +51,17 @@ __kernel void whole_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
+	rr_float v_dt = timestep == params_starttimestep ?
+		params_dt * 0.5f : params_dt;
+	rr_float r_dt = params_dt;
+
 #ifndef params_summation_density
-	rho[i] += drho[i] * params_dt;
+	rho[i] += drho[i] * v_dt;
 #endif // params_summation_density
 
-	if (itype[i] > 0) { 
-		v[i] += a[i] * params_dt + av[i];
-		r[i] += v[i] * params_dt;
+	if (itype[i] > 0) {
+		v[i] += a[i] * v_dt + av[i];
+		r[i] += v[i] * r_dt;
 	}
 }
 

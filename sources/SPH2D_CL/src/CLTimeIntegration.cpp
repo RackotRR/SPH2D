@@ -123,12 +123,15 @@ void cl_time_integration(
 
         printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(
+            itype_,
             drho_, a_,
             rho_, v_,
             rho_predict_, v_predict_
         ).execute(params.maxn, params.local_threads);
 
-        if (itimestep % params.save_step == 0) {
+        bool should_check = itimestep % params.normal_check_step == 0;
+        bool should_save = itimestep % params.save_step == 0;
+        if (should_save || should_check) {
             heap_darray<rr_float2> r_temp(params.maxn);
             heap_darray<rr_float2> v_temp(params.maxn);
             heap_darray<rr_float> p_temp(params.maxn);
@@ -137,17 +140,19 @@ void cl_time_integration(
             cl::copy(v_predict_, v_temp.begin(), v_temp.end());
             cl::copy(p_, p_temp.begin(), p_temp.end());
 
-            if (params.enable_check_consistency) {
+            if (params.enable_check_consistency && should_check) {
                 check_particles_are_within_boundaries(ntotal, r_temp, itype);
             }
 
-            output(
-                std::move(r_temp),
-                itype.copy(),
-                std::move(v_temp),
-                std::nullopt,
-                std::move(p_temp),
-                itimestep);
+            if (should_save) {
+                output(
+                    std::move(r_temp),
+                    itype.copy(),
+                    std::move(v_temp),
+                    std::nullopt,
+                    std::move(p_temp),
+                    itimestep);
+            }
         }
 
         printlog_debug("fill in grid")();
@@ -251,7 +256,7 @@ void cl_time_integration(
         }
 
         printlog_debug("whole step")();
-        whole_step_kernel(
+        whole_step_kernel(itimestep,
             itype_, drho_, a_, av_,
             rho_, v_, r_
         ).execute(params.maxn, params.local_threads);
