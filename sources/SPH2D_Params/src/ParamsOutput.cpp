@@ -64,6 +64,7 @@ namespace {
 			set(int_force_kernel);
 			set(nwm);
 			set(boundary_layers_num);
+			set(sbt);
 			set(hsml);
 			set(delta);
 			set(boundary_delta);
@@ -73,6 +74,8 @@ namespace {
 			set(average_velocity_epsilon);
 			set(visc);
 			set(water_dynamic_visc);
+			set(artificial_shear_visc);
+			set(artificial_bulk_visc);
 			set_param("TYPE_BOUNDARY", params.TYPE_BOUNDARY);
 			set_param("TYPE_NON_EXISTENT", params.TYPE_NON_EXISTENT);
 			set_param("TYPE_WATER", params.TYPE_WATER);

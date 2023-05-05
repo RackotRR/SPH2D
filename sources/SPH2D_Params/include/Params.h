@@ -65,7 +65,7 @@ struct ExperimentParams {
 	//		 3 : Quintic kernel (Morris 1997)
 	rr_uint skf{ 1 };
 	// enable separate non-clustering smoothing kernel for internal forces calculation
-	bool int_force_kernel{ true };
+	bool int_force_kernel{ false };
 
 	// numerical waves maker
 	// nmw = 0 : no waves
@@ -74,6 +74,11 @@ struct ExperimentParams {
 	//		 3 : impulse method
 	rr_uint nwm{ 0 };
 	rr_uint boundary_layers_num = 1;
+
+	// solid boundary treatment
+	// sbt = 0 : dynamic particles
+	//       1 : repulsive particles
+	rr_uint sbt{ 0 };
 
 	// const smoothing length
 	rr_float hsml;
@@ -99,6 +104,8 @@ struct ExperimentParams {
 	// viscosity on?
 	bool visc{ true };
 	rr_float water_dynamic_visc = 1.e-3f;
+	rr_float artificial_shear_visc = 1.f;
+	rr_float artificial_bulk_visc = 0.f;
 
 	enum {
 		TYPE_BOUNDARY = -2,

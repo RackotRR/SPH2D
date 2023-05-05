@@ -18,16 +18,19 @@ static rr_uint setup_virt_part(
 {
 	printlog()(__func__)();
 
-	params.boundary_layers_num = 2;
-	params.boundary_delta = delta * 2.f;
+	params.boundary_layers_num = 3;
+	params.boundary_delta = delta * 1.f;
 
-	params.x_boundary_min = x_fluid_min - 2 * hsml;
-	params.y_boundary_min = y_fluid_min - 2 * hsml;
-	params.x_boundary_max = x_fluid_max + 2 * hsml;
+	constexpr rr_float spacing = 2;
+
+	params.x_boundary_min = x_fluid_min - spacing * hsml;
+	params.y_boundary_min = y_fluid_min - spacing * hsml;
+	params.x_boundary_max = x_fluid_max + spacing * hsml;
 	params.y_boundary_max = y_maxgeom;
 
 	params.beach_x = 0; // is not in use now
-	params.nwm = 2;
+	params.nwm = 0;
+	params.sbt = 0;
 	params.generator_time_wait = 0.5f;
 
 	return count_virt_part_num();
@@ -40,8 +43,8 @@ static rr_uint countCells(
 	rr_float x_maxgeom,
 	rr_float y_maxgeom)
 {
-	rr_uint x_id = get_cell_x_from_coordinate(params.x_maxgeom - params.x_mingeom);
-	rr_uint y_id = get_cell_x_from_coordinate(params.y_maxgeom - params.y_mingeom);
+	rr_uint x_id = get_cell_x_from_coordinate(params.x_maxgeom);
+	rr_uint y_id = get_cell_x_from_coordinate(params.y_maxgeom);
 
 	if (x_id > UINT16_MAX || y_id > UINT16_MAX) {
 		throw std::runtime_error{ "can't make grid with so many cells" };
@@ -56,21 +59,21 @@ static rr_uint countCells(
 void loadDefaultParams() {
 	printlog()(__func__)();
 	
-	constexpr rr_float H = 0.2f;
-	constexpr rr_float L = 8.975979804992676f;
-	constexpr rr_float depth = 0.7f;
+	constexpr rr_float H = 0.0f;
+	constexpr rr_float L = 1.2f;
+	constexpr rr_float depth = 0.6f;
 	constexpr rr_float ratio = L / depth;
-	constexpr rr_float tank_length = 3.5f * L;
+	constexpr rr_float tank_length = 3.22f;
 	constexpr rr_float tank_height = 2.f;
-	constexpr rr_uint particlesPer_d = 25;
+	constexpr rr_uint particlesPer_d = 125;
 	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
-	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L / L * tank_length);
+	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L);
 	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d);
 	constexpr rr_uint fluid_particles = fluid_particles_x * fluid_particles_y;
 	constexpr rr_float delta = depth / particlesPer_d;
 
 	params.delta = delta;
-	params.hsml = delta * 1.2f;
+	params.hsml = delta * 1.f;
 
 	params.mass = 1000 * sqr(delta);
 
@@ -116,15 +119,18 @@ void loadDefaultParams() {
 	params.wave_length = L;
 	params.depth = depth;
 
+	params.skf = 1;
 	params.eos_csqr_k = 1;
-	params.average_velocity = true;
-	params.average_velocity_epsilon = 0.3f;
+	params.average_velocity = false;
+	params.average_velocity_epsilon = 0.05f;
+	params.artificial_shear_visc = 0.01f;
+	params.artificial_bulk_visc = 0;
 	params.int_force_kernel = false;
 
 	params.save_step = 1000;
 	params.dump_step = 10 * params.save_step;
 	params.normal_check_step = params.save_step;
-	params.simulation_time = 15.f;
+	params.simulation_time = 3.f;
 	constexpr rr_float k_CFL = 0.125f;
 	params.dt = k_CFL * params.hsml / (2.2f * sqrt(200 * params.g * params.depth * params.eos_csqr_k));
 	params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);

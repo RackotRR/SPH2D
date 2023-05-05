@@ -11,6 +11,12 @@ void ExperimentParams::load(const std::string& params_path) {
 	stream >> json;
 
 #define load(param) json.at(#param).get_to(param)
+#define load_after(major, minor, param) do { if (version >= ParamsVersion{ major, minor }) load(param); } while(false)
+#define load_afterp(major, minor, param, value) \
+	do { \
+		if (version >= ParamsVersion{ major, minor }) load(param); \
+		else param = value; \
+	} while(false)
 	
 	if (json.contains("version_major")) {
 		load(version_major);
@@ -61,16 +67,10 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(eos_csqr_k);
 	load(pa_sph);
 	load(skf);
-
-	if (version < ParamsVersion{ 1, 2 }) {
-		int_force_kernel = false;
-	}
-	else {
-		load(int_force_kernel);
-	}
-
+	load_after(1, 2, int_force_kernel);
 	load(nwm);
 	load(boundary_layers_num);
+	load_after(2, 4, sbt);
 	load(hsml);
 	load(delta);
 	load(boundary_delta);
@@ -79,21 +79,10 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(average_velocity);
 	load(average_velocity_epsilon);
 	load(visc);
-
-	if (version < ParamsVersion{ 1, 1 }) {
-		water_dynamic_visc = 1.e-3f;
-	}
-	else {
-		load(water_dynamic_visc);
-	}
-
-	if (version < ParamsVersion{ 2, 2 }) {
-		mass = 1000 * delta * delta;
-	}
-	else {
-		load(mass);
-	}
-
+	load_after(1, 1, water_dynamic_visc);
+	load_after(2, 4, artificial_shear_visc);
+	load_after(2, 4, artificial_bulk_visc);
+	load_afterp(2, 2, mass, 1000 * delta * delta);
 	load(enable_check_consistency);
 	load(inf_stop);
 	load(maxtimestep);
@@ -104,4 +93,6 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(experiment_name);
 	load(format_line);
 #undef load
+#undef load_after
+#undef load_afterp
 }

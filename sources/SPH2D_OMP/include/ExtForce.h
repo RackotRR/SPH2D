@@ -8,4 +8,12 @@ void external_force(
 	const heap_darray<rr_float2>& r,	// coordinates of all particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray<rr_int>& itype,	// type of particles 
-	heap_darray<rr_float2>& a); // out, acceleration with respect to x, y, z
+	heap_darray<rr_float2>& a); // out, acceleration
+
+
+void update_repulsive_force_part(rr_uint ntotal,
+	rr_uint fluid_particle_idx,
+	const heap_darray<rr_float2>& r,	// coordinates of all particles 
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	const heap_darray<rr_int>& itype,	// type of particles 
+	heap_darray<rr_float2>& a); // out, acceleration

@@ -14,10 +14,8 @@ void artificial_viscosity(
 {
 	printlog_debug(__func__)();
 	/// const for the artificial viscosity:
-	// shear viscosity
-	static constexpr rr_float alpha = 1.f;
-	// bulk viscosity
-	static constexpr rr_float beta = 1.f;
+	rr_float alpha = params.artificial_shear_visc;
+	rr_float beta = params.artificial_bulk_visc;
 	// const to avoid singularities
 	static constexpr rr_float etq = 0.1f;
 
