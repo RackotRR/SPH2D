@@ -20,8 +20,7 @@ static void findNeighboursForNode(
     const heap_darray<rr_uint>& grid,
     const heap_darray<rr_uint>& cell_starts_in_grid,
     heap_darray_md<rr_uint>& neighbours, // neighbours indices
-    heap_darray_md<rr_float>& w, // precomputed kernel
-    heap_darray_md<rr_float2>& dwdr) // precomputed kernel derivative
+    heap_darray_md<rr_float>& w) // precomputed kernel
 {
     const rr_float max_dist = sqr(grid_cell_size());
     bool overflow = false;
@@ -53,7 +52,7 @@ static void findNeighboursForNode(
                         --neighbour_id;
                     }
                     neighbours(neighbour_id, j) = i;
-                    kernel(sqrt(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j));
+                    w(neighbour_id, j) = kernel_w(sqrt(dist_sqr), params.density_skf);
                     ++neighbour_id;
                 }
             } // grid_i
@@ -137,7 +136,7 @@ static void convertPartToGrid(rr_uint nodes, rr_uint ntotal,
     }
 }
 
-static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
+static void convertPartToGrid(const sphfio::SPHFIO& sphfio, bool verbose) {
     bool is_p_available = sphfio.isAdditionalValuePresented("p");
 
     auto time_layers = sphfio.makeLazyGrid();
@@ -156,7 +155,6 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
 
     heap_darray_md<rr_uint> neighbours{ ::params.max_neighbours, nodes };
     heap_darray_md<rr_float> w{ ::params.max_neighbours, nodes };
-    heap_darray_md<rr_float2> dwdr{ ::params.max_neighbours, nodes };
 
     initMesh(square, nodes_r);
 
@@ -165,11 +163,9 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
     // if 'p' available these don't allocate memory
     heap_darray_md<rr_uint> neighbours_part;
     heap_darray_md<rr_float> w_part;
-    heap_darray_md<rr_float2> dwdr_part;
     if (!is_p_available) {
         neighbours_part = heap_darray_md<rr_uint>{ params->max_neighbours, params->maxn };
         w_part = heap_darray_md<rr_float>{ params->max_neighbours, params->maxn };
-        dwdr_part = heap_darray_md<rr_float2>{ params->max_neighbours, params->maxn };
     }
 
     size_t time_layer_num = 0;
@@ -182,7 +178,10 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
         else {
             grid_find(time_layer.ntotal,
                 time_layer.r,
-                neighbours_part, w_part, dwdr_part);
+                neighbours_part);
+            calculate_kernels_w(time_layer.ntotal,
+                time_layer.r, neighbours_part,
+                w_part, params->density_skf);
             sum_density(time_layer.ntotal,
                 neighbours_part, w_part,
                 rho_part);
@@ -198,14 +197,14 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio) {
         findNeighboursForNode(nodes,
             time_layer.r, nodes_r,
             grid, cells,
-            neighbours, w, dwdr);
+            neighbours, w);
 
         convertPartToGrid(nodes, time_layer.ntotal,
             time_layer.r, time_layer.v, time_layer.p, rho_part,
             neighbours, w,
             nodes_v, nodes_p);
 
-        gridOutput(sphfio, time_layer_num, ::params.hsml,
+        gridOutput(sphfio, verbose, time_layer_num, ::params.hsml,
             nodes_v.copy(), nodes_p.copy());
         ++time_layer_num;
     }
@@ -237,6 +236,7 @@ int main(int argc, const char** argv) {
 
     cxxopts::Options options{ "PartToGridConverter", "Converts particles data to grid of selected function." };
     options.add_option("general", "e", "experiment", "Experiment name", cxxopts::value<std::string>(), "");
+    options.add_option("additional", "v", "verbose", "Verbose grid output (also print x,y)", cxxopts::value<bool>(), "");
     options.add_option("additional", "h", "delta", "Grid cells' size", cxxopts::value<double>(), "");
     options.add_option("additional", "n", "neighbours", "Max neighbour particles for node", cxxopts::value<unsigned>(), "");
     options.parse_positional({ "experiment", "delta", "neighbours" });
@@ -256,7 +256,7 @@ int main(int argc, const char** argv) {
         ::params = *params;
         if (result.count("delta")) {
             double delta = result["delta"].as<double>();
-            ::params.hsml = delta / get_scale_k();
+            ::params.hsml = delta / params->cell_scale_k;
         }
 
         if (result.count("neighbours")) {
@@ -266,9 +266,14 @@ int main(int argc, const char** argv) {
             ::params.max_neighbours = 128;
         }
 
+        bool verbose = false;
+        if (result.count("verbose")) {
+            verbose = result["verbose"].as<bool>();
+        }
+
         std::string gridParamsPath = sphfio.directories.getExperimentDirectory() + "GridParams.json";
         printGridParams(gridParamsPath, sphfio::Square{ params }, ::params.hsml);
-        convertPartToGrid(sphfio);
+        convertPartToGrid(sphfio, verbose);
     }
     catch (const std::exception& ex) {
         std::cerr << ex.what() << std::endl;

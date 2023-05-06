@@ -17,6 +17,7 @@ void ExperimentParams::load(const std::string& params_path) {
 		if (version >= ParamsVersion{ major, minor }) load(param); \
 		else param = value; \
 	} while(false)
+#define load_as(param_old_name, param) json.at(#param_old_name).get_to(param)
 	
 	if (json.contains("version_major")) {
 		load(version_major);
@@ -66,8 +67,27 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(local_threads);
 	load(eos_csqr_k);
 	load(pa_sph);
-	load(skf);
-	load_after(1, 2, int_force_kernel);
+	
+	// density_skf
+	if (version < ParamsVersion{ 2, 7 }) load_as(skf, density_skf);
+	else load(density_skf);
+
+	// int_force_skf
+	if (version < ParamsVersion{ 1, 2 }) {
+		int_force_skf = density_skf;
+	}
+	else if (version < ParamsVersion{ 2, 7 }) {
+		if (json["int_force_kernel"].get<bool>()) int_force_skf = 4;
+		else int_force_skf = density_skf;
+	}
+	else {
+		load(int_force_skf);
+	}
+
+	load_afterp(2, 7, artificial_viscosity_skf, density_skf);
+	load_afterp(2, 6, average_velocity_skf, density_skf);
+	load_after(2, 7, cell_scale_k);
+
 	load(nwm);
 	load(boundary_layers_num);
 	load_after(2, 4, sbt);

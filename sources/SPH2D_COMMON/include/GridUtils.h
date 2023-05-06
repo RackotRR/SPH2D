@@ -7,12 +7,7 @@
 
 #ifdef KERNEL_INCLUDE
 
-#if params_skf == 1
-#define params_scale_k 2.f
-#else
-#define params_scale_k 3.f
-#endif
-#define grid_cell_size (params_scale_k * params_hsml)
+#define grid_cell_size (params_cell_scale_k * params_hsml)
 #define GRID_INVALID_CELL UINT_MAX
 
 #else
@@ -21,24 +16,31 @@
 #include "Params.h"
 
 constexpr rr_uint GRID_INVALID_CELL = UINT_MAX;
-// skale_k depends on the smoothing kernel function
-inline rr_float get_scale_k() {
-    rr_float scale_k;
-    switch (params.skf) {
-    case 1:
-        scale_k = 2;
-        break;
-    case 2:
-        scale_k = 3;
-        break;
-    default:
-        scale_k = 3;
-        break;
+
+inline rr_uint get_cell_scale_k(rr_uint skf) {
+    switch (params.density_skf) {
+    case 1: return 2;
+    case 2: return 3;
+    case 3: return 2;
+    case 4: return 2;
+    default: return 2;
     }
-    return scale_k;
 }
+
+inline rr_float get_cell_scale_k(
+    rr_uint density_skf,
+    rr_uint int_force_skf,
+    rr_uint art_visc_skf,
+    rr_uint av_vel_skf)
+{
+    return std::max(
+        std::max(get_cell_scale_k(density_skf), get_cell_scale_k(int_force_skf)),
+        std::max(get_cell_scale_k(art_visc_skf), get_cell_scale_k(av_vel_skf))
+    );
+}
+
 inline rr_float grid_cell_size() {
-    return get_scale_k() * params.hsml;
+    return params.cell_scale_k * params.hsml;
 }
 #endif // KERNEL_INCLUDE
 

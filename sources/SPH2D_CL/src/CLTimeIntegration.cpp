@@ -10,6 +10,8 @@
 namespace {
     RRKernel predict_half_step_kernel;
     RRKernel find_neighbours_kernel;
+    RRKernel calculate_kernels_w_kernel;
+    RRKernel calculate_kernels_dwdr_kernel;
     RRKernel sum_density_kernel;
     RRKernel con_density_kernel;
     RRKernel find_stress_tensor_kernel;
@@ -36,8 +38,11 @@ void makePrograms() {
     cl::Program artificial_viscosity_program = makeProgram("ArtificialViscosity.cl");
     cl::Program average_velocity_program = makeProgram("AverageVelocity.cl");
     cl::Program time_integration_program = makeProgram("TimeIntegration.cl");
+    cl::Program smoothing_kernel_program = makeProgram("SmoothingKernel.cl");
 
     predict_half_step_kernel = RRKernel(time_integration_program, "predict_half_step");
+    calculate_kernels_w_kernel = RRKernel(smoothing_kernel_program, "calculate_kernels_w");
+    calculate_kernels_dwdr_kernel = RRKernel(smoothing_kernel_program, "calculate_kernels_dwdr");
     fill_in_grid_kernel = RRKernel(grid_find_program, "fill_in_grid");
     sort_kernel = RRKernel(grid_find_program, "bitonic_sort_step");
     binary_search_kernel = RRKernel(grid_find_program, "binary_search");
@@ -53,6 +58,34 @@ void makePrograms() {
     update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     update_boundaries_kernel = RRKernel(time_integration_program, "update_boundaries");
+}
+
+static auto make_smoothing_kernels_w(cl_mem_flags flags) {
+    std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_w;
+
+    smoothing_kernels_w[params.density_skf];
+    smoothing_kernels_w[params.average_velocity_skf];
+
+    for (auto& [skf, w] : smoothing_kernels_w) {
+        smoothing_kernels_w[skf] = makeBuffer<rr_float>(flags, params.max_neighbours * params.maxn);
+    }
+
+    return smoothing_kernels_w;
+}
+static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
+    std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr;
+
+    smoothing_kernels_dwdr[params.int_force_skf];
+    smoothing_kernels_dwdr[params.artificial_viscosity_skf];
+    if (params.summation_density == false) {
+        smoothing_kernels_dwdr[params.density_skf];
+    }
+
+    for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+        smoothing_kernels_dwdr[skf] = makeBuffer<rr_float2>(flags, params.max_neighbours * params.maxn);
+    }
+
+    return smoothing_kernels_dwdr;
 }
 
 void cl_time_integration(
@@ -88,9 +121,9 @@ void cl_time_integration(
     auto grid_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.maxn);
     auto cells_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_cells);
     auto neighbours_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_neighbours * params.maxn);
-    auto w_ = makeBuffer<rr_float>(DEVICE_ONLY, params.max_neighbours * params.maxn);
-    auto dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.max_neighbours * params.maxn);
-    auto intf_dwdr_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.max_neighbours * params.maxn);
+
+    std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_w = make_smoothing_kernels_w(CL_MEM_READ_WRITE);
+    std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr = make_smoothing_kernels_dwdr(CL_MEM_READ_WRITE);
 
     // internal force
     auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
@@ -182,13 +215,24 @@ void cl_time_integration(
         printlog_debug("find neighbours")();
         find_neighbours_kernel(
             r_, grid_, cells_,
-            neighbours_, w_, dwdr_, intf_dwdr_
+            neighbours_
         ).execute(params.maxn, params.local_threads);
+
+        for (auto& [skf, w] : smoothing_kernels_w) {
+            calculate_kernels_w_kernel(ntotal,
+                r_, neighbours_,
+                w, skf).execute(params.maxn, params.local_threads);
+        }
+        for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+            calculate_kernels_dwdr_kernel(ntotal,
+                r_, neighbours_,
+                dwdr, skf).execute(params.maxn, params.local_threads);
+        }
 
         if (params.summation_density) {
             printlog_debug("sum density")();
             sum_density_kernel(
-                neighbours_, w_,
+                neighbours_, smoothing_kernels_w[params.density_skf],
                 rho_predict_
             ).execute(params.maxn, params.local_threads);
         }
@@ -196,7 +240,7 @@ void cl_time_integration(
             printlog_debug("con density")();
             con_density_kernel(
                 v_predict_,
-                neighbours_, dwdr_,
+                neighbours_, smoothing_kernels_dwdr[params.density_skf],
                 rho_predict_,
                 drho_
             ).execute(params.maxn, params.local_threads);
@@ -204,7 +248,7 @@ void cl_time_integration(
 
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, rho_predict_, neighbours_, intf_dwdr_,
+            v_predict_, rho_predict_, neighbours_, smoothing_kernels_dwdr[params.int_force_skf],
             txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
@@ -217,7 +261,7 @@ void cl_time_integration(
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, rho_predict_,
-            neighbours_, intf_dwdr_,
+            neighbours_, smoothing_kernels_dwdr[params.int_force_skf],
             txx_, txy_, tyy_, p_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
@@ -231,14 +275,14 @@ void cl_time_integration(
         printlog_debug("artificial viscosity")();
         artificial_viscosity_kernel(
             r_, v_predict_, rho_predict_,
-            neighbours_, dwdr_,
+            neighbours_, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
             ardvxdt_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("average velocity")();
         average_velocity_kernel(
             r_, v_predict_, rho_predict_,
-            neighbours_, w_,
+            neighbours_, smoothing_kernels_w[params.average_velocity_skf],
             av_
         ).execute(params.maxn, params.local_threads);
 

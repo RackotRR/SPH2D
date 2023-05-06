@@ -63,9 +63,12 @@ struct ExperimentParams {
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
-	rr_uint skf{ 1 };
-	// enable separate non-clustering smoothing kernel for internal forces calculation
-	bool int_force_kernel{ false };
+	//		 4 : Desbrun kernel (Desbrun 1996) 
+	rr_uint density_skf{ 1 };
+	rr_uint int_force_skf{ 1 }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
+	rr_uint artificial_viscosity_skf{ 1 };
+	rr_uint average_velocity_skf{ 1 };
+	rr_float cell_scale_k{ 2.f }; // cell size in hsml
 
 	// numerical waves maker
 	// nmw = 0 : no waves

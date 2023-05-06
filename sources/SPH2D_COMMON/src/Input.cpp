@@ -7,6 +7,8 @@
 #include "Input.h"
 #include "VirtualParticles.h"
 #include "Output.h"
+#include "GridUtils.h"
+
 
 static rr_uint setup_virt_part(
 	rr_float delta,
@@ -119,13 +121,21 @@ void loadDefaultParams() {
 	params.wave_length = L;
 	params.depth = depth;
 
-	params.skf = 1;
+	params.density_skf = 1;
+	params.int_force_skf = 4;
+	params.artificial_viscosity_skf = 4;
+	params.average_velocity_skf = 3;
+	params.cell_scale_k = get_cell_scale_k(
+		params.density_skf,
+		params.int_force_skf,
+		params.artificial_viscosity_skf,
+		params.average_velocity_skf);;
+
 	params.eos_csqr_k = 1;
-	params.average_velocity = false;
-	params.average_velocity_epsilon = 0.05f;
+	params.average_velocity = true;
+	params.average_velocity_epsilon = 0.01f;
 	params.artificial_shear_visc = 0.01f;
 	params.artificial_bulk_visc = 0;
-	params.int_force_kernel = false;
 
 	params.save_step = 1000;
 	params.dump_step = 10 * params.save_step;

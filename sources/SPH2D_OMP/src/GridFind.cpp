@@ -1,6 +1,5 @@
 #include "GridUtils.h"
 #include "GridFind.h"
-#include "Kernel.h"
 
 #include <stdexcept>
 
@@ -52,9 +51,7 @@ void find_neighbours(
 	const heap_darray<rr_float2>& r,
 	const heap_darray<rr_uint>& grid,
 	const heap_darray<rr_uint>& cell_starts_in_grid,
-	heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	heap_darray_md<rr_float>& w, // precomputed kernel
-	heap_darray_md<rr_float2>& dwdr) // precomputed kernel derivative
+	heap_darray_md<rr_uint>& neighbours) // neighbours indices
 {
 	printlog_debug(__func__)();
 
@@ -102,7 +99,6 @@ void find_neighbours(
 						}
 					}
 					neighbours(neighbour_id, j) = i;
-					kernel(sqrt(dist_sqr), diff, w(neighbour_id, j), dwdr(neighbour_id, j)); 
 					++neighbour_id;
 				}
 			} // grid_i
@@ -121,9 +117,7 @@ void find_neighbours(
 void grid_find(
 	const rr_uint ntotal,
 	const heap_darray<rr_float2>& r,
-	heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	heap_darray_md<rr_float>& w, // precomputed kernel
-	heap_darray_md<rr_float2>& dwdr) // precomputed kernel derivative
+	heap_darray_md<rr_uint>& neighbours) // neighbours indices
 {
 	printlog_debug(__func__)();
 
@@ -139,7 +133,5 @@ void grid_find(
 		r,
 		grid,
 		cell_starts_in_grid,
-		neighbours,
-		w,
-		dwdr);
+		neighbours);
 }

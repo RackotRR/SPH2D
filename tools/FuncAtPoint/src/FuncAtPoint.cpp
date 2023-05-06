@@ -42,9 +42,7 @@ rr_float findValue(rr_float2 rj,
             rr_float dist_sqr = length_sqr(diff);
 
             if (dist_sqr < max_dist) {
-                rr_float w_ij;
-                rr_float2 dwdr_ij;
-                kernel(sqrt(dist_sqr), diff, w_ij, dwdr_ij);
+                rr_float w_ij = cubic_kernel_w(sqrt(dist_sqr));
 
                 val += time_layer.getByTag(value, i) * w_ij * params.mass / rho(i);
             }
@@ -103,7 +101,10 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
             grid, cell_starts_in_grid);
         find_neighbours(time_layer.ntotal, time_layer.r, 
             grid, cell_starts_in_grid, 
-            neighbours, w, dwdr);
+            neighbours);
+        calculate_kernels_w(time_layer.ntotal, time_layer.r,
+            neighbours,
+            w, params->density_skf);
         sum_density(time_layer.ntotal, neighbours, w, 
             rho);
 

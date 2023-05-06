@@ -7,18 +7,14 @@
 void grid_find(
 	const rr_uint ntotal,
 	const heap_darray<rr_float2>& r,
-	heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	heap_darray_md<rr_float>& w, // precomputed kernel
-	heap_darray_md<rr_float2>& dwdr); // precomputed kernel derivative
+	heap_darray_md<rr_uint>& neighbours); // neighbours indices
 
 void find_neighbours(
 	const rr_uint ntotal,
 	const heap_darray<rr_float2>& r,
 	const heap_darray<rr_uint>& grid,
 	const heap_darray<rr_uint>& cell_starts_in_grid,
-	heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	heap_darray_md<rr_float>& w, // precomputed kernel
-	heap_darray_md<rr_float2>& dwdr); // precomputed kernel derivative
+	heap_darray_md<rr_uint>& neighbours); // neighbours indices
 
 void make_grid(
 	const rr_uint ntotal,

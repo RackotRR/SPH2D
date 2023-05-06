@@ -23,7 +23,36 @@ void printGridParams(const std::string& path,
     stream << json << std::endl;
 }
 
+
+static auto makeOutput(
+    size_t i,
+    const heap_darray<rr_float2>& v,
+    const heap_darray<rr_float>& p)
+{
+    return std::array{
+        std::to_string(v(i).x),
+        std::to_string(v(i).y),
+        std::to_string(p(i)),
+    };
+}
+static auto makeVerboseOutput(
+    size_t i,
+    rr_float x,
+    rr_float y,
+    const heap_darray<rr_float2>& v,
+    const heap_darray<rr_float>& p)
+{
+    return std::array{
+        std::to_string(x),
+        std::to_string(y),
+        std::to_string(v(i).x),
+        std::to_string(v(i).y),
+        std::to_string(p(i)),
+    };
+}
+
 void gridOutput(const sphfio::SPHFIO& sphfio,
+    bool verbose,
     size_t time_layer_num,
     double delta,
     heap_darray<rr_float2>&& v,
@@ -35,21 +64,35 @@ void gridOutput(const sphfio::SPHFIO& sphfio,
     std::ofstream stream{ dir / filename };
 
     auto writer = csv::make_csv_writer(stream);
-    auto header = std::array{ "vx", "vy", "p" };
-    writer << header;
+
+    if (verbose) {
+        writer << std::array{ "x", "y", "vx", "vy", "p" };
+    }
+    else {
+        writer << std::array{ "vx", "vy", "p" };
+    }
 
     sphfio::Square square{ sphfio.getParams() };
 
     size_t rows = countRows(square);
     size_t columns = countColumns(square);
+
     for (size_t row = 0; row < rows; ++row) {
         for (size_t column = 0; column < columns; ++column) {
+
             size_t i = row * columns + column;
-            writer << std::array{
-                std::to_string(v(i).x),
-                std::to_string(v(i).y),
-                std::to_string(p(i)),
-            };
+
+            if (verbose) {
+                rr_float x = square.origin_x + column * delta;
+                rr_float y = square.origin_y + row * delta;
+                writer << makeVerboseOutput(i,
+                    x, y,
+                    v, p);
+            }
+            else {
+                writer << makeOutput(i, v, p);
+            }
+
         }
     }
 }

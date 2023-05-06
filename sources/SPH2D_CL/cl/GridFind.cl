@@ -1,7 +1,7 @@
 #include "common.h"
 #include "SmoothingKernel.cl"
 
-#define max_dist_kernel sqr(params_scale_k * params_hsml)
+#define max_dist_kernel sqr(params_cell_scale_k * params_hsml)
 
 __kernel void binary_search(
     __global const rr_float2* r,
@@ -95,10 +95,7 @@ __kernel void find_neighbours(
     __global const rr_uint* grid,
     __global const rr_uint* cell_starts_in_grid,
 
-    __global rr_uint* neighbours,
-    __global rr_float* w,
-    __global rr_float2* dwdr,
-    __global rr_float2* intf_dwdr)
+    __global rr_uint* neighbours)
 {
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
@@ -129,21 +126,6 @@ __kernel void find_neighbours(
 					--neighbour_id;
 				}
 				neighbours[at(neighbour_id, j)] = i;
-
-                rr_float dist = sqrt(dist_sqr);
-
-				rr_float wij;
-				rr_float2 dwdrij;
-				smoothing_kernel(dist, diff, &wij, &dwdrij);
-				w[at(neighbour_id, j)] = wij;
-				dwdr[at(neighbour_id, j)] = dwdrij;
-
-#ifdef params_int_force_kernel
-                intf_dwdr[at(neighbour_id, j)] = intf_kernel(dist, diff);
-#else
-                intf_dwdr[at(neighbour_id, j)] = dwdrij;
-#endif // params_int_force_kernel
-
                 ++neighbour_id;
 			}
 		} // grid_i

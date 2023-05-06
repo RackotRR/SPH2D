@@ -68,7 +68,7 @@ void kernel_self(
 	rr_float2& dwdr_ii, // out, derivation of kernel with respect to x, y, z
 	rr_uint skf)
 {
-	kernel(0.f, rr_float2{ 0.f }, w_ii, dwdr_ii);
+	kernel(0.f, rr_float2{ 0.f }, w_ii, dwdr_ii, skf);
 }
 
 void kernel(
@@ -80,7 +80,7 @@ void kernel(
 {
 	rr_float2 diff = ri - rj;
 	rr_float dist = length(diff);
-	kernel(dist, diff, w, dwdr);
+	kernel(dist, diff, w, dwdr, skf);
 }
 
 // calculate the smoothing kernel wij and its derivatives dwdxij
@@ -93,10 +93,7 @@ void kernel(
 {
 	switch (skf) {
 	case 1: cubic_kernel(dist, diff, w, dwdr); break;
-	case 2:
-		assert(skf != 2 || skf == params.skf); // here grid cell size must be 3h, while others can be 2h or greater (cell size depends on params.skf)
-		gauss_kernel(dist, diff, w, dwdr); 
-		break;
+	case 2: gauss_kernel(dist, diff, w, dwdr); break;
 	case 3: quintic_kernel(dist, diff, w, dwdr); break;
 	case 4: desbrun_kernel(dist, diff, w, dwdr); break;
 	default: cubic_kernel(dist, diff, w, dwdr); break;
@@ -106,9 +103,7 @@ void kernel(
 rr_float kernel_w(rr_float dist, rr_uint skf) {
 	switch (skf) {
 	case 1: return cubic_kernel_w(dist);
-	case 2:
-		assert(skf == params.skf); // here grid cell size must be 3h, while others can be 2h or greater (cell size depends on params.skf)
-		return gauss_kernel_w(dist);
+	case 2: return gauss_kernel_w(dist);
 	case 3: return quintic_kernel_w(dist);
 	case 4: return desbrun_kernel_w(dist);
 	default: return cubic_kernel_w(dist); 
@@ -118,11 +113,74 @@ rr_float kernel_w(rr_float dist, rr_uint skf) {
 rr_float2 kernel_dwdr(rr_float dist, const rr_float2& diff, rr_uint skf) {
 	switch (skf) {
 	case 1: return cubic_kernel_dwdr(dist, diff);
-	case 2:
-		assert(skf == params.skf); // here grid cell size must be 3h, while others can be 2h or greater (cell size depends on params.skf)
-		return gauss_kernel_dwdr(dist, diff);
+	case 2: return gauss_kernel_dwdr(dist, diff);
 	case 3: return quintic_kernel_dwdr(dist, diff);
 	case 4: return desbrun_kernel_dwdr(dist, diff);
 	default: return cubic_kernel_dwdr(dist, diff);
+	}
+}
+
+void calculate_kernels(
+	const rr_uint ntotal,
+	const heap_darray<rr_float2>& r,
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	heap_darray_md<rr_float>& w, // precomputed kernel
+	heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
+	rr_uint skf)
+{
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
+			rr_float2 diff = r(i) - r(j);
+			rr_float dist = length(diff);
+
+			kernel(dist, diff, w(n, j), dwdr(n, j), skf);
+		}
+	}
+}
+void calculate_kernels_w(
+	const rr_uint ntotal,
+	const heap_darray<rr_float2>& r,
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	heap_darray_md<rr_float>& w, // precomputed kernel
+	rr_uint skf)
+{
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
+			rr_float2 diff = r(i) - r(j);
+			rr_float dist = length(diff);
+
+			w(n, j) = kernel_w(dist, skf);
+		}
+	}
+}
+void calculate_kernels_dwdr(
+	const rr_uint ntotal,
+	const heap_darray<rr_float2>& r,
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	heap_darray_md<rr_float2>& dwdr, // precomputed kernel
+	rr_uint skf)
+{
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
+		rr_uint i;
+		for (rr_iter n = 0;
+			i = neighbours(n, j), i != ntotal; // particle near
+			++n)
+		{
+			rr_float2 diff = r(i) - r(j);
+			rr_float dist = length(diff);
+
+			dwdr(n, j) = kernel_dwdr(dist, diff, skf);
+		}
 	}
 }

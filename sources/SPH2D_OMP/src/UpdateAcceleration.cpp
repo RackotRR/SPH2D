@@ -6,7 +6,40 @@
 #include "ExtForce.h" 
 #include "AverageVelocity.h"
 #include "UpdateAcceleration.h"
+#include "Kernel.h"
 
+#include <unordered_map>
+
+using SmoothingKernelsW_t = std::unordered_map<rr_uint, heap_darray_md<rr_float>>;
+using SmoothingKernelsDwDr_t = std::unordered_map<rr_uint, heap_darray_md<rr_float2>>;
+
+static SmoothingKernelsW_t make_smoothing_kernels_w() {
+	std::unordered_map<rr_uint, heap_darray_md<rr_float>> smoothing_kernels_w;
+	
+	smoothing_kernels_w[params.density_skf];
+	smoothing_kernels_w[params.average_velocity_skf];
+
+	for (auto& [skf, w] : smoothing_kernels_w) {
+		smoothing_kernels_w[skf] = heap_darray_md<rr_float>(params.max_neighbours, params.maxn);
+	}
+
+	return smoothing_kernels_w;
+}
+static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
+	std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr;
+
+	smoothing_kernels_dwdr[params.int_force_skf];
+	smoothing_kernels_dwdr[params.artificial_viscosity_skf];
+	if (params.summation_density == false) {
+		smoothing_kernels_dwdr[params.density_skf];
+	}
+	
+	for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+		smoothing_kernels_dwdr[skf] = heap_darray_md<rr_float2>(params.max_neighbours, params.maxn);
+	}
+
+	return smoothing_kernels_dwdr;
+}
 
 // determine the right hand side of a differential equation
 // in a single step for performing integration
@@ -29,45 +62,47 @@ void update_acceleration(
 	static heap_darray<rr_float2> arvdvxdt(params.maxn);
 
 	static heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn);
-	static heap_darray_md<rr_float> w(params.max_neighbours, params.maxn);
-	static heap_darray_md<rr_float2> dwdr(params.max_neighbours, params.maxn);
+
+	static std::unordered_map<rr_uint, heap_darray_md<rr_float>> smoothing_kernels_w = make_smoothing_kernels_w();
+	static std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr = make_smoothing_kernels_dwdr();
 
 	grid_find(ntotal,
 		r,
-		neighbours, w, dwdr);
+		neighbours);
+	
+	for (auto& [skf, w] : smoothing_kernels_w) {
+		calculate_kernels_w(ntotal,
+			r, neighbours,
+			w, skf);
+	}
+	for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+		calculate_kernels_dwdr(ntotal,
+			r, neighbours,
+			dwdr, skf);
+	}
+
 
 	if (params.summation_density) {
 		sum_density(ntotal,
-			neighbours, w,
+			neighbours, smoothing_kernels_w[params.density_skf],
 			rho);
 	}
 	else {
 		con_density(ntotal,
 			v,
-			neighbours, dwdr,
+			neighbours, smoothing_kernels_dwdr[params.density_skf],
 			rho,
 			drho);
 	}
 
-	if (params.int_force_kernel) {
-		static heap_darray_md<rr_float2> intf_dwdr(params.max_neighbours, params.maxn);
-		find_int_force_kernel(ntotal, r, neighbours,
-			intf_dwdr);
-		int_force(ntotal,
-			r, v, rho,
-			neighbours, intf_dwdr,
-			p, indvxdt);
-	}
-	else {
-		int_force(ntotal,
-			r, v, rho,
-			neighbours, dwdr,
-			p, indvxdt);
-	}
+	int_force(ntotal,
+		r, v, rho,
+		neighbours, smoothing_kernels_dwdr[params.int_force_skf],
+		p, indvxdt);
 
 	artificial_viscosity(ntotal,
 		r, v, rho,
-		neighbours, dwdr,
+		neighbours, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
 		arvdvxdt);
 
 	external_force(ntotal,
@@ -79,7 +114,7 @@ void update_acceleration(
 	if (params.average_velocity) {
 		average_velocity(nfluid,
 			r, v, rho, 
-			neighbours, w, 
+			neighbours, smoothing_kernels_w[params.average_velocity_skf],
 			av);
 	}
 

@@ -113,19 +113,46 @@ inline rr_float2 smoothing_kernel_dwdr(rr_float dist, rr_float2 diff, rr_uint sk
     }
 }
 
-inline rr_float2 intf_kernel(
-    rr_float dist,
-    rr_float2 diff)
-{
-    rr_float q = dist / params_hsml;
-#define intf_kernel_factor (5.f / (16.f * (params_pi) * sqr(params_hsml)))
 
-    rr_float2 intf_dwdr;
-    if (q <= 2) {
-        intf_dwdr = -3.f * diff / dist * intf_kernel_factor * sqr(2.f - q) / params_hsml;
+__kernel void calculate_kernels_w(
+    const rr_uint ntotal,
+    const __global rr_float2* r,
+    const __global rr_uint* neighbours, // neighbours indices
+    __global rr_float* w, // precomputed kernel
+    rr_uint skf)
+{
+    size_t j = get_global_id(0);
+    if (j >= params_ntotal) return;
+
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != ntotal; // particle near
+        ++n)
+    {
+        rr_float2 diff = r[i] - r[j];
+        rr_float dist = length(diff);
+
+        w[at(n, j)] = smoothing_kernel_w(dist, skf);
     }
-    else {
-        intf_dwdr = 0.f;
+}
+__kernel void calculate_kernels_dwdr(
+    const rr_uint ntotal,
+    const __global rr_float2* r,
+    const __global rr_uint* neighbours, // neighbours indices
+    __global rr_float2* dwdr, // precomputed kernel
+    rr_uint skf)
+{
+    size_t j = get_global_id(0);
+    if (j >= params_ntotal) return;
+
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != ntotal; // particle near
+        ++n)
+    {
+        rr_float2 diff = r[i] - r[j];
+        rr_float dist = length(diff);
+
+        dwdr[at(n, j)] = smoothing_kernel_dwdr(dist, diff, skf);
     }
-    return intf_dwdr;
 }

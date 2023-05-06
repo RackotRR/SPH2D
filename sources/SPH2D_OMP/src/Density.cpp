@@ -13,9 +13,7 @@ static void density_normalization(
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
-		rr_float wjj;
-		rr_float2 dwdrjj;
-		kernel_self(wjj, dwdrjj);
+		rr_float wjj = kernel_w(0, params.density_skf);
 		normrho(j) = params.mass / rho(j) * wjj;
 
 		rr_uint i;
@@ -37,9 +35,7 @@ static void density_summation(
 
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
-		rr_float wjj;
-		rr_float2 dwdrjj;
-		kernel_self(wjj, dwdrjj);
+		rr_float wjj = kernel_w(0, params.density_skf);
 		rho(j) = params.mass * wjj;
 
 		rr_uint i;

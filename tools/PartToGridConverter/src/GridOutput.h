@@ -6,6 +6,7 @@ void printGridParams(const std::string& path,
     double delta);
 
 void gridOutput(const sphfio::SPHFIO& sphfio,
+    bool verbose,
     size_t time_layer_num,
     double delta,
     heap_darray<rr_float2>&& v,

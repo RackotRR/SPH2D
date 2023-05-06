@@ -60,8 +60,11 @@ namespace {
 			set(local_threads);
 			set(eos_csqr_k);
 			set(pa_sph);
-			set(skf);
-			set(int_force_kernel);
+			set(density_skf);
+			set(int_force_skf);
+			set(average_velocity_skf);
+			set(artificial_viscosity_skf);
+			set(cell_scale_k);
 			set(nwm);
 			set(boundary_layers_num);
 			set(sbt);
