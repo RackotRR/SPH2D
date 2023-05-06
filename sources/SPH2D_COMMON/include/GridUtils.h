@@ -1,5 +1,6 @@
-#ifndef CL_SPH_GRID_UTILS_H
-#define CL_SPH_GRID_UTILS_H
+#pragma once
+#ifndef SPH2D_GRID_UTILS_H
+#define SPH2D_GRID_UTILS_H
 
 #define maxu(a, b) ((a) > (b) ? (a) : (b))
 #define minu(a, b) ((a) < (b) ? (a) : (b))
@@ -113,4 +114,4 @@ inline void get_neighbouring_cells(rr_uint idx, rr_uint cells[9]) {
     cells[8] = (bottom_right == right || bottom_right == bottom || bottom_right == idx) ? GRID_INVALID_CELL : bottom_right;
 }
 
-#endif // !CL_SPH_GRID_UTILS_H
+#endif // !SPH2D_GRID_UTILS_H

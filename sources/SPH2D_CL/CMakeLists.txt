@@ -34,6 +34,7 @@ target_link_libraries(SPH2D_CL PRIVATE
     SPH2D_CL_SHARED)
 
 set(GRID_UTILS_H ${CMAKE_SOURCE_DIR}/sources/SPH2D_COMMON/include/GridUtils.h)
+set(SMOOTHING_KERNEL_H ${CMAKE_SOURCE_DIR}/sources/SPH2D_COMMON/include/SmoothingKernel.h)
     
 # post build copies
 add_custom_command(TARGET SPH2D_CL POST_BUILD
@@ -45,6 +46,9 @@ add_custom_command(TARGET SPH2D_CL POST_BUILD
 add_custom_command(TARGET SPH2D_CL POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E
                     copy ${GRID_UTILS_H} $<TARGET_FILE_DIR:SPH2D_CL>/cl/GridUtils.h)
+add_custom_command(TARGET SPH2D_CL POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E
+                    copy ${GRID_UTILS_H} $<TARGET_FILE_DIR:SPH2D_CL>/cl/SmoothingKernel.h)
 
 
 
@@ -52,3 +56,4 @@ add_custom_command(TARGET SPH2D_CL POST_BUILD
 install(TARGETS SPH2D_CL DESTINATION SPH2D)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cl DESTINATION SPH2D)
 install(FILES ${GRID_UTILS_H} DESTINATION SPH2D/cl)
+install(FILES ${SMOOTHING_KERNEL_H} DESTINATION SPH2D/cl)

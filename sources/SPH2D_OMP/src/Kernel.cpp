@@ -1,10 +1,72 @@
 #include "CommonIncl.h"
 #include "Kernel.h"
 
+void cubic_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr) {
+	rr_float q = get_kernel_q(dist);
+
+	if (q <= 1) {
+		w = cubic_kernel_q1(q);
+		dwdr = cubic_kernel_q1_grad(q, diff);
+	}
+	else if (q <= 2) {
+		w = cubic_kernel_q2(q);
+		dwdr = cubic_kernel_q2_grad(q, dist, diff);
+	}
+	else {
+		w = 0.f;
+		dwdr = { 0.f };
+	}
+}
+
+void gauss_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr) {
+	rr_float q = get_kernel_q(dist);
+	if (q <= 3) {
+		w = gauss_kernel_q3(q);
+		dwdr = gauss_kernel_q3_grad(w, diff);
+	}
+	else {
+		w = 0;
+		dwdr = { 0.f };
+	}
+}
+
+void quintic_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr) {
+	rr_float q = get_kernel_q(dist);
+	if (q <= 1) {
+		w = quintic_kernel_q1(q);
+		dwdr = quintic_kernel_q1_grad(q, dist, diff);
+	}
+	else if (q <= 2) {
+		w = quintic_kernel_q2(q);
+		dwdr = quintic_kernel_q2_grad(q, dist, diff);
+	}
+	else if (q <= 3) {
+		w = quintic_kernel_q3(q);
+		dwdr = quintic_kernel_q3_grad(q, dist, diff);
+	}
+	else {
+		w = 0.f;
+		dwdr = { 0.f };
+	}
+}
+
+void desbrun_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr) {
+	rr_float q = get_kernel_q(dist);
+	if (q <= 2) {
+		w = desbrun_kernel_q2(q);
+		dwdr = desbrun_kernel_q2_grad(q, dist, diff);
+	}
+	else {
+		w = 0.f;
+		dwdr = { 0.f };
+	}
+}
+
 // kernel for particle itself
 void kernel_self(
 	rr_float& w_ii, // out, kernel for all interaction pairs
-	rr_float2& dwdr_ii) // out, derivation of kernel with respect to x, y, z
+	rr_float2& dwdr_ii, // out, derivation of kernel with respect to x, y, z
+	rr_uint skf)
 {
 	kernel(0.f, rr_float2{ 0.f }, w_ii, dwdr_ii);
 }
@@ -13,7 +75,8 @@ void kernel(
 	const rr_float2& ri,
 	const rr_float2& rj,
 	rr_float& w, // out, kernel for all interaction pairs
-	rr_float2& dwdr) // out, derivation of kernel with respect to x, y, z
+	rr_float2& dwdr, // out, derivation of kernel with respect to x, y, z
+	rr_uint skf)
 {
 	rr_float2 diff = ri - rj;
 	rr_float dist = length(diff);
@@ -23,59 +86,43 @@ void kernel(
 // calculate the smoothing kernel wij and its derivatives dwdxij
 void kernel(
 	const rr_float dist,
-	const rr_float2& diff, // x- y- z- distance between i and j 
+	const rr_float2& diff, // x- y- distance between i and j 
 	rr_float& w, // out, kernel for all interaction pairs
-	rr_float2& dwdx) // out, derivation of kernel with respect to x, y, z
+	rr_float2& dwdr, // out, derivation of kernel
+	rr_uint skf)
 {
-	static rr_float hsml{ params.hsml };
-	rr_float q = dist / hsml;
-
-	if (params.skf == 1) { // Cubic spline  
-		static rr_float factor = 15.f / (7.f * params.pi * sqr(hsml)); 
-
-		if (q <= 1) { 
-			w = factor * (2.f / 3.f - sqr(q) + cube(q) * 0.5f);
-			dwdx = diff * (factor * (-2.f + 3.f * 0.5f * q) / sqr(hsml));
-		}
-		else if (q <= 2) {
-			w = factor * (1.f / 6.f * cube(2.f - q));
-			dwdx = -diff / dist * (factor * sqr(2.f - q) * 0.5f / hsml);
-		}
-		else {
-			w = 0.f;
-			dwdx = { 0.f };
-		}
+	switch (skf) {
+	case 1: cubic_kernel(dist, diff, w, dwdr); break;
+	case 2:
+		assert(skf != 2 || skf == params.skf); // here grid cell size must be 3h, while others can be 2h or greater (cell size depends on params.skf)
+		gauss_kernel(dist, diff, w, dwdr); 
+		break;
+	case 3: quintic_kernel(dist, diff, w, dwdr); break;
+	case 4: desbrun_kernel(dist, diff, w, dwdr); break;
+	default: cubic_kernel(dist, diff, w, dwdr); break;
 	}
-	else if (params.skf == 2) { // Gauss kernel
-		static rr_float factor = 1.f / (powun(hsml, params.dim) * pow(params.pi, params.dim / 2.f));
+}
 
-		if (q <= 3) {
-			w = factor * exp(-q * q);
-			dwdx = diff * w * (-2.f) / sqr(hsml);
-		}
-		else {
-			w = 0.f;
-			dwdx = { 0.f };
-		}
+rr_float kernel_w(rr_float dist, rr_uint skf) {
+	switch (skf) {
+	case 1: return cubic_kernel_w(dist);
+	case 2:
+		assert(skf == params.skf); // here grid cell size must be 3h, while others can be 2h or greater (cell size depends on params.skf)
+		return gauss_kernel_w(dist);
+	case 3: return quintic_kernel_w(dist);
+	case 4: return desbrun_kernel_w(dist);
+	default: return cubic_kernel_w(dist); 
 	}
-	else if (params.skf == 3) { // Quintic spline 
-		static rr_float factor = 7.f / (478.f * params.pi * sqr(hsml)); 
+}
 
-		if (q <= 1) {
-			w = factor * (powun(3.f - q, 5) - 6.f * powun(2 - q, 5) + 15.f * powun(1.f - q, 5));
-			dwdx = diff * factor * ((-120.f + 120.f * q - 50.f * q * q) / sqr(hsml));
-		}
-		else if (q <= 2) {
-			w = factor * (powun(3.f - q, 5) - 6.f * powun(2.f - q, 5));
-			dwdx = diff * factor * (-5.f * powun(3.f - q, 4) + 30.f * powun(2.f - q, 4)) / hsml / dist;
-		}
-		else if (q <= 3) {
-			w = factor * powun(3.f - q, 5);
-			dwdx = diff * factor * (-5.f * powun(3.f - q, 4)) / hsml / dist;
-		}
-		else {
-			w = 0.f;
-			dwdx = { 0.f };
-		}
+rr_float2 kernel_dwdr(rr_float dist, const rr_float2& diff, rr_uint skf) {
+	switch (skf) {
+	case 1: return cubic_kernel_dwdr(dist, diff);
+	case 2:
+		assert(skf == params.skf); // here grid cell size must be 3h, while others can be 2h or greater (cell size depends on params.skf)
+		return gauss_kernel_dwdr(dist, diff);
+	case 3: return quintic_kernel_dwdr(dist, diff);
+	case 4: return desbrun_kernel_dwdr(dist, diff);
+	default: return cubic_kernel_dwdr(dist, diff);
 	}
 }
