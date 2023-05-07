@@ -52,8 +52,7 @@ void logCLInfo() {
     cl::vector<cl::Device> devices;
     err = platform.getDevices(CL_DEVICE_TYPE_DEFAULT, &devices);
     if (err != CL_SUCCESS) {
-        printlog("error: cant get platform devices; code: ")(err)();
-        return;
+        throw std::runtime_error{ "error: cant get platform devices; code: " + std::to_string(err) };
     }
 
     printlog("devices:")();
