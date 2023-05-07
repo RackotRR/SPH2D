@@ -11,19 +11,19 @@ rr_float c_art_water() {
 
 // EOS parameters
 constexpr rr_float rho0 = 1000.f;
-static constexpr rr_uint gamma = 7;
+static constexpr rr_uint gamma_eos = 7;
 
 static rr_float B() {
-    static rr_float b = c_sqr_art_water() * rho0 / gamma;
+    static rr_float b = c_sqr_art_water() * rho0 / gamma_eos;
     return b;
 }
 
 // artificial equation of state for the artificial compressibility
-rr_float p_art_water(const rr_float rho) { // density
+rr_float p_art_water(const rr_float rho) {
     rr_float p;
     // artificial EOS, Form (Monaghan, 1994)
     if (rho > rho0) {
-        p = B() * (powun(rho / rho0, gamma) - 1.f);
+        p = B() * (powun(rho / rho0, gamma_eos) - 1.f);
     }
     else {
         p = 0.f;
@@ -33,5 +33,5 @@ rr_float p_art_water(const rr_float rho) { // density
 }
 
 rr_float rho_from_p_art_water(const rr_float p) {
-    return rho0 * pow(p / B() + 1.f, 1.f / gamma);
+    return rho0 * pow(p / B() + 1.f, 1.f / gamma_eos);
 }
