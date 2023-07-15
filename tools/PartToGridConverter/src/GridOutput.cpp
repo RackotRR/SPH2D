@@ -20,7 +20,7 @@ void printGridParams(const std::string& path,
     json["fmt_line"] = ::params.format_line;
 
     std::ofstream stream{ path };
-    stream << json << std::endl;
+    stream << json.dump(4) << std::endl;
 }
 
 

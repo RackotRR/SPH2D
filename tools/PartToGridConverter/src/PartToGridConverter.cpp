@@ -237,16 +237,19 @@ int main(int argc, const char** argv) {
     cxxopts::Options options{ "PartToGridConverter", "Converts particles data to grid of selected function." };
     options.add_option("general", "e", "experiment", "Experiment name", cxxopts::value<std::string>(), "");
     options.add_option("additional", "v", "verbose", "Verbose grid output (also print x,y)", cxxopts::value<bool>(), "");
-    options.add_option("additional", "h", "delta", "Grid cells' size", cxxopts::value<double>(), "");
+    options.add_option("additional", "d", "delta", "Grid cells' size", cxxopts::value<double>(), "");
     options.add_option("additional", "n", "neighbours", "Max neighbour particles for node", cxxopts::value<unsigned>(), "");
-    options.parse_positional({ "experiment", "delta", "neighbours" });
+    options.add_option("help", "h", "help", "Print usage", cxxopts::value<bool>(), "");
 
-    try {        
+    try {
         auto result = options.parse(argc, argv);
         if (result.count("help")) {
             std::cout << options.help() << std::endl;
             return EXIT_SUCCESS;
         }
+        
+        options.parse_positional({ "experiment", "delta", "neighbours" });
+        result = options.parse(argc, argv);
 
         std::string experiment_name = result["experiment"].as<std::string>();
 
