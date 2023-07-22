@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(WaterProfile)
+project(WaterProfile VERSION 2.1.0)
 
 add_executable(WaterProfile
     src/WaterProfile.cpp 
@@ -17,5 +17,6 @@ if (OpenMP_FOUND)
     target_link_libraries(WaterProfile PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+configure_file(${PROJECT_SOURCE_DIR}/WaterProfileVersion.h.in "${PROJECT_SOURCE_DIR}/include/WaterProfileVersion.h")
 
 install(TARGETS WaterProfile DESTINATION SPH2D)

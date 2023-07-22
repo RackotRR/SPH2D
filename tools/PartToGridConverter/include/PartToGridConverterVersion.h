@@ -1,0 +1,7 @@
+#pragma once
+
+#define PART_TO_GRID_CONVERTER_VERSION_MAJOR 1
+#define PART_TO_GRID_CONVERTER_VERSION_MINOR 0
+#define PART_TO_GRID_CONVERTER_VERSION_PATCH 0
+
+// 1.0.0 - start version control

@@ -23,6 +23,9 @@ namespace {
 #define set(param) set_param(#param, params.param);
 			set(version_major);
 			set(version_minor);
+			set(SPH2D_version_major);
+			set(SPH2D_version_minor);
+			set(SPH2D_version_patch);
 			set(dim);
 			set(maxn);
 			set(max_neighbours);

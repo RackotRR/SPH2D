@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
-project(PartToGridConverter)
+project(PartToGridConverter VERSION 1.0.0)
+configure_file(PartToGridConverterVersion.h.in ${PROJECT_SOURCE_DIR}/include/PartToGridConverterVersion.h)
 
 add_executable(PartToGridConverter
     "src/PartToGridConverter.cpp" 

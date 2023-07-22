@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(RRSPH2D VERSION 2.2.1)
+project(RRSPH2D VERSION 2.3.1)
+configure_file(${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h.in ${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h)
 
 set(CMAKE_CXX_STANDARD 20)
 

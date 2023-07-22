@@ -28,8 +28,11 @@ void ExperimentParams::load(const std::string& params_path) {
 		version_minor = 1;
 	}
 	ParamsVersion version(version_major, version_minor);
-	std::cout << "loaded params " << version_major << '.' << version_minor << std::endl;
+	std::cout << "load params " << version_major << '.' << version_minor << std::endl;
 
+	load_afterp(2, 8, SPH2D_version_major, 2);
+	load_afterp(2, 8, SPH2D_version_minor, 2);
+	load_afterp(2, 8, SPH2D_version_patch, 0);
 	load(dim);
 	load(maxn);
 	load(max_neighbours);
@@ -116,4 +119,5 @@ void ExperimentParams::load(const std::string& params_path) {
 #undef load
 #undef load_after
 #undef load_afterp
+#undef load_as
 }

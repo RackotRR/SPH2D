@@ -1,6 +1,7 @@
 #pragma once
 #define SPH2D_PARAMS_VERSION_MAJOR 2
-#define SPH2D_PARAMS_VERSION_MINOR 7
+#define SPH2D_PARAMS_VERSION_MINOR 8
+#define SPH2D_PARAMS_VERSION_PATCH 0
 
 // 1.1 - remove artificial heat as it used in gas simulation
 //     - add water_dynamic_visc
@@ -16,3 +17,8 @@
 //     - replace int_force_kernel by int_force_skf 
 //     - add artificial_viscosity_skf 
 //     - add cell_scale_k
+// 2.8 - add SPH2D_PARAMS_VERSION_PATCH
+//     - add SPH2D_version_major param
+//     - add SPH2D_version_minor param
+//     - add SPH2D_version_patch param
+//     - add zero minor or patch
