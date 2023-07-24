@@ -6,15 +6,19 @@
 #include <csv-parser/csv.hpp>
 #include <array>
 
+#include <RR/Threads/ThreadPool.h>
+
 #include "Output.h"
 #include "Input.h"
 
 
 namespace {
+	RR::Threads::ThreadPool threadPool;
 	std::string experimentRelativePath;
 	std::string dataOutputRelativePath;
 	std::string dumpRelativePath;
 	std::once_flag params_format_line_flag;
+
 
 	void printFast(
 		const heap_darray<rr_float2>& r,
@@ -151,14 +155,14 @@ void dump(
 {
 	printlog_debug()(__func__)();
 
-	std::thread(printDump,
-		std::move(r),
-		std::move(itype),
-		std::move(v),
-		std::move(rho),
-		std::move(p),
-		itimestep
-	).detach();
+	threadPool.add_thread(
+		std::thread(printDump,
+			std::move(r),
+			std::move(itype),
+			std::move(v),
+			std::move(rho),
+			std::move(p),
+			itimestep));
 
 	std::cout << "dump: " << itimestep << std::endl;
 }
@@ -173,14 +177,14 @@ void output(
 {
 	printlog_debug()(__func__)();
 
-	std::thread(print,
-		std::move(r),
-		std::move(itype),
-		std::move(v),
-		std::move(rho),
-		std::move(p),
-		itimestep
-	).detach();
+	threadPool.add_thread(
+		std::thread(print,
+			std::move(r),
+			std::move(itype),
+			std::move(v),
+			std::move(rho),
+			std::move(p),
+			itimestep));
 
 	std::cout << "output: " << itimestep << std::endl;
 }
@@ -192,7 +196,13 @@ void fast_output(
 	const rr_uint itimestep) // current time step
 {
 	printlog_debug()(__func__)();
-	std::thread(printFast, std::move(r), itype.copy(), ntotal, itimestep).detach();
+	threadPool.add_thread(
+		std::thread(
+			printFast,
+			std::move(r),
+			itype.copy(),
+			ntotal,
+			itimestep));
 }
 
 static std::string getTimeInAppropriateForm(long long timeSec) {
