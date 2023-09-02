@@ -65,7 +65,9 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(left_wall_start);
 	load(left_wall_end);
 	load(generator_time_wait);
+	load_after(2, 9, CFL_coef);
 	load(dt);
+	load_after(2, 9, dt_correction_method);
 	load(simulation_time);
 	load(local_threads);
 	load(eos_csqr_k);
@@ -92,6 +94,7 @@ void ExperimentParams::load(const std::string& params_path) {
 	load_after(2, 7, cell_scale_k);
 
 	load(nwm);
+	load_afterp(2, 9, waves_generator, true);
 	load(boundary_layers_num);
 	load_after(2, 4, sbt);
 	load(hsml);
@@ -103,6 +106,7 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(average_velocity_epsilon);
 	load(visc);
 	load_after(1, 1, water_dynamic_visc);
+	load_after(2, 9, artificial_viscosity);
 	load_after(2, 4, artificial_shear_visc);
 	load_after(2, 4, artificial_bulk_visc);
 	load_afterp(2, 2, mass, 1000 * delta * delta);

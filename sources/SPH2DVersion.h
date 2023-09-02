@@ -6,3 +6,9 @@
 
 // 2.3.1 - start version control
 // 2.3.2 - SPH2D_Common: update Output with threads pool
+// 2.3.3 - add SPH2DParamsGenerator as submodule
+//       - SPH2D_PARAMS: add rr_uint2 and rr_int2; zero all params fields on default
+//       - SPH2D_PARAMS: add ParamsGenerator
+//       - SPH2D_PARAMS: add artificial_viscosity, wave_generator, dt_correction_method, CFL_coef params
+//       - SPH2D: add artificial_viscosity, average_velocity, waves_generator are enabled checks
+//       - SPH2D: remove Windows waiting for 1 minute for threads finish to save data (use threads pool now)

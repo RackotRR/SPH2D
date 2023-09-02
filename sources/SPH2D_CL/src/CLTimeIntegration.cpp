@@ -272,19 +272,23 @@ void cl_time_integration(
             exdvxdt_
         ).execute(params.maxn, params.local_threads);
 
-        printlog_debug("artificial viscosity")();
-        artificial_viscosity_kernel(
-            r_, v_predict_, rho_predict_,
-            neighbours_, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
-            ardvxdt_
-        ).execute(params.maxn, params.local_threads);
+        if (params.artificial_viscosity) {
+            printlog_debug("artificial viscosity")();
+            artificial_viscosity_kernel(
+                r_, v_predict_, rho_predict_,
+                neighbours_, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
+                ardvxdt_
+            ).execute(params.maxn, params.local_threads);
+        }
 
-        printlog_debug("average velocity")();
-        average_velocity_kernel(
-            r_, v_predict_, rho_predict_,
-            neighbours_, smoothing_kernels_w[params.average_velocity_skf],
-            av_
-        ).execute(params.maxn, params.local_threads);
+        if (params.average_velocity) {
+            printlog_debug("average velocity")();
+            average_velocity_kernel(
+                r_, v_predict_, rho_predict_,
+                neighbours_, smoothing_kernels_w[params.average_velocity_skf],
+                av_
+            ).execute(params.maxn, params.local_threads);
+        }
 
         printlog_debug("update acceleration")();
         update_acceleration_kernel(
@@ -292,7 +296,7 @@ void cl_time_integration(
             a_
         ).execute(params.maxn, params.local_threads);
 
-        if (params.nwm) {
+        if (params.waves_generator) {
             printlog_debug("update boundaries")();
             update_boundaries_kernel(
                 v_, r_, time

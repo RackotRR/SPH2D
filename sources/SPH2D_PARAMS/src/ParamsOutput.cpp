@@ -4,10 +4,11 @@
 #include <fstream>
 
 #include "Params.h"
+#include "ParamsGeneration.h"
 #include "Version.h"
 
 
-namespace {
+namespace ParamsGeneration {
 	class ParamsSerializer {
 	public:
 		virtual void set_param(const char* param_name, const std::string& value) {}
@@ -58,7 +59,9 @@ namespace {
 			set(left_wall_start);
 			set(left_wall_end);
 			set(generator_time_wait);
+			set(CFL_coef);
 			set(dt);
+			set(dt_correction_method);
 			set(simulation_time);
 			set(local_threads);
 			set(eos_csqr_k);
@@ -69,6 +72,7 @@ namespace {
 			set(artificial_viscosity_skf);
 			set(cell_scale_k);
 			set(nwm);
+			set(waves_generator);
 			set(boundary_layers_num);
 			set(sbt);
 			set(hsml);
@@ -80,6 +84,7 @@ namespace {
 			set(average_velocity_epsilon);
 			set(visc);
 			set(water_dynamic_visc);
+			set(artificial_viscosity);
 			set(artificial_shear_visc);
 			set(artificial_bulk_visc);
 			set_param("TYPE_BOUNDARY", params.TYPE_BOUNDARY);
@@ -165,19 +170,67 @@ namespace {
 	private:
 		nlohmann::json json;
 	};
+
+	class ParamsGeneratorClass : public ParamsSerializer {
+	public:
+		void set_param(const char* param_name, const std::string& value) override {
+			buffer << "public string " << param_name << " { get; set; }" << std::endl;
+		}
+		void set_param(const char* param_name, rr_int value) override {
+			buffer << "public int " << param_name << " { get; set; }" << std::endl;
+		}
+		void set_param(const char* param_name, rr_uint value) override {
+			buffer << "public uint " << param_name << " { get; set; }" << std::endl;
+		}
+		void set_param(const char* param_name, rr_float value) override {
+			buffer << "public float " << param_name << " { get; set; }" << std::endl;
+		}
+		void set_param(const char* param_name, bool value) override {
+			buffer << "public bool " << param_name << " { get; set; }" << std::endl;
+		}
+		void print_before(const std::string& before) override {
+			buffer << "namespace SPH2DParamsGenerator {" << std::endl;
+			buffer << "class ExperimentParams {" << std::endl;
+		}
+		void print_after(const std::string& after) override {
+			buffer << "}" << std::endl << "}" << std::endl;
+		}
+
+		std::string string() {
+			return buffer.str();
+		}
+	private:
+		std::stringstream buffer;
+	};
+
+
+	void makeHeader(const std::string& path, const ExperimentParams& params) {
+		ParamsHeader header;
+		header.serialize(params);
+		std::string params_str = header.string();
+		std::ofstream stream{ path };
+		stream << params_str << std::endl;
+	}
+	void makeJson(const std::string& path, const ExperimentParams& params) {
+		ParamsJson json;
+		json.serialize(params);
+		std::string params_str = json.string();
+		std::ofstream stream{ path };
+		stream << params_str << std::endl;
+	}
+	void makeParamsGeneratorClass(const std::string& path) {
+		ParamsGeneratorClass generatorClass;
+		generatorClass.serialize(ExperimentParams{});
+		std::string params_str = generatorClass.string();
+		std::ofstream stream{ path };
+		stream << params_str << std::endl;
+	}
 }
 
+
 void ExperimentParams::makeHeader(const std::string& path) {
-	::ParamsHeader header;
-	header.serialize(*this);
-	std::string params_str = header.string();
-	std::ofstream stream{ path };
-	stream << params_str << std::endl;
+	ParamsGeneration::makeHeader(path, *this);
 }
 void ExperimentParams::makeJson(const std::string& path) {
-	::ParamsJson json;
-	json.serialize(*this);
-	std::string params_str = json.string();
-	std::ofstream stream{ path };
-	stream << params_str << std::endl;
+	ParamsGeneration::makeJson(path, *this);
 }

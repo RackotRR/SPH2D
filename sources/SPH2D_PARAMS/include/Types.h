@@ -130,4 +130,23 @@ struct float2 {
     }
 };
 
+struct int2 {
+    rr_int x, y;
+
+    int2() : x{ 0 }, y{ 0 } {}
+    int2(rr_int v) : x{ v }, y{ v } {}
+    int2(rr_int v1, rr_int v2) : x{ v1 }, y{ v2 } {}
+    int2(const int2& v) : x{ v.x }, y{ v.y } {}
+};
+struct uint2 {
+    rr_uint x, y;
+
+    uint2() : x{ 0 }, y{ 0 } {}
+    uint2(rr_uint v) : x{ v }, y{ v } {}
+    uint2(rr_uint v1, rr_uint v2) : x{ v1 }, y{ v2 } {}
+    uint2(const uint2& v) : x{ v.x }, y{ v.y } {}
+};
+
 typedef float2 rr_float2;
+typedef int2 rr_int2;
+typedef uint2 rr_uint2;

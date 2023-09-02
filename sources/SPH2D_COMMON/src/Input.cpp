@@ -38,7 +38,7 @@ static rr_uint setup_virt_part(
 	return count_virt_part_num();
 }
 
-static rr_uint countCells(
+rr_uint countCells(
 	rr_float hsml,
 	rr_float x_mingeom,
 	rr_float y_mingeom,
@@ -141,8 +141,8 @@ void loadDefaultParams() {
 	params.dump_step = 10 * params.save_step;
 	params.normal_check_step = params.save_step;
 	params.simulation_time = 3.f;
-	constexpr rr_float k_CFL = 0.125f;
-	params.dt = k_CFL * params.hsml / (2.2f * sqrt(200 * params.g * params.depth * params.eos_csqr_k));
+	params.CFL_coef = 0.125f;
+	params.dt = params.CFL_coef * params.hsml / (2.2f * sqrt(200 * params.g * params.depth * params.eos_csqr_k));
 	params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);
 	if (params.maxtimestep % params.save_step != 0) { // fix last save step
 		params.maxtimestep = params.maxtimestep + (params.save_step - params.maxtimestep % params.save_step);
@@ -150,8 +150,6 @@ void loadDefaultParams() {
 
 	params.print_time_est_step = 500;
 	params.local_threads = 256;
-	params.version_major = SPH2D_PARAMS_VERSION_MAJOR;
-	params.version_minor = SPH2D_PARAMS_VERSION_MINOR;
 }
 
 static void generateParticles(

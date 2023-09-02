@@ -5,3 +5,6 @@
 	path = tools/SPH2D_Drawer
 	url = https://github.com/RackotRR/SPH2D_Drawer
 	branch = cmake
+[submodule "tools/SPH2DParamsGenerator"]
+	path = tools/SPH2DParamsGenerator
+	url = https://github.com/RackotRR/SPH2DParamsGenerator

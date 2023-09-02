@@ -116,7 +116,7 @@ void time_integration(
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		if (params.nwm) {
+		if (params.waves_generator) {
 			make_waves(r, v, a, nfluid, ntotal, time);
 		}
 

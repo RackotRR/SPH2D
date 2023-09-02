@@ -10,7 +10,13 @@ __kernel void update_acceleration(
 	size_t i = get_global_id(0);
 	if (i >= params_nfluid) return;
 
-	a[i] = indvxdt[i] + exdvxdt[i] + arvdvxdt[i];
+	
+#ifdef params_artificial_viscosity
+	a[i] = indvxdt[i] + exdvxdt[i] + arvdvxdt[i]
+#else
+	a[i] = indvxdt[i] + exdvxdt[i];
+#endif // params_artificial_viscosity
+		
 }
 
 __kernel void predict_half_step(
@@ -60,7 +66,13 @@ __kernel void whole_step(
 #endif // params_summation_density
 
 	if (itype[i] > 0) {
+
+#ifdef params_average_velocity
 		v[i] += a[i] * v_dt + av[i];
+#else
+		v[i] += a[i] * v_dt;
+#endif // params_average_velocity
+		
 		r[i] += v[i] * r_dt;
 	}
 }

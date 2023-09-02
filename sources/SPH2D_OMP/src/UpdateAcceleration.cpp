@@ -100,10 +100,12 @@ void update_acceleration(
 		neighbours, smoothing_kernels_dwdr[params.int_force_skf],
 		p, indvxdt);
 
-	artificial_viscosity(ntotal,
-		r, v, rho,
-		neighbours, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
-		arvdvxdt);
+	if (params.artificial_viscosity) {
+		artificial_viscosity(ntotal,
+			r, v, rho,
+			neighbours, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
+			arvdvxdt);
+	}
 
 	external_force(ntotal,
 		r,

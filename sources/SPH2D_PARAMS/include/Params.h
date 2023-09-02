@@ -19,49 +19,55 @@ struct ExperimentParams {
 	rr_uint max_neighbours{ 64 };
 	rr_uint max_cells{ max_neighbours * maxn }; // maximum number of cells in grid
 
-	rr_float x_maxgeom;
-	rr_float x_mingeom;
-	rr_float y_maxgeom;
-	rr_float y_mingeom;
+	rr_float x_maxgeom{};
+	rr_float x_mingeom{};
+	rr_float y_maxgeom{};
+	rr_float y_mingeom{};
 
-	rr_uint x_fluid_particles;
-	rr_uint y_fluid_particles;
-	rr_float x_fluid_min;
-	rr_float y_fluid_min;
-	rr_float x_fluid_max;
-	rr_float y_fluid_max;
+	rr_uint x_fluid_particles{};
+	rr_uint y_fluid_particles{};
+	rr_float x_fluid_min{};
+	rr_float y_fluid_min{};
+	rr_float x_fluid_max{};
+	rr_float y_fluid_max{};
 
-	rr_float x_boundary_min;
-	rr_float y_boundary_min;
-	rr_float x_boundary_max;
-	rr_float y_boundary_max;
+	rr_float x_boundary_min{};
+	rr_float y_boundary_min{};
+	rr_float x_boundary_max{};
+	rr_float y_boundary_max{};
+	rr_float beach_x{};
 
-	rr_uint nfluid;
-	rr_uint nvirt;
-	rr_uint ntotal;
-	rr_uint fluid_particles_per_d;
+	rr_uint nfluid{};
+	rr_uint nvirt{};
+	rr_uint ntotal{};
+	rr_uint fluid_particles_per_d{};
 
-	rr_float wave_length;
-	rr_float depth;
-	rr_float freq;
-	rr_float piston_amp;
-	rr_float wave_amp;
-	rr_float wave_number;
-	rr_float beach_x;
+	rr_float wave_length{};
+	rr_float depth{};
+	rr_float freq{};
+	rr_float piston_amp{};
+	rr_float wave_amp{};
+	rr_float wave_number{};
 
-	rr_uint left_wall_start;
-	rr_uint left_wall_end;
-	rr_float generator_time_wait;
+	rr_uint left_wall_start{};
+	rr_uint left_wall_end{};
+	rr_float generator_time_wait{};
 
-	rr_float dt;
-	rr_float simulation_time;
+	rr_float CFL_coef{};
+	rr_float dt{};
+	rr_float simulation_time{};
 
-	rr_uint local_threads;
+	// dt_correction_method = 0 : dt = const, provided by value
+	//					    = 1 : dt = const, calculated by CFL
+	//						= 2 : dt = dynamic, calculated by CFL
+	rr_uint dt_correction_method{ 1 };
+
+	rr_uint local_threads{};
 
 	rr_float eos_csqr_k{ 1.f };
 
 	// SPH algorithm for particle approximation
-	// pa_sph = 1 : (p[i] + p[i])/(rho[i]*rho[j])
+	// pa_sph = 1 : (p[i] + p[j])/(rho[i]*rho[j])
 	//		    2 : p[i]/sqr(rho[i]) + p[j]/sqr(rho[j]
 	rr_uint pa_sph{ 2 };
 
@@ -71,7 +77,7 @@ struct ExperimentParams {
 	//		 3 : Quintic kernel (Morris 1997)
 	//		 4 : Desbrun kernel (Desbrun 1996) 
 	rr_uint density_skf{ 1 };
-	rr_uint int_force_skf{ 1 }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
+	rr_uint int_force_skf{ 4 }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
 	rr_uint artificial_viscosity_skf{ 1 };
 	rr_uint average_velocity_skf{ 1 };
 	rr_float cell_scale_k{ 2.f }; // cell size in hsml
@@ -81,20 +87,21 @@ struct ExperimentParams {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	rr_uint nwm{ 0 };
-	rr_uint boundary_layers_num = 1;
+	rr_uint nwm{ 2 };
+	bool waves_generator{ false };
 
 	// solid boundary treatment
 	// sbt = 0 : dynamic particles
 	//       1 : repulsive particles
 	rr_uint sbt{ 1 };
+	rr_uint boundary_layers_num = 1;
 
 	// const smoothing length
-	rr_float hsml;
+	rr_float hsml{};
 
 	// initial distance between particles
-	rr_float delta;
-	rr_float boundary_delta;
+	rr_float delta{};
+	rr_float boundary_delta{};
 
 	/// Switches for diferent scenarios;
 
@@ -113,6 +120,8 @@ struct ExperimentParams {
 	// viscosity on?
 	bool visc{ true };
 	rr_float water_dynamic_visc = 1.e-3f;
+
+	bool artificial_viscosity{ true };
 	rr_float artificial_shear_visc = 1.f;
 	rr_float artificial_bulk_visc = 0.f;
 
@@ -131,12 +140,12 @@ struct ExperimentParams {
 	// true - stop on not normal
 	bool inf_stop{ enable_check_consistency && true };
 
-	rr_uint starttimestep = 0;
-	rr_uint maxtimestep; // time step to finish
-	rr_uint normal_check_step; // step for checking boundaries and finite values
-	rr_uint save_step; // save timestep (on disk)
-	rr_uint dump_step;
-	rr_uint print_time_est_step; // time estimations every N steps
+	rr_uint starttimestep{ 0 };
+	rr_uint maxtimestep{}; // time step to finish
+	rr_uint normal_check_step{}; // step for checking boundaries and finite values
+	rr_uint save_step{}; // save timestep (on disk)
+	rr_uint dump_step{};
+	rr_uint print_time_est_step{}; // time estimations every N steps
 
 	static constexpr rr_float pi{ 3.14159265358979323846f };
 	static constexpr rr_float g{ 9.81f };

@@ -1,9 +1,11 @@
 #ifdef SPH2D_OMP
 #include "TimeIntegration.h" 
-#else
+#elif defined SPH2D_CL
 #include "CLCommon.h"
 #include "CLAdapter.h"
-#endif // !SPH2D_OMP
+#else
+static_assert(false, "undefined SPH2D Simulator");
+#endif
 
 #include <iostream>
 #include <string>
@@ -24,9 +26,9 @@ void simulation() {
 
 	cli(r, v, rho, p, itype, ntotal, nfluid);
 
-#ifndef SPH2D_OMP
+#ifdef SPH2D_CL
 	logCLInfo();
-#endif // !SPH2D_OMP
+#endif
 
 	printlog("Experiment: ")(params.experiment_name)();
 
@@ -34,9 +36,9 @@ void simulation() {
 	timer.start();
 #ifdef SPH2D_OMP
 	time_integration(r, v, rho, p, itype, ntotal, nfluid);
-#else
+#elif defined SPH2D_CL
 	cl_time_integration(r, v, rho, p, itype, ntotal, nfluid);
-#endif // SPH2D_OMP
+#endif
 	timer.finish();
 
 	std::cout << "total time in minutes: " << timer.value<std::chrono::minutes>() << std::endl;
@@ -49,11 +51,5 @@ int main(int arc, const char* argv[]) {
 	catch (const std::exception& ex) {
 		printlog("catch exception: ")(ex.what())();
 	}
-
-#ifdef _WIN32
-	system("pause");
-#else // all detached output threads have to finish their work
-	std::this_thread::sleep_for(std::chrono::minutes{ 1 });
-#endif // _WIN32
 	return 0;
 }
