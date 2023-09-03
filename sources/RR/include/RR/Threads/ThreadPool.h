@@ -9,6 +9,7 @@ namespace RR::Threads {
         ~ThreadPool() {
             while (!threads.empty()) {
                 threads.front().join();
+                threads.pop();
             }
         }
 

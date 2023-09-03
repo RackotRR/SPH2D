@@ -1,6 +1,38 @@
 ﻿{
   "configurations": [
     {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "SDL2_DIR",
+          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16",
+          "type": "PATH"
+        },
+        {
+          "name": "SDL2_INCLUDE_DIR",
+          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16/include",
+          "type": "PATH"
+        },
+        {
+          "name": "SDL2_IMAGE_INCLUDE_DIR",
+          "value": "E:/Projects/LIBS/SDL/SDL2_image-2.0.5/include",
+          "type": "PATH"
+        },
+        {
+          "name": "SDL2_TTF_INCLUDE_DIR",
+          "value": "E:/Projects/LIBS/SDL/SDL2_ttf-devel-2.0.15-VC/include",
+          "type": "PATH"
+        }
+      ]
+    },
+    {
       "name": "x64-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
@@ -32,38 +64,6 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": ""
-    },
-    {
-      "name": "x64-Release",
-      "generator": "Ninja",
-      "configurationType": "Release",
-      "buildRoot": "${projectDir}\\out\\build\\${name}",
-      "installRoot": "${projectDir}\\out\\install\\${name}",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": [
-        {
-          "name": "SDL2_DIR",
-          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16",
-          "type": "PATH"
-        },
-        {
-          "name": "SDL2_INCLUDE_DIR",
-          "value": "E:/Projects/LIBS/SDL/SDL2-2.0.16/include",
-          "type": "PATH"
-        },
-        {
-          "name": "SDL2_IMAGE_INCLUDE_DIR",
-          "value": "E:/Projects/LIBS/SDL/SDL2_image-2.0.5/include",
-          "type": "PATH"
-        },
-        {
-          "name": "SDL2_TTF_INCLUDE_DIR",
-          "value": "E:/Projects/LIBS/SDL/SDL2_ttf-devel-2.0.15-VC/include",
-          "type": "PATH"
-        }
-      ]
     }
   ]
 }

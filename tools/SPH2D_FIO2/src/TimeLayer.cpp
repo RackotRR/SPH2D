@@ -17,7 +17,7 @@ static rr_uint loadLayerFromFileMM(const std::string& filename,
 
 	rr_uint j = 0;
 	for (const auto& row : reader) {
-		if (j == params.maxn) {
+		if (j == maxn) {
 			j = 0;
 			break;
 		}

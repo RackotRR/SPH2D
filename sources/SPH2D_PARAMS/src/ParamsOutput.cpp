@@ -48,7 +48,6 @@ namespace ParamsGeneration {
 			set(nfluid);
 			set(nvirt);
 			set(ntotal);
-			set(fluid_particles_per_d);
 			set(wave_length);
 			set(depth);
 			set(freq);
@@ -75,6 +74,7 @@ namespace ParamsGeneration {
 			set(waves_generator);
 			set(boundary_layers_num);
 			set(sbt);
+			set(use_chess_order);
 			set(hsml);
 			set(delta);
 			set(boundary_delta);

@@ -76,7 +76,11 @@ void cli(
 				auto data_path = experiment_directory / "data";
 				auto dump_path = experiment_directory / "dump";
 				auto time_layers_path = findTimeLayersPath(data_path, params.save_step);
-				auto dumps_path = findTimeLayersPath(dump_path, params.dump_step, params.dump_step);
+				auto dumps_path = findTimeLayersPath(dump_path, params.dump_step);
+				if (dumps_path.empty()) {
+					dumps_path = findTimeLayersPath(dump_path, params.dump_step, params.dump_step);
+				}
+
 				std::cout << "found " << time_layers_path.size() << " time layers" << std::endl;
 				std::cout << "found " << dumps_path.size() << " dumps:" << std::endl;
 				for (int i = 0; i < dumps_path.size(); ++i) {

@@ -79,7 +79,6 @@ void loadDefaultParams() {
 
 	params.mass = 1000 * sqr(delta);
 
-	params.fluid_particles_per_d = particlesPer_d;
 	params.x_fluid_particles = fluid_particles_x;
 	params.y_fluid_particles = fluid_particles_y;
 	params.x_fluid_min = 0.f;

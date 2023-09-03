@@ -12,10 +12,10 @@ __kernel void update_acceleration(
 
 	
 #ifdef params_artificial_viscosity
-	a[i] = indvxdt[i] + exdvxdt[i] + arvdvxdt[i]
+	a[i] = indvxdt[i] + exdvxdt[i] + arvdvxdt[i];
 #else
 	a[i] = indvxdt[i] + exdvxdt[i];
-#endif // params_artificial_viscosity
+#endif
 		
 }
 

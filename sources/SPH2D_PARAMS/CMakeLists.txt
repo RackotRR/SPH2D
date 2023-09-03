@@ -14,6 +14,6 @@ target_link_libraries(SPH2D_PARAMS PRIVATE
     fmt::fmt)
 
 
-add_executable(SPH2D_PARAMS_GENERATOR "src/ParamsGenerator.cpp")
-target_link_libraries(SPH2D_PARAMS_GENERATOR PRIVATE SPH2D_PARAMS)
-install(TARGETS SPH2D_PARAMS_GENERATOR DESTINATION SPH2D)
+add_executable(SPH2DParams "src/ParamsGenerator.cpp")
+target_link_libraries(SPH2DParams PRIVATE SPH2D_PARAMS)
+install(TARGETS SPH2DParams DESTINATION SPH2D)

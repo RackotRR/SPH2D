@@ -7,7 +7,7 @@
 //          - add water_dynamic_visc
 //      1.2 - add int_force_kernel
 //      2.1 - new input/output format (.csv)
-//      2.2 - add mass
+//      2.2 - add mass param
 //      2.3 - remove LJ eos (no eos param)
 //      2.4 - add sbt (solid boundary treatment), 
 //          - add artificial_{shear || bulk}_visc coef for ArtificialViscosity
@@ -28,3 +28,6 @@
 //          - add wave_generator param
 //          - add dt_correction_method param
 //          - add CFL_coef param
+//     2.10 - update created ParamsGeneratorClass file name
+//          - remove fluid_particles_per_d param
+//          - add use_chess_order param

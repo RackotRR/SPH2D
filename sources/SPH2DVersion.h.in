@@ -6,9 +6,18 @@
 
 // 2.3.1 - start version control
 // 2.3.2 - SPH2D_Common: update Output with threads pool
-// 2.3.3 - add SPH2DParamsGenerator as submodule
+// 2.3.3 - add SPH2DParamsGenerator project
 //       - SPH2D_PARAMS: add rr_uint2 and rr_int2; zero all params fields on default
 //       - SPH2D_PARAMS: add ParamsGenerator
 //       - SPH2D_PARAMS: add artificial_viscosity, wave_generator, dt_correction_method, CFL_coef params
 //       - SPH2D: add artificial_viscosity, average_velocity, waves_generator are enabled checks
 //       - SPH2D: remove Windows waiting for 1 minute for threads finish to save data (use threads pool now)
+// 2.4.0 - add SPH2DPicGen project
+//       - SPH2DParamsGenerator: add cmake installation
+//       - RR: fix thead pool destruction error
+//       - SPH2D_CL: fix TimeIntegration can't be compiled
+//       - SPH2D_COMMON: fix can't find start dump
+//       - SPH2D_PARAMS: update created ParamsGeneratorClass file name
+//       - SPH2D_PARAMS: remove fluid_particles_per_d param
+//       - SPH2D_PARAMS: add use_chess_order param
+//       - SPH2D_FIO: fix loading layers with maxn greater than default

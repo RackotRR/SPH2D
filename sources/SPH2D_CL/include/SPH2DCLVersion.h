@@ -6,5 +6,6 @@
 // 1.0.0 - start version control for SPH2D_CL
 // 1.0.1 - add artificial_viscosity, average_velocity, waves_generator are enabled checks
 //       - remove Windows waiting for 1 minute for threads finish to save data (use threads pool now)
+// 1.0.2 - fix semicolon in TimeIntegration.cl
 // TODO:
 // 1.1   - add dynamic dt correction method

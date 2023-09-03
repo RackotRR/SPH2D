@@ -212,6 +212,12 @@ namespace RR::Memory {
 		T* end() {
 			return ptr + elements;
 		}
+		const T* begin() const {
+			return ptr;
+		}
+		const T* end() const {
+			return ptr + elements;
+		}
 		size_t size() const {
 			return elements;
 		}

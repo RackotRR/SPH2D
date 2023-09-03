@@ -1,0 +1,10 @@
+#pragma once
+
+#define SPH2D_PICGEN_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define SPH2D_PICGEN_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define SPH2D_PICGEN_VERSION_PATCH @PROJECT_VERSION_PATCH@
+
+// 1.0.0 - PICGEN project start
+// TODO:
+// 1.1.0 - Add CLI for project and params loading
+// 1.2.0 - Add boundary particles chess ordering

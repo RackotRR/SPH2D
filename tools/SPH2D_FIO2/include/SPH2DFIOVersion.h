@@ -5,3 +5,4 @@
 #define SPH2D_FIO_VERSION_PATCH 0
 
 // 2.2.0 - start version control
+// 2.2.1 - fix loading layers with maxn greater than default

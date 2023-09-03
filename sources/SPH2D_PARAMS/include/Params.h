@@ -40,7 +40,6 @@ struct ExperimentParams {
 	rr_uint nfluid{};
 	rr_uint nvirt{};
 	rr_uint ntotal{};
-	rr_uint fluid_particles_per_d{};
 
 	rr_float wave_length{};
 	rr_float depth{};
@@ -95,6 +94,7 @@ struct ExperimentParams {
 	//       1 : repulsive particles
 	rr_uint sbt{ 1 };
 	rr_uint boundary_layers_num = 1;
+	bool use_chess_order = true;
 
 	// const smoothing length
 	rr_float hsml{};

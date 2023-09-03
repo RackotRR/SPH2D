@@ -1,11 +1,16 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 #include "Params.h"
 #include "Version.h"
 
 void ExperimentParams::load(const std::string& params_path) {
+	if (!std::filesystem::exists(params_path)) {
+		throw std::runtime_error{ "No params file provided: '" + params_path + "' expected" };
+	}
+
 	nlohmann::json json;
 	std::ifstream stream{ params_path };
 	stream >> json;
@@ -54,7 +59,6 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(nfluid);
 	load(nvirt);
 	load(ntotal);
-	load(fluid_particles_per_d);
 	load(wave_length);
 	load(depth);
 	load(freq);
@@ -97,6 +101,7 @@ void ExperimentParams::load(const std::string& params_path) {
 	load_afterp(2, 9, waves_generator, true);
 	load(boundary_layers_num);
 	load_after(2, 4, sbt);
+	load_after(2, 10, use_chess_order);
 	load(hsml);
 	load(delta);
 	load(boundary_delta);
