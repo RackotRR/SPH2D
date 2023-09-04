@@ -21,7 +21,7 @@ static std::vector<std::string> findTimeLayersPath(const std::filesystem::path& 
 	return meta;
 }
 
-bool overrideDirectory(const std::string& experiment_name) {
+static bool overrideDirectory(const std::string& experiment_name) {
 	while (true) {
 		std::cout << "Would you like to write here?: " << experiment_name << std::endl;
 		std::cout << "[y/n]" << std::endl;
@@ -35,6 +35,21 @@ bool overrideDirectory(const std::string& experiment_name) {
 		else if (answer == "n" || answer == "no") {
 			return false;
 		}
+	}
+}
+
+static void removeLaterTimeLayers(
+	const std::filesystem::path& experiment_directory, 
+	const std::vector<std::string>& time_layers_path,
+	const std::string& chosen_dump) 
+{
+	auto iter = std::find(time_layers_path.begin(), time_layers_path.end(), chosen_dump);
+	if (iter == time_layers_path.end()) return;
+
+	for (iter++; iter != time_layers_path.end(); ++iter) {
+		auto path_to_remove = experiment_directory / "data" / *iter;
+		std::filesystem::remove(path_to_remove);
+		std::cout << "layer " << path_to_remove.stem() << " removed" << std::endl;
 	}
 }
 
@@ -103,12 +118,7 @@ void cli(
 				} // clear and run from Params.json
 				else if (num <= dumps_path.size()) {
 					auto& chosen_dump = dumps_path[num - 1];
-					auto iter = std::find(time_layers_path.begin(), time_layers_path.end(), chosen_dump);
-					for (iter++; iter != time_layers_path.end(); ++iter) {
-						auto path_to_remove = experiment_directory / "data" / *iter;
-						std::filesystem::remove(path_to_remove);
-						std::cout << "layer " << path_to_remove.stem() << " removed" << std::endl;
-					}
+					removeLaterTimeLayers(experiment_directory, time_layers_path, chosen_dump);
 
 					auto particles_data_path = std::filesystem::path(experiment_directory) / "dump" / chosen_dump;
 					fileInput(r, v, rho, p, itype, ntotal, nfluid, particles_data_path.string());

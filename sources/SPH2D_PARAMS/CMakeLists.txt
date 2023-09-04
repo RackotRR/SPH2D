@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_PARAMS VERSION 2.10.0)
+project(SPH2D_PARAMS VERSION 2.10.1)
 configure_file(ParamsVersion.h.in "${PROJECT_SOURCE_DIR}/include/ParamsVersion.h")
 file(COPY "${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h" DESTINATION "${PROJECT_SOURCE_DIR}/include/")
 

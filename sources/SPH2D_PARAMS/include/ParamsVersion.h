@@ -1,7 +1,7 @@
 #pragma once
 #define SPH2D_PARAMS_VERSION_MAJOR 2
 #define SPH2D_PARAMS_VERSION_MINOR 10
-#define SPH2D_PARAMS_VERSION_PATCH 0
+#define SPH2D_PARAMS_VERSION_PATCH 1
 
 //      1.1 - remove artificial heat as it used in gas simulation
 //          - add water_dynamic_visc
@@ -31,3 +31,4 @@
 //     2.10 - update created ParamsGeneratorClass file name
 //          - remove fluid_particles_per_d param
 //          - add use_chess_order param
+//   2.10.1 - fix ParamsVersion can't be built with C++ older than C++20

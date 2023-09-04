@@ -2,7 +2,7 @@
 
 #define SPH2D_VERSION_MAJOR 2
 #define SPH2D_VERSION_MINOR 4
-#define SPH2D_VERSION_PATCH 0
+#define SPH2D_VERSION_PATCH 1
 
 // 2.3.1 - start version control
 // 2.3.2 - SPH2D_Common: update Output with threads pool
@@ -21,3 +21,5 @@
 //       - SPH2D_PARAMS: remove fluid_particles_per_d param
 //       - SPH2D_PARAMS: add use_chess_order param
 //       - SPH2D_FIO: fix loading layers with maxn greater than default
+// 2.4.1 - SPH2D_COMMON: fix no data layers fault
+//       - SPH2D_PARAMS: fix ParamsVersion can't be built with C++ older than C++20
