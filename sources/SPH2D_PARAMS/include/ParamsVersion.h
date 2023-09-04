@@ -1,7 +1,7 @@
 #pragma once
 #define SPH2D_PARAMS_VERSION_MAJOR 2
-#define SPH2D_PARAMS_VERSION_MINOR 8
-#define SPH2D_PARAMS_VERSION_PATCH 1
+#define SPH2D_PARAMS_VERSION_MINOR 10
+#define SPH2D_PARAMS_VERSION_PATCH 0
 
 //      1.1 - remove artificial heat as it used in gas simulation
 //          - add water_dynamic_visc

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2DPicGen VERSION 0.0.1)
+project(SPH2DPicGen VERSION 1.0.0)
 configure_file(${PROJECT_SOURCE_DIR}/SPH2DPicGenVersion.h.in ${PROJECT_SOURCE_DIR}/include/SPH2DPicGenVersion.h)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
