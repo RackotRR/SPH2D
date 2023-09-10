@@ -64,6 +64,8 @@ namespace ParamsGeneration {
 			set(simulation_time);
 			set(local_threads);
 			set(eos_csqr_k);
+			set(eos_sound_vel_method);
+			set(eos_sound_vel);
 			set(pa_sph);
 			set(density_skf);
 			set(int_force_skf);

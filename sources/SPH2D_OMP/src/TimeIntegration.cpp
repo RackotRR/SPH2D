@@ -128,8 +128,20 @@ void time_integration(
 
 		if (params.enable_check_consistency) {
 			if (should_check_normal(itimestep)) {
-				check_finite(r, v, rho, p, itype, ntotal);
-				check_particles_are_within_boundaries(ntotal, r, itype);
+				try {
+					check_finite(r, v, rho, p, itype, ntotal);
+					check_particles_are_within_boundaries(ntotal, r, itype);
+				}
+				catch (...) {
+					output(
+						r.copy(),
+						itype.copy(),
+						v.copy(),
+						std::nullopt,
+						p.copy(),
+						itimestep);
+					throw;
+				}
 			}
 		}
 

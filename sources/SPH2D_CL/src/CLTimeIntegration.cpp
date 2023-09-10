@@ -174,7 +174,19 @@ void cl_time_integration(
             cl::copy(p_, p_temp.begin(), p_temp.end());
 
             if (params.enable_check_consistency && should_check) {
-                check_particles_are_within_boundaries(ntotal, r_temp, itype);
+                try {
+                    check_particles_are_within_boundaries(ntotal, r_temp, itype);
+                }
+                catch (...) {
+                    output(
+                        std::move(r_temp),
+                        itype.copy(),
+                        std::move(v_temp),
+                        std::nullopt,
+                        std::move(p_temp),
+                        itimestep);
+                    throw;
+                }
             }
 
             if (should_save) {

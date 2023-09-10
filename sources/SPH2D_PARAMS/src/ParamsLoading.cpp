@@ -75,6 +75,8 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(simulation_time);
 	load(local_threads);
 	load(eos_csqr_k);
+	load_after(2, 11, eos_sound_vel_method);
+	load_after(2, 11, eos_sound_vel);
 	load(pa_sph);
 	
 	// density_skf

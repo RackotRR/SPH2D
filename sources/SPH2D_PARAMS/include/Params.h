@@ -63,7 +63,11 @@ struct ExperimentParams {
 
 	rr_uint local_threads{};
 
+	// eos_sound_vel_method = 0: c_art_water = sqrt(200.f * g * depth * eos_csqr_k) [dam break problem]
+	//						= 1: c_art_water = eos_sound_vel
+	rr_uint eos_sound_vel_method{};
 	rr_float eos_csqr_k{ 1.f };
+	rr_float eos_sound_vel{};
 
 	// SPH algorithm for particle approximation
 	// pa_sph = 1 : (p[i] + p[j])/(rho[i]*rho[j])
@@ -86,6 +90,7 @@ struct ExperimentParams {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
+	//		 4 : wall disappear
 	rr_uint nwm{ 2 };
 	bool waves_generator{ false };
 

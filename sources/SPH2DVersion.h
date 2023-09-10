@@ -2,7 +2,7 @@
 
 #define SPH2D_VERSION_MAJOR 2
 #define SPH2D_VERSION_MINOR 4
-#define SPH2D_VERSION_PATCH 1
+#define SPH2D_VERSION_PATCH 2
 
 // 2.3.1 - start version control
 // 2.3.2 - SPH2D_Common: update Output with threads pool
@@ -23,5 +23,9 @@
 //       - SPH2D_FIO: fix loading layers with maxn greater than default
 // 2.4.1 - SPH2D_COMMON: fix no data layers fault
 //       - SPH2D_PARAMS: fix ParamsVersion can't be built with C++ older than C++20
+// 2.4.2 - SPH2D_PARAMS: add eos_sound_vel_method and eos_sound_vel params
+//       - SPH2D: add support for eos_sound_vel_method and eos_sound_vel params
+//       - SPH2D: add data output on inconsistent stop
+//       - SPH2D: fix EOS target density doesn't match density from params
 // TODO:
-// 2.4.2 - SPH2D_FIO: add error hadling when there's no expected time layer
+// 2.4.3 - SPH2D_FIO: add error hadling when there's no expected time layer
