@@ -2,7 +2,7 @@
 
 #define SPH2D_VERSION_MAJOR 2
 #define SPH2D_VERSION_MINOR 4
-#define SPH2D_VERSION_PATCH 2
+#define SPH2D_VERSION_PATCH 3
 
 // 2.3.1 - start version control
 // 2.3.2 - SPH2D_Common: update Output with threads pool
@@ -27,5 +27,9 @@
 //       - SPH2D: add support for eos_sound_vel_method and eos_sound_vel params
 //       - SPH2D: add data output on inconsistent stop
 //       - SPH2D: fix EOS target density doesn't match density from params
+// 2.4.3 - SPH2D: replace left_wall_start with nwm_particles_start
+//       - SPH2D: replace left_wall_end with nwm_particles_end
+//       - SPH2D: add disappear_wall nwm
+//       - SPH2D: add non-existing particles treatment     
 // TODO:
 // 2.4.3 - SPH2D_FIO: add error hadling when there's no expected time layer

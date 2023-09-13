@@ -28,7 +28,7 @@ void predict_half_step(
 		if (itype(i) > 0) {
 			v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
 		}
-	}
+	} constexpr int a = 2 << 15;
 }
 void whole_step(
 	const rr_uint ntotal,
@@ -116,8 +116,8 @@ void time_integration(
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		if (params.waves_generator) {
-			make_waves(r, v, a, nfluid, ntotal, time);
+		if (params.waves_generator && time >= params.generator_time_wait) {
+			make_waves(r, v, a, itype, nfluid, ntotal, time);
 		}
 
 		whole_step(ntotal,

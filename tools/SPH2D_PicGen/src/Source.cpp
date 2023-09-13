@@ -190,8 +190,8 @@ rr_uint fill_in_boundary_particles(
 // params.x_boundary_max
 // params.y_boundary_min
 // params.y_boundary_max
-// params.left_wall_start
-// params.left_wall_end
+// params.nwm_particles_start
+// params.nwm_particles_end
 void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float particles_delta, const std::string& picture_path) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
@@ -238,9 +238,9 @@ void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float pa
     params.nfluid = fill_in_fluid_particles(groups_positions[0], 0, r, itype);
     params.nvirt = fill_in_boundary_particles(groups_positions[1], params.nfluid, r, itype);
 
-    params.left_wall_start = params.nfluid + params.nvirt;
-    params.nvirt += fill_in_boundary_particles(groups_positions[2], params.left_wall_start, r, itype);
-    params.left_wall_end = params.nfluid + params.nvirt;
+    params.nwm_particles_start = params.nfluid + params.nvirt;
+    params.nvirt += fill_in_boundary_particles(groups_positions[2], params.nwm_particles_start, r, itype);
+    params.nwm_particles_end = params.nfluid + params.nvirt;
 
     try {
         setupOutput();

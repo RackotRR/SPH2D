@@ -10,6 +10,10 @@
 // 1.0.3 - add support for eos_sound_vel_method and eos_sound_vel params
 //       - add data output on inconsistent stop
 //       - fix EOS target density doesn't match density from params
+// 1.1.0 - replace left_wall_start with nwm_particles_start
+//       - replace left_wall_end with nwm_particles_end
+//       - add disappear_wall nwm
+//       - add non-existing particles treatment
 // TODO:
-// 1.1   - add support for non-existing particles
+// 1.1.1 - don't allow particles go outside geometry
 // 1.2   - add dynamic dt correction method

@@ -92,6 +92,7 @@ __kernel void fill_in_grid(__global rr_uint* grid){
 
 __kernel void find_neighbours(
     __global const rr_float2* r,
+    __global const rr_int* itype,
     __global const rr_uint* grid,
     __global const rr_uint* cell_starts_in_grid,
 
@@ -102,34 +103,38 @@ __kernel void find_neighbours(
 
     rr_uint neighbour_id = 0;
 
-    rr_uint center_cell_idx = get_cell_idx(r[j]);
-    rr_uint neighbour_cells[9];
-    get_neighbouring_cells(center_cell_idx, neighbour_cells);
+    if (itype[j] != params_TYPE_NON_EXISTENT)
+    {
+        rr_uint center_cell_idx = get_cell_idx(r[j]);
+        rr_uint neighbour_cells[9];
+        get_neighbouring_cells(center_cell_idx, neighbour_cells);
 
-	for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
-		rr_uint cell_idx = neighbour_cells[cell_i];
-		if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
+        for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
+            rr_uint cell_idx = neighbour_cells[cell_i];
+            if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
 
-		for (rr_uint grid_i = cell_starts_in_grid[cell_idx]; // run through all particles in cell
-			grid_i < cell_starts_in_grid[cell_idx + 1];
-			++grid_i)
-		{
-			rr_uint i = grid[grid_i]; // index of particle
-			// j - current particle; i - particle near
-			if (i == j) continue; // particle isn't neighbour of itself
+            for (rr_uint grid_i = cell_starts_in_grid[cell_idx]; // run through all particles in cell
+                grid_i < cell_starts_in_grid[cell_idx + 1];
+                ++grid_i)
+            {
+                rr_uint i = grid[grid_i]; // index of particle
+                // j - current particle; i - particle near
+                if (i == j) continue; // particle isn't neighbour of itself
+                if (itype[i] == params_TYPE_NON_EXISTENT) continue; // don't add non-existing particle
 
-			rr_float2 diff = r[i] - r[j];
-			rr_float dist_sqr = length_sqr(diff);
+                rr_float2 diff = r[i] - r[j];
+                rr_float dist_sqr = length_sqr(diff);
 
-			if (dist_sqr < max_dist_kernel) {
-				if (neighbour_id == params_max_neighbours) {
-					--neighbour_id;
-				}
-				neighbours[at(neighbour_id, j)] = i;
-                ++neighbour_id;
-			}
-		} // grid_i
-	} // cell_i
+                if (dist_sqr < max_dist_kernel) {
+                    if (neighbour_id == params_max_neighbours) {
+                        --neighbour_id;
+                    }
+                    neighbours[at(neighbour_id, j)] = i;
+                    ++neighbour_id;
+                }
+            } // grid_i
+        } // cell_i
+    } // existing particle
 
     rr_uint n = minu(neighbour_id, params_max_neighbours - 1);
     neighbours[at(n, j)] = params_ntotal;

@@ -3,31 +3,64 @@
 #include "WaveMaker.h"
 
 void make_waves(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
+	heap_darray<rr_float2>& r,
+	heap_darray<rr_float2>& v,
 	heap_darray<rr_float2>& a,
+	heap_darray<rr_int>& itype,
 	const rr_uint nfluid,
 	const rr_uint ntotal,
 	const rr_float time)
 {
 	printlog_debug()(__func__)();
 
-	// NWM
-	if (params.nwm == 1) {
+	switch (params.nwm) {
+	case 1:
 		rzm_generator(r, a, nfluid, time);
-		//RZM_absorber(r, v, a, nfluid, time);
-	}
-	else if (params.nwm == 2) {
+		break;
+
+	case 2:
 		dynamic_boundaries(r, v, time);
-	}
-	else if (params.nwm == 3) {
+		break;
+
+	case 3:
 		impulse_nwm(r, a, nfluid, ntotal, time);
+		break;
+
+	case 4:
+		disappear_wall(itype, nfluid, ntotal, time);
+		params.waves_generator = false;
+		break;
+	default:
+		break;
+	}
+}
+
+void disappear_wall(
+	heap_darray<rr_int>& itype,
+	const rr_uint nfluid,
+	const rr_uint ntotal,
+	const rr_float time)
+{
+	printlog_debug()(__func__)();
+
+	if (params.nwm_particles_start < nfluid || 
+		params.nwm_particles_end < nfluid || 
+		params.nwm_particles_end < params.nwm_particles_start) 
+	{
+		printlog_debug("Wrong disappearing wall parameters:")();
+		printlog_debug("nwm_particles_start: ")(params.nwm_particles_start)();
+		printlog_debug("nwm_particles_end: ")(params.nwm_particles_end)();
+		return;
+	}
+
+	for (rr_uint i = params.nwm_particles_start; i < params.nwm_particles_end; ++i) {
+		itype(i) = params.TYPE_NON_EXISTENT;
 	}
 }
 
 
 void impulse_nwm(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
+	heap_darray<rr_float2>& r,
 	heap_darray<rr_float2>& a,
 	const rr_uint nfluid,
 	const rr_uint ntotal,
@@ -44,7 +77,7 @@ void impulse_nwm(
 }
 
 void rzm_generator(
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
+	const heap_darray<rr_float2>& r,
 	heap_darray<rr_float2>& a,
 	const rr_uint nfluid,
 	const rr_float time)
@@ -77,8 +110,8 @@ void rzm_generator(
 }
 
 void rzm_absorber(
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
-	const heap_darray<rr_float2>& v,	// velocities of all particles
+	const heap_darray<rr_float2>& r,
+	const heap_darray<rr_float2>& v,
 	heap_darray<rr_float2>& a,
 	const rr_uint nfluid,
 	const rr_float time)

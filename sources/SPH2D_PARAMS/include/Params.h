@@ -48,8 +48,8 @@ struct ExperimentParams {
 	rr_float wave_amp{};
 	rr_float wave_number{};
 
-	rr_uint left_wall_start{};
-	rr_uint left_wall_end{};
+	rr_uint nwm_particles_start{};
+	rr_uint nwm_particles_end{};
 	rr_float generator_time_wait{};
 
 	rr_float CFL_coef{};

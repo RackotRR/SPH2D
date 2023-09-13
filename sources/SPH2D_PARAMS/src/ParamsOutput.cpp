@@ -55,8 +55,8 @@ namespace ParamsGeneration {
 			set(wave_amp);
 			set(wave_number);
 			set(beach_x);
-			set(left_wall_start);
-			set(left_wall_end);
+			set(nwm_particles_start);
+			set(nwm_particles_end);
 			set(generator_time_wait);
 			set(CFL_coef);
 			set(dt);

@@ -66,8 +66,8 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(wave_amp);
 	load(wave_number);
 	load(beach_x);
-	load(left_wall_start);
-	load(left_wall_end);
+	load(nwm_particles_start);
+	load(nwm_particles_end);
 	load(generator_time_wait);
 	load_after(2, 9, CFL_coef);
 	load(dt);

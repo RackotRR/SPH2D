@@ -22,7 +22,8 @@ namespace {
     RRKernel average_velocity_kernel;
     RRKernel update_acceleration_kernel;
     RRKernel whole_step_kernel;
-    RRKernel update_boundaries_kernel;
+    RRKernel nwm_dynamic_boundaries_kernel;
+    RRKernel nwm_disappear_wall_kernel;
     RRKernel fill_in_grid_kernel;
     RRKernel sort_kernel;
     RRKernel binary_search_kernel;
@@ -57,7 +58,8 @@ void makePrograms() {
     average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
     update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
-    update_boundaries_kernel = RRKernel(time_integration_program, "update_boundaries");
+    nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
+    nwm_disappear_wall_kernel = RRKernel(time_integration_program, "nwm_disappear_wall");
 }
 
 static auto make_smoothing_kernels_w(cl_mem_flags flags) {
@@ -308,11 +310,23 @@ void cl_time_integration(
             a_
         ).execute(params.maxn, params.local_threads);
 
-        if (params.waves_generator) {
+        if (params.waves_generator && time >= params.generator_time_wait) {
             printlog_debug("update boundaries")();
-            update_boundaries_kernel(
-                v_, r_, time
-            ).execute(params.maxn, params.local_threads);
+            switch (params.nwm) {
+            case 2:
+                nwm_dynamic_boundaries_kernel(
+                    v_, r_
+                ).execute(params.maxn, params.local_threads);
+                break;
+            case 4:
+                nwm_disappear_wall_kernel(
+                    itype_
+                ).execute(params.maxn, params.local_threads);
+                params.waves_generator = false;
+                break;
+            default:
+                break;
+            }
         }
 
         printlog_debug("whole step")();
