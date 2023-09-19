@@ -14,6 +14,7 @@
 //       - replace left_wall_end with nwm_particles_end
 //       - add disappear_wall nwm
 //       - add non-existing particles treatment
+// 1.1.1 - fix itype output without change in disappeared particles
 // TODO:
 // 1.1.1 - don't allow particles go outside geometry
 // 1.2   - add dynamic dt correction method

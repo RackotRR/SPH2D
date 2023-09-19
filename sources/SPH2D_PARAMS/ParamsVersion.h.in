@@ -34,5 +34,9 @@
 //     2.11 - add eos_sound_vel_method and eos_sound_vel params
 //     2.12 - replace left_wall_start with nwm_particles_start
 //          - replace left_wall_end with nwm_particles_end
+//     2.13 - add stepping_treatment param
+//          - add rho0 params
 // TODO:
-//     2.13 - add consistency check
+//     3.0  - add consistency check
+//          - add partial load
+//          - add autogeneration on partial load

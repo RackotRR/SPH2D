@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 find_package(SDL2 REQUIRED)
 
 add_executable(SPH2DPicGen
-    "src/Source.cpp")
+    "src/PicGen.cpp")
     
 target_include_directories(SPH2DPicGen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(SPH2DPicGen PRIVATE ${SDL2_INCLUDE_DIR})

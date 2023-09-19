@@ -116,7 +116,8 @@ void ExperimentParams::load(const std::string& params_path) {
 	load_after(2, 9, artificial_viscosity);
 	load_after(2, 4, artificial_shear_visc);
 	load_after(2, 4, artificial_bulk_visc);
-	load_afterp(2, 2, mass, 1000 * delta * delta);
+	load_after(2, 13, rho0);
+	load_afterp(2, 2, mass, rho0 * delta * delta);
 	load(enable_check_consistency);
 	load(inf_stop);
 	load_after(2, 5, starttimestep);
@@ -125,6 +126,7 @@ void ExperimentParams::load(const std::string& params_path) {
 	load(save_step);
 	load(dump_step);
 	load(print_time_est_step);
+	load_after(2, 13, stepping_treatment);
 	load(experiment_name);
 	load(format_line);
 #undef load

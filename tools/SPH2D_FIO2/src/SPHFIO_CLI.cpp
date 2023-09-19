@@ -26,8 +26,11 @@ static std::vector<std::string> findExperiments() {
 static size_t countTimeLayers(const std::filesystem::path& experiment_directory) {
 	std::filesystem::path path = experiment_directory / "data";
 	size_t count = 0;
-	for (auto& entry : std::filesystem::directory_iterator{ path }) {
-		++count;
+	if (std::filesystem::exists(path))
+	{
+		for (auto& entry : std::filesystem::directory_iterator{ path }) {
+			++count;
+		}
 	}
 	return count;
 }
@@ -50,7 +53,7 @@ static std::string CLI(std::filesystem::path experiments_directory = std::filesy
 	std::cout << "Found experiments: " << std::endl;
 	for (int i = 0; auto& experiment_name : experiments) {
 		auto path = experiments_directory / experiment_name;
-		std::cout << fmt::format("[{}] {}: {} time layers", i, experiment_name, countTimeLayers(path)) << std::endl;
+		std::cout << fmt::format("[{}] {}: {} data layers", i, experiment_name, countTimeLayers(path)) << std::endl;
 		i++;
 	}
 

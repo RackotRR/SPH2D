@@ -93,6 +93,7 @@ namespace ParamsGeneration {
 			set_param("TYPE_NON_EXISTENT", params.TYPE_NON_EXISTENT);
 			set_param("TYPE_WATER", params.TYPE_WATER);
 			set(mass);
+			set(rho0);
 			set(enable_check_consistency);
 			set(inf_stop);
 			set(starttimestep);
@@ -101,6 +102,7 @@ namespace ParamsGeneration {
 			set(save_step);
 			set(dump_step);
 			set(print_time_est_step);
+			set(stepping_treatment);
 			set(pi);
 			set(g);
 			set(experiment_name);

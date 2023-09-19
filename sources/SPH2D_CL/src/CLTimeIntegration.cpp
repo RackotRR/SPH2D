@@ -95,7 +95,7 @@ void cl_time_integration(
     heap_darray<rr_float2>& v,	// velocities of all particles
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
-    const heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
+    heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
 {
@@ -228,7 +228,7 @@ void cl_time_integration(
 
         printlog_debug("find neighbours")();
         find_neighbours_kernel(
-            r_, grid_, cells_,
+            r_, itype_, grid_, cells_,
             neighbours_
         ).execute(params.maxn, params.local_threads);
 
@@ -323,6 +323,7 @@ void cl_time_integration(
                     itype_
                 ).execute(params.maxn, params.local_threads);
                 params.waves_generator = false;
+                cl::copy(itype_, itype.begin(), itype.end());
                 break;
             default:
                 break;

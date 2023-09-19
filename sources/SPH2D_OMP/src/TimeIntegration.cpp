@@ -28,7 +28,7 @@ void predict_half_step(
 		if (itype(i) > 0) {
 			v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
 		}
-	} constexpr int a = 2 << 15;
+	}
 }
 void whole_step(
 	const rr_uint ntotal,

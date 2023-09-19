@@ -15,7 +15,10 @@ public:
         return major < other.major ||
             (major == other.major && minor < other.minor);
     }
-    auto operator<=>(const ParamsVersion& other) const = default;
+    bool operator>=(const ParamsVersion& other) const {
+        return !(*this < other);
+    }
+    //auto operator<=>(const ParamsVersion& other) const = default;
 
     const int major;
     const int minor;

@@ -70,8 +70,8 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
     }
 
     const auto& directories = sphfio.directories;
-    std::ofstream output{ fmt::format("{}func_{}_at_{}_{}.txt", directories.getAnalysisDirectory(), value, x, y) };
-    std::ofstream csv_output{ fmt::format("{}func_{}_at_{}_{}.csv", directories.getAnalysisDirectory(), value, x, y) };
+    std::ofstream output{ fmt::format("{}func_{}_at_{}_{}.txt", directories.getAnalysisDirectory().string(), value, x, y) };
+    std::ofstream csv_output{ fmt::format("{}func_{}_at_{}_{}.csv", directories.getAnalysisDirectory().string(), value, x, y) };
 
     rr_float2 rj = { (rr_float)x, (rr_float)y };
     rr_uint maxn = params->maxn;
@@ -99,7 +99,7 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
 
         make_grid(time_layer.ntotal, time_layer.r, 
             grid, cell_starts_in_grid);
-        find_neighbours(time_layer.ntotal, time_layer.r, 
+        find_neighbours(time_layer.ntotal, time_layer.r, time_layer.itype,
             grid, cell_starts_in_grid, 
             neighbours);
         calculate_kernels_w(time_layer.ntotal, time_layer.r,

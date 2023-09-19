@@ -178,6 +178,7 @@ static void convertPartToGrid(const sphfio::SPHFIO& sphfio, bool verbose) {
         else {
             grid_find(time_layer.ntotal,
                 time_layer.r,
+                time_layer.itype,
                 neighbours_part);
             calculate_kernels_w(time_layer.ntotal,
                 time_layer.r, neighbours_part,
@@ -274,7 +275,7 @@ int main(int argc, const char** argv) {
             verbose = result["verbose"].as<bool>();
         }
 
-        std::string gridParamsPath = sphfio.directories.getExperimentDirectory() + "GridParams.json";
+        auto gridParamsPath = sphfio.directories.getExperimentDirectory() / "GridParams.json";
         printGridParams(gridParamsPath, sphfio::Square{ params }, ::params.hsml);
         convertPartToGrid(sphfio, verbose);
     }

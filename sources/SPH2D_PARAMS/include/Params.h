@@ -24,6 +24,7 @@ struct ExperimentParams {
 	rr_float y_maxgeom{};
 	rr_float y_mingeom{};
 
+	// deprecated
 	rr_uint x_fluid_particles{};
 	rr_uint y_fluid_particles{};
 	rr_float x_fluid_min{};
@@ -36,6 +37,7 @@ struct ExperimentParams {
 	rr_float x_boundary_max{};
 	rr_float y_boundary_max{};
 	rr_float beach_x{};
+	// deprecated
 
 	rr_uint nfluid{};
 	rr_uint nvirt{};
@@ -136,7 +138,8 @@ struct ExperimentParams {
 		TYPE_WATER = 2,
 	};
 
-	rr_float mass = 1000 * delta * delta; // mass in 2 dim
+	rr_float rho0 = 1000;
+	rr_float mass = rho0 * delta * delta; // mass in 2 dim
 
 	/// control parameters for output
 
@@ -151,6 +154,10 @@ struct ExperimentParams {
 	rr_uint save_step{}; // save timestep (on disk)
 	rr_uint dump_step{};
 	rr_uint print_time_est_step{}; // time estimations every N steps
+
+	// 0 - steps from time layers
+	// 1 - steps from seconds
+	rr_uint stepping_treatment{};
 
 	static constexpr rr_float pi{ 3.14159265358979323846f };
 	static constexpr rr_float g{ 9.81f };

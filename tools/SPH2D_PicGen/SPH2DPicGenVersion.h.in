@@ -7,6 +7,8 @@
 // 1.0.0 - PICGEN project start
 // 1.0.1 - replace left_wall_start with nwm_particles_start
 //       - replace left_wall_end with nwm_particles_end
+// 1.0.2 - move calculation of maxn and max_cells to SPH2D
 // TODO:
 // 1.1.0 - Add CLI for project and params loading
+//       - Add PicGen log for experiment statistics
 // 1.2.0 - Add boundary particles chess ordering
