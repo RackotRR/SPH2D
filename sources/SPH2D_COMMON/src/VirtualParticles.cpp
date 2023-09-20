@@ -66,7 +66,7 @@ void left_wall(
 	rr_float x = params.x_boundary_min;
 	rr_uint y_particles = get_boundary_particles_y();
 
-	params.left_wall_start = ntotal + nvirt;
+	params.nwm_particles_start = ntotal + nvirt;
 	for (rr_uint y_i = 0; y_i < y_particles; ++y_i) {
 		// place particles in chess order
 		for (rr_uint layer = 0; layer < params.boundary_layers_num; ++layer) {
@@ -78,7 +78,7 @@ void left_wall(
 			++nvirt;
 		}
 	}
-	params.left_wall_end = ntotal + nvirt;
+	params.nwm_particles_end = ntotal + nvirt;
 }
 
 void right_wall(
@@ -132,18 +132,15 @@ void dynamic_boundaries(
 {
 	printlog_debug(__func__)();
 
-	if (time < params.generator_time_wait) {
-		return;
-	}
 	rr_float phase = -params.freq * params.generator_time_wait;
 	rr_float v_x = params.piston_amp * params.freq * cos(params.freq * time + phase);
 
-	for (rr_uint i = params.left_wall_start; i < params.left_wall_end; i++) {
+	for (rr_uint i = params.nwm_particles_start; i < params.nwm_particles_end; i++) {
 		r(i).x = r(i).x + v_x * params.dt;
 		v(i).x = v_x;
 	}
 
-	printlog_trace("r.x: ")(r(params.left_wall_start).x)();
+	printlog_trace("r.x: ")(r(params.nwm_particles_start).x)();
 	printlog_trace("v.x: ")(v_x)();
 }
 

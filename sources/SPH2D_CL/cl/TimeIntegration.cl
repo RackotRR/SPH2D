@@ -77,18 +77,28 @@ __kernel void whole_step(
 	}
 }
 
-__kernel void update_boundaries(
+__kernel void nwm_dynamic_boundaries(
 	__global rr_float2* v,
 	__global rr_float2* r,
 	rr_float time)
 {
-	size_t i = get_global_id(0) + params_left_wall_start;
-	if (i >= params_left_wall_end) return;
-	if (time < params_generator_time_wait) return;
+	size_t i = get_global_id(0) + params_nwm_particles_start;
+	if (i >= params_nwm_particles_end) return;
+	if (i >= params_ntotal || i < params_nfluid) return;
 
 #define generator_phase (-params_freq * params_generator_time_wait)
 	rr_float v_x = params_piston_amp * params_freq * cos(params_freq * time + generator_phase);
 
 	r[i].x = r[i].x + v_x * params_dt;
 	v[i].x = v_x;
+}
+
+__kernel void nwm_disappear_wall(
+	__global rr_int* itype)
+{
+	size_t i = get_global_id(0) + params_nwm_particles_start;
+	if (i >= params_nwm_particles_end) return;
+	if (i >= params_ntotal || i < params_nfluid) return;
+
+	itype[i] = params_TYPE_NON_EXISTENT;
 }

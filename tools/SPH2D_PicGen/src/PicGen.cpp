@@ -108,10 +108,10 @@ auto get_particles_positions_on_surface(SDL_Surface* surface, const std::vector<
 // - params.x_mingeom
 // - params.y_maxgeom
 // fills:
-// - params.y_fluid_min
-// - params.y_fluid_max
-// - params.x_fluid_min
-// - params.x_fluid_max
+// - [deprecated] params.y_fluid_min
+// - [deprecated] params.y_fluid_max
+// - [deprecated] params.x_fluid_min
+// - [deprecated] params.x_fluid_max
 // returns:
 // - particles filled
 rr_uint fill_in_fluid_particles(
@@ -144,10 +144,10 @@ rr_uint fill_in_fluid_particles(
 // - params.x_mingeom
 // - params.y_maxgeom
 // fills:
-// - params.y_boundary_min
-// - params.y_boundary_max
-// - params.x_boundary_min
-// - params.x_boundary_max
+// - [deprecated] params.y_boundary_min
+// - [deprecated] params.y_boundary_max
+// - [deprecated] params.x_boundary_min
+// - [deprecated] params.x_boundary_max
 // returns:
 // - particles filled
 rr_uint fill_in_boundary_particles(
@@ -179,19 +179,18 @@ rr_uint fill_in_boundary_particles(
 // params.ntotal
 // params.nfluid
 // params.nvirt
-// params.maxn
 // params.x_maxgeom
 // params.y_maxgeom
-// params.x_fluid_min
-// params.x_fluid_max
-// params.y_fluid_min
-// params.y_fluid_max
-// params.x_boundary_min
-// params.x_boundary_max
-// params.y_boundary_min
-// params.y_boundary_max
-// params.left_wall_start
-// params.left_wall_end
+// [deprecated] params.x_fluid_min
+// [deprecated] params.x_fluid_max
+// [deprecated] params.y_fluid_min
+// [deprecated] params.y_fluid_max
+// [deprecated] params.x_boundary_min
+// [deprecated] params.x_boundary_max
+// [deprecated] params.y_boundary_min
+// [deprecated] params.y_boundary_max
+// params.nwm_particles_start
+// params.nwm_particles_end
 void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float particles_delta, const std::string& picture_path) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
@@ -214,7 +213,6 @@ void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float pa
     }
 
     params.ntotal = ntotal;
-    params.maxn = 1 << (1 + intlog2(params.ntotal));
 
     params.x_maxgeom = x_mingeom + surface->w * particles_delta;
     params.y_maxgeom = y_mingeom + surface->h * particles_delta;
@@ -238,9 +236,9 @@ void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float pa
     params.nfluid = fill_in_fluid_particles(groups_positions[0], 0, r, itype);
     params.nvirt = fill_in_boundary_particles(groups_positions[1], params.nfluid, r, itype);
 
-    params.left_wall_start = params.nfluid + params.nvirt;
-    params.nvirt += fill_in_boundary_particles(groups_positions[2], params.left_wall_start, r, itype);
-    params.left_wall_end = params.nfluid + params.nvirt;
+    params.nwm_particles_start = params.nfluid + params.nvirt;
+    params.nvirt += fill_in_boundary_particles(groups_positions[2], params.nwm_particles_start, r, itype);
+    params.nwm_particles_end = params.nfluid + params.nvirt;
 
     try {
         setupOutput();
@@ -328,7 +326,6 @@ void fill_in_waves_generator_params()
 //params.piston_amp = 0;
 //params.beach_x = 0;
 // 
-//params.max_cells = 0;
 //params.maxtimestep = 0;
 //params.dt
 void generate_project(const std::string& project_name) {
@@ -348,13 +345,6 @@ void generate_project(const std::string& project_name) {
     params.depth = params.y_fluid_max - params.y_fluid_min;
     params.x_fluid_particles = (params.x_fluid_max - params.x_fluid_min) / params.delta;
     params.y_fluid_particles = (params.y_fluid_max - params.y_fluid_min) / params.delta;
-
-    params.max_cells = countCells(
-        params.hsml,
-        params.x_mingeom,
-        params.y_mingeom,
-        params.x_maxgeom,
-        params.y_maxgeom);
 
     fill_in_time_integration_params();
     fill_in_waves_generator_params();

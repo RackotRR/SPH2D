@@ -5,7 +5,7 @@
 
 #include "GridOutput.h"
 
-void printGridParams(const std::string& path,
+void printGridParams(const std::filesystem::path& path,
     sphfio::Square square,
     double delta)
 {
@@ -58,7 +58,7 @@ void gridOutput(const sphfio::SPHFIO& sphfio,
     heap_darray<rr_float2>&& v,
     heap_darray<rr_float>&& p)
 {
-    std::filesystem::path dir = sphfio.directories.getExperimentDirectory() + "grid";
+    auto dir = sphfio.directories.getExperimentDirectory() / "grid";
     std::filesystem::create_directory(dir);
     std::string filename = std::to_string(time_layer_num) + ".csv";
     std::ofstream stream{ dir / filename };

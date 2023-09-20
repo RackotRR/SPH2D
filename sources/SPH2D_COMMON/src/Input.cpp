@@ -215,6 +215,92 @@ void input(
 	printParams();
 }
 
+void calculateNotFilledParams() {
+	if (params.ntotal == 0) {
+		std::cout << "Params: calc ntotal" << std::endl;
+		params.ntotal = params.nvirt + params.nfluid;
+	}
+
+	if (params.maxn == 0) {
+		std::cout << "Params: calc maxn" << std::endl;
+		params.maxn = 1 << (1 + intlog2(params.ntotal));
+	}
+
+	if (params.max_cells == 0) {
+		std::cout << "Params: calc max_cells" << std::endl;
+		params.max_cells = countCells(
+			params.hsml,
+			params.x_mingeom,
+			params.y_mingeom,
+			params.x_maxgeom,
+			params.y_maxgeom);
+	}
+
+	if (params.waves_generator) {
+		switch (params.nwm) {
+		case 1:
+		case 2:
+		case 3:
+			if (params.wave_number == 0 && params.wave_length != 0) {
+				params.wave_number = 2.f * params.pi / params.wave_length;
+				std::cout << "Params: calc wave_number" << std::endl;
+			}
+			else if (params.wave_number != 0 && params.wave_length == 0) {
+				params.wave_length = 2.f * params.pi / params.wave_number;
+				std::cout << "Params: calc wave_length" << std::endl;
+			}
+			else if (params.wave_number == 0 && params.wave_length == 0) {
+				throw std::runtime_error{"Params check failed: nwm"};
+			}
+
+			if (params.wave_number == 0 || params.wave_length == 0 || params.depth == 0) {
+				throw std::runtime_error{"Params check failed: nwm"};
+			}
+
+			if (params.freq == 0) {
+				rr_float kd = params.wave_number * params.depth;
+				params.freq = sqrt(params.wave_number * params.g * tanh(kd));
+				std::cout << "Params: calc freq" << std::endl;
+			}
+			if (params.freq == 0) {
+				throw std::runtime_error{"Params check failed: nwm"};
+			}
+
+
+			if (params.nwm == 3 && params.piston_amp == 0) {
+				rr_float kd = params.wave_number * params.depth;
+				params.piston_amp = params.wave_amp * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
+				std::cout << "Params: calc piston_amp" << std::endl;
+			}
+			if (params.nwm == 3 && params.piston_amp == 0) {
+				throw std::runtime_error{"Params check failed: nwm"};
+			}
+		default: break;
+		}
+	}
+
+	if (params.cell_scale_k == 0) {
+		std::cout << "Params: calc cell_scale_k" << std::endl;
+		if (params.artificial_viscosity_skf == 2 ||
+			params.average_velocity_skf == 2 ||
+			params.density_skf == 2 ||
+			params.int_force_skf == 2)
+		{
+			params.cell_scale_k = 3;
+		}
+		else {
+			params.cell_scale_k = 2;
+		}
+	}
+
+	if (params.rho0 == 0) {
+		throw std::runtime_error{"Params check failed: no rho0"};
+	}
+
+	if (params.save_step == 0 && params.dump_step == 0) {
+		throw std::runtime_error{"Params check failed: no dump or save steps"};
+	}
+}
 
 void fileInput(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
@@ -234,6 +320,9 @@ void fileInput(
 	if (!params_path.empty()) {
 		params.load(params_path);
 	}
+	ntotal = params.ntotal;
+	nfluid = params.nfluid;
+
 
 	r = heap_darray<rr_float2>(params.maxn);
 	v = heap_darray<rr_float2>(params.maxn);
@@ -241,11 +330,10 @@ void fileInput(
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
-	ntotal = params.ntotal;
-	nfluid = params.nfluid;
-
 	std::string particles_filename = std::filesystem::path(particles_path).stem().string();
-	params.starttimestep = atoi(particles_filename.c_str()) + 1;
+	params.starttimestep = atoi(particles_filename.c_str());
+
+	calculateNotFilledParams();
 
 	std::cout << "read data...";
 
@@ -271,4 +359,3 @@ void fileInput(
 
 	printParams();
 }
-

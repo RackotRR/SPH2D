@@ -2,10 +2,10 @@
 
 #define SPH2D_VERSION_MAJOR 2
 #define SPH2D_VERSION_MINOR 4
-#define SPH2D_VERSION_PATCH 0
+#define SPH2D_VERSION_PATCH 4
 
 // 2.3.1 - start version control
-// 2.3.2 - SPH2D_Common: update Output with threads pool
+// 2.3.2 - SPH2D_COMMON: update Output with threads pool
 // 2.3.3 - add SPH2DParamsGenerator project
 //       - SPH2D_PARAMS: add rr_uint2 and rr_int2; zero all params fields on default
 //       - SPH2D_PARAMS: add ParamsGenerator
@@ -21,3 +21,21 @@
 //       - SPH2D_PARAMS: remove fluid_particles_per_d param
 //       - SPH2D_PARAMS: add use_chess_order param
 //       - SPH2D_FIO: fix loading layers with maxn greater than default
+// 2.4.1 - SPH2D_COMMON: fix no data layers fault
+//       - SPH2D_PARAMS: fix ParamsVersion can't be built with C++ older than C++20
+// 2.4.2 - SPH2D_PARAMS: add eos_sound_vel_method and eos_sound_vel params
+//       - SPH2D: add support for eos_sound_vel_method and eos_sound_vel params
+//       - SPH2D: add data output on inconsistent stop
+//       - SPH2D: fix EOS target density doesn't match density from params
+// 2.4.3 - SPH2D: replace left_wall_start with nwm_particles_start
+//       - SPH2D: replace left_wall_end with nwm_particles_end
+//       - SPH2D: add disappear_wall nwm
+//       - SPH2D: add non-existing particles treatment     
+// 2.4.4 - SPH2D_COMMON: add calculation of some params for loaded experiment
+//       - SPH2D_CL: fix itype output without change in disappeared particles
+//       - SPH2D_PARAMS: - add stepping_treatment param
+//       - SPH2D_PARAMS: - add rho0 params
+//       - SPH2D_FIO: fix opening experiment with no data directory
+//       - SPH2D_FIO: filesystem::path in interface instead of string
+//       - SPH2D_FIO: if data dir is empty then try to start from dump dir
+//       - SPH2D_FIO: TimeLayers are constructed from ntotal instead of maxn

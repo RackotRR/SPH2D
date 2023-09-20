@@ -55,8 +55,8 @@ namespace ParamsGeneration {
 			set(wave_amp);
 			set(wave_number);
 			set(beach_x);
-			set(left_wall_start);
-			set(left_wall_end);
+			set(nwm_particles_start);
+			set(nwm_particles_end);
 			set(generator_time_wait);
 			set(CFL_coef);
 			set(dt);
@@ -64,6 +64,8 @@ namespace ParamsGeneration {
 			set(simulation_time);
 			set(local_threads);
 			set(eos_csqr_k);
+			set(eos_sound_vel_method);
+			set(eos_sound_vel);
 			set(pa_sph);
 			set(density_skf);
 			set(int_force_skf);
@@ -91,6 +93,7 @@ namespace ParamsGeneration {
 			set_param("TYPE_NON_EXISTENT", params.TYPE_NON_EXISTENT);
 			set_param("TYPE_WATER", params.TYPE_WATER);
 			set(mass);
+			set(rho0);
 			set(enable_check_consistency);
 			set(inf_stop);
 			set(starttimestep);
@@ -99,6 +102,7 @@ namespace ParamsGeneration {
 			set(save_step);
 			set(dump_step);
 			set(print_time_est_step);
+			set(stepping_treatment);
 			set(pi);
 			set(g);
 			set(experiment_name);

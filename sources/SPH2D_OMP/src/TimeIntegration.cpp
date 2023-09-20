@@ -116,8 +116,8 @@ void time_integration(
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		if (params.waves_generator) {
-			make_waves(r, v, a, nfluid, ntotal, time);
+		if (params.waves_generator && time >= params.generator_time_wait) {
+			make_waves(r, v, a, itype, nfluid, ntotal, time);
 		}
 
 		whole_step(ntotal,
@@ -128,8 +128,20 @@ void time_integration(
 
 		if (params.enable_check_consistency) {
 			if (should_check_normal(itimestep)) {
-				check_finite(r, v, rho, p, itype, ntotal);
-				check_particles_are_within_boundaries(ntotal, r, itype);
+				try {
+					check_finite(r, v, rho, p, itype, ntotal);
+					check_particles_are_within_boundaries(ntotal, r, itype);
+				}
+				catch (...) {
+					output(
+						r.copy(),
+						itype.copy(),
+						v.copy(),
+						std::nullopt,
+						p.copy(),
+						itimestep);
+					throw;
+				}
 			}
 		}
 

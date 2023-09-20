@@ -22,7 +22,8 @@ namespace {
     RRKernel average_velocity_kernel;
     RRKernel update_acceleration_kernel;
     RRKernel whole_step_kernel;
-    RRKernel update_boundaries_kernel;
+    RRKernel nwm_dynamic_boundaries_kernel;
+    RRKernel nwm_disappear_wall_kernel;
     RRKernel fill_in_grid_kernel;
     RRKernel sort_kernel;
     RRKernel binary_search_kernel;
@@ -57,7 +58,8 @@ void makePrograms() {
     average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
     update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
-    update_boundaries_kernel = RRKernel(time_integration_program, "update_boundaries");
+    nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
+    nwm_disappear_wall_kernel = RRKernel(time_integration_program, "nwm_disappear_wall");
 }
 
 static auto make_smoothing_kernels_w(cl_mem_flags flags) {
@@ -93,7 +95,7 @@ void cl_time_integration(
     heap_darray<rr_float2>& v,	// velocities of all particles
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
-    const heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
+    heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
 {
@@ -174,7 +176,19 @@ void cl_time_integration(
             cl::copy(p_, p_temp.begin(), p_temp.end());
 
             if (params.enable_check_consistency && should_check) {
-                check_particles_are_within_boundaries(ntotal, r_temp, itype);
+                try {
+                    check_particles_are_within_boundaries(ntotal, r_temp, itype);
+                }
+                catch (...) {
+                    output(
+                        std::move(r_temp),
+                        itype.copy(),
+                        std::move(v_temp),
+                        std::nullopt,
+                        std::move(p_temp),
+                        itimestep);
+                    throw;
+                }
             }
 
             if (should_save) {
@@ -214,7 +228,7 @@ void cl_time_integration(
 
         printlog_debug("find neighbours")();
         find_neighbours_kernel(
-            r_, grid_, cells_,
+            r_, itype_, grid_, cells_,
             neighbours_
         ).execute(params.maxn, params.local_threads);
 
@@ -296,11 +310,24 @@ void cl_time_integration(
             a_
         ).execute(params.maxn, params.local_threads);
 
-        if (params.waves_generator) {
+        if (params.waves_generator && time >= params.generator_time_wait) {
             printlog_debug("update boundaries")();
-            update_boundaries_kernel(
-                v_, r_, time
-            ).execute(params.maxn, params.local_threads);
+            switch (params.nwm) {
+            case 2:
+                nwm_dynamic_boundaries_kernel(
+                    v_, r_
+                ).execute(params.maxn, params.local_threads);
+                break;
+            case 4:
+                nwm_disappear_wall_kernel(
+                    itype_
+                ).execute(params.maxn, params.local_threads);
+                params.waves_generator = false;
+                cl::copy(itype_, itype.begin(), itype.end());
+                break;
+            default:
+                break;
+            }
         }
 
         printlog_debug("whole step")();

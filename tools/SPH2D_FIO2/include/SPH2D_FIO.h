@@ -35,7 +35,7 @@ namespace sphfio {
 		const Directories directories;
 	private:
 		ParamsPtr loadExperimentParams();
-		static LayersPathPtr findTimeLayersPath(ParamsPtr params);
+		static LayersPathPtr findTimeLayersPath(ParamsPtr params, const std::string& directoryToSearch);
 	private:
 		ParamsPtr params;
 		LayersPathPtr available_layers_path;

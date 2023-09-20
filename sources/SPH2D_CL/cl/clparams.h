@@ -32,8 +32,8 @@
 #define params_wave_amp 0.0000000000f
 #define params_wave_number 0.0000000000f
 #define params_beach_x 0.0000000000f
-#define params_left_wall_start 845000
-#define params_left_wall_end 845976
+#define params_nwm_particles_start 845000
+#define params_nwm_particles_end 845976
 #define params_generator_time_wait 0.0000000000f
 #define params_dt 0.0000010000f
 #define params_simulation_time 2.0000000000f

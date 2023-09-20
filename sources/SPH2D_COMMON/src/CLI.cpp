@@ -104,7 +104,8 @@ void cli(
 				else if (num <= dumps_path.size()) {
 					auto& chosen_dump = dumps_path[num - 1];
 					auto iter = std::find(time_layers_path.begin(), time_layers_path.end(), chosen_dump);
-					for (iter++; iter != time_layers_path.end(); ++iter) {
+					if (iter != time_layers_path.end()) ++iter;
+					for (; iter != time_layers_path.end(); ++iter) {
 						auto path_to_remove = experiment_directory / "data" / *iter;
 						std::filesystem::remove(path_to_remove);
 						std::cout << "layer " << path_to_remove.stem() << " removed" << std::endl;

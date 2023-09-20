@@ -68,6 +68,7 @@ void update_acceleration(
 
 	grid_find(ntotal,
 		r,
+		itype,
 		neighbours);
 	
 	for (auto& [skf, w] : smoothing_kernels_w) {

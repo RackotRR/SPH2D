@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_OMP VERSION 1.0.1)
+project(SPH2D_OMP VERSION 1.1.0)
 configure_file(SPH2DOMPVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DOMPVersion.h")
 
 # OpenMP
