@@ -1,0 +1,86 @@
+SPH2DParamsGenerator (генератор параметров) спецификация 1.0
+
+1) порядок вызова:
+- вызывается после генератора частиц, до старта эксперимента
+- получает на вход параметры частиц
+2) выходные данные:
+- Params.json
+3) генерация параметров:
+
+    Density
+    optional:
+        - density_treatment { continuity }
+        - density_normalization { none }
+        - density_skf { cubic }
+    
+    Internal Force
+    mandatory:
+        - intf_hsml_coef { 1 }
+        - eos_sound_vel_method:
+            specific -> eos_sound_vel 
+            dam_break -> eos_sound_vel_coef
+    optional:
+        - intf_sph_approximation { 2 }
+        - intf_skf { cubic }
+        
+    Viscosity
+    optional:
+        - visc { true }
+        - visc_coef { 0.001 }
+
+    Artificial Viscosity
+    optional:
+        - artificial_viscosity { false }:
+            true -> artificial_shear_visc
+            true -> artificial_bulk_visc
+        - artificial_viscosity_skf
+
+    Average Velocity
+    optional:
+        - average_velocity { false }:
+            true -> average_velocity_coef
+        - average_velocity_skf { cubic }
+
+    Stepping
+    optional:
+        - step_treatment { step }:
+            time -> save_time
+            time -> dump_time { 0 }
+            step -> save_step
+            step -> dump_step { 0 }
+        - step_time_estimate { on output }
+        
+    Consistency:
+    optional:
+        - consistency_check { true }:
+        - consistency_check_step { 1 }
+        - consistency_treatment { stop }
+
+    Boundaries:
+    mandatory:
+        - boundary_treatment
+
+    Waves Generator:
+    optional: 
+        - nwm { no_waves }:
+            rzm, impulse -> err
+            dynamic -> nwm_nwm_wave_length
+            dynamic -> nwm_wave_magnitude
+            dynamic -> nwm_piston_magnitude (optional)
+        - nwm_wait { 0 }
+
+    Time Integration:
+    mandatory:
+        - simulation_time
+    optional:
+        - dt_correction_method { dynamic }
+            dynamic -> err
+            const_CFL -> CFL_coef
+            const_value -> dt
+
+    Extra:
+    optional:
+        - max_neighbours { 64 }
+        - local_threads:
+            SPH2D_OMP -> 64
+            SPH2D_CL -> 256

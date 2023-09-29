@@ -6,10 +6,10 @@ namespace sphfio {
 
 	class Directories {
 	public:
-		Directories(std::filesystem::path experiment_name);
+		Directories(std::filesystem::path experiment_path);
 
 		const std::filesystem::path& getExperimentName() const {
-			return experiment_name;
+			return experiment_directory.stem();
 		}
 		const std::filesystem::path& getExperimentDirectory() const {
 			return experiment_directory;
@@ -24,10 +24,9 @@ namespace sphfio {
 			return videos_raw_directory;
 		}
 		const std::filesystem::path& getVideosDirectory() const {
-			return videos_directory.string();
+			return videos_directory;
 		}
 	private:
-		std::filesystem::path experiment_name;
 		std::filesystem::path experiment_directory;
 		std::filesystem::path analysis_directory;
 		std::filesystem::path screenshots_directory;

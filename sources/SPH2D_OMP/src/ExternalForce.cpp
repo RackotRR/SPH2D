@@ -54,7 +54,7 @@ void external_force(
 		a(j).x = 0;
 		a(j).y = -params.g;
 
-		if (params.sbt == 1 && itype(j) > 0) {
+		if (params.boundary_treatment == 1 && itype(j) > 0) {
 			update_repulsive_force_part(ntotal, j,
 				r, neighbours, itype,
 				a);

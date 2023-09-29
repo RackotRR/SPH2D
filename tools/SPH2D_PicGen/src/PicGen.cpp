@@ -2,8 +2,11 @@
 #include <string>
 #include <SDL.h>
 #include <filesystem>
+#include <nlohmann/json.hpp>
+#include <fstream>
 
 #include <Params.h>
+#include <ParamsIO.h>
 #include <CommonIncl.h>
 #include <Output.h>
 #include <Input.h>
@@ -22,6 +25,14 @@ struct RGB {
 RGB fluid_particle_color = { 0, 0, 255 };
 RGB boundary_particle_color = { 0, 0, 0 };
 RGB wave_generator_color = { 255, 0, 0 };
+
+static constexpr int type_boundary = -2;
+static constexpr int type_non_existing = 0;
+static constexpr int type_fluid = 2;
+
+static PicGenParams pic_gen_params;
+static ParticleParams particle_params;
+static std::filesystem::path experiment_dir;
 
 
 Uint32 get_pixel(SDL_Surface* surface, int x, int y) {
@@ -103,17 +114,6 @@ auto get_particles_positions_on_surface(SDL_Surface* surface, const std::vector<
     return groups_positions;
 }
 
-// expects:
-// - params.delta
-// - params.x_mingeom
-// - params.y_maxgeom
-// fills:
-// - [deprecated] params.y_fluid_min
-// - [deprecated] params.y_fluid_max
-// - [deprecated] params.x_fluid_min
-// - [deprecated] params.x_fluid_max
-// returns:
-// - particles filled
 rr_uint fill_in_fluid_particles(
     const heap_darray<rr_int2>& positions, 
     rr_uint i, 
@@ -123,14 +123,14 @@ rr_uint fill_in_fluid_particles(
     rr_uint start_size = i;
 
     for (auto& [column, row] : positions) {
-        itype(i) = params.TYPE_WATER;
-        r(i).x = params.x_mingeom + column * params.delta;
-        r(i).y = params.y_maxgeom - row * params.delta;
+        itype(i) = type_fluid;
+        r(i).x = pic_gen_params.x_mingeom + column * pic_gen_params.delta;
+        r(i).y = particle_params.y_maxgeom - row * pic_gen_params.delta;
 
-        params.y_fluid_min = std::min(params.y_fluid_min, r(i).y);
-        params.y_fluid_max = std::max(params.y_fluid_max, r(i).y);
-        params.x_fluid_min = std::min(params.x_fluid_min, r(i).x);
-        params.x_fluid_max = std::max(params.x_fluid_max, r(i).x);
+        particle_params.y_fluid_min = std::min(particle_params.y_fluid_min, r(i).y);
+        particle_params.y_fluid_max = std::max(particle_params.y_fluid_max, r(i).y);
+        particle_params.x_fluid_min = std::min(particle_params.x_fluid_min, r(i).x);
+        particle_params.x_fluid_max = std::max(particle_params.x_fluid_max, r(i).x);
 
         ++i;
     }
@@ -139,17 +139,6 @@ rr_uint fill_in_fluid_particles(
     return end_size - start_size;
 }
 
-// expects:
-// - params.delta
-// - params.x_mingeom
-// - params.y_maxgeom
-// fills:
-// - [deprecated] params.y_boundary_min
-// - [deprecated] params.y_boundary_max
-// - [deprecated] params.x_boundary_min
-// - [deprecated] params.x_boundary_max
-// returns:
-// - particles filled
 rr_uint fill_in_boundary_particles(
     const heap_darray<rr_int2>& positions, 
     rr_uint i, 
@@ -159,14 +148,14 @@ rr_uint fill_in_boundary_particles(
     rr_uint start_size = i;
 
     for (auto& [column, row] : positions) {
-        itype(i) = params.TYPE_BOUNDARY;
-        r(i).x = params.x_mingeom + column * params.delta;
-        r(i).y = params.y_maxgeom - row * params.delta;
+        itype(i) = type_boundary;
+        r(i).x = pic_gen_params.x_mingeom + column * pic_gen_params.delta;
+        r(i).y = particle_params.y_maxgeom - row * pic_gen_params.delta;
 
-        params.y_boundary_min = std::min(params.y_boundary_min, r(i).y);
-        params.y_boundary_max = std::max(params.y_boundary_max, r(i).y);
-        params.x_boundary_min = std::min(params.x_boundary_min, r(i).x);
-        params.x_boundary_max = std::max(params.x_boundary_max, r(i).x);
+        particle_params.y_boundary_min = std::min(particle_params.y_boundary_min, r(i).y);
+        particle_params.y_boundary_max = std::max(particle_params.y_boundary_max, r(i).y);
+        particle_params.x_boundary_min = std::min(particle_params.x_boundary_min, r(i).x);
+        particle_params.x_boundary_max = std::max(particle_params.x_boundary_max, r(i).x);
 
         ++i;
     }
@@ -175,29 +164,18 @@ rr_uint fill_in_boundary_particles(
     return end_size - start_size;
 }
 
-// fill in: 
-// params.ntotal
-// params.nfluid
-// params.nvirt
-// params.x_maxgeom
-// params.y_maxgeom
-// [deprecated] params.x_fluid_min
-// [deprecated] params.x_fluid_max
-// [deprecated] params.y_fluid_min
-// [deprecated] params.y_fluid_max
-// [deprecated] params.x_boundary_min
-// [deprecated] params.x_boundary_max
-// [deprecated] params.y_boundary_min
-// [deprecated] params.y_boundary_max
-// params.nwm_particles_start
-// params.nwm_particles_end
-void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float particles_delta, const std::string& picture_path) {
+void generate_particles_data(
+    rr_float x_mingeom, 
+    rr_float y_mingeom, 
+    rr_float particles_delta, 
+    const std::filesystem::path& picture_path) 
+{
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
         return;
     }
 
-    SDL_Surface* surface = SDL_LoadBMP(picture_path.c_str());
+    SDL_Surface* surface = SDL_LoadBMP(picture_path.string().c_str());
     if (!surface) {
         std::cerr << "Can't load texture file: " << picture_path << std::endl;
         SDL_Quit();
@@ -212,10 +190,10 @@ void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float pa
         ntotal += group.size();
     }
 
-    params.ntotal = ntotal;
+    particle_params.ntotal = ntotal;
 
-    params.x_maxgeom = x_mingeom + surface->w * particles_delta;
-    params.y_maxgeom = y_mingeom + surface->h * particles_delta;
+    particle_params.x_maxgeom = x_mingeom + surface->w * particles_delta;
+    particle_params.y_maxgeom = y_mingeom + surface->h * particles_delta;
 
     heap_darray<rr_float2> r(ntotal);
     heap_darray<rr_int> itype(ntotal);
@@ -223,25 +201,25 @@ void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float pa
     heap_darray<rr_float> rho(ntotal, 1000);
     heap_darray<rr_float> p(ntotal);
 
-    params.x_fluid_min = FLT_MAX;
-    params.x_fluid_max = -FLT_MAX;
-    params.y_fluid_min = FLT_MAX;
-    params.y_fluid_max = -FLT_MAX;
+    particle_params.x_fluid_min = FLT_MAX;
+    particle_params.x_fluid_max = -FLT_MAX;
+    particle_params.y_fluid_min = FLT_MAX;
+    particle_params.y_fluid_max = -FLT_MAX;
 
-    params.x_boundary_min = FLT_MAX;
-    params.x_boundary_max = -FLT_MAX;
-    params.y_boundary_min = FLT_MAX;
-    params.y_boundary_max = -FLT_MAX;
+    particle_params.x_boundary_min = FLT_MAX;
+    particle_params.x_boundary_max = -FLT_MAX;
+    particle_params.y_boundary_min = FLT_MAX;
+    particle_params.y_boundary_max = -FLT_MAX;
     
-    params.nfluid = fill_in_fluid_particles(groups_positions[0], 0, r, itype);
-    params.nvirt = fill_in_boundary_particles(groups_positions[1], params.nfluid, r, itype);
+    particle_params.nfluid = fill_in_fluid_particles(groups_positions[0], 0, r, itype);
+    particle_params.nvirt = fill_in_boundary_particles(groups_positions[1], particle_params.nfluid, r, itype);
 
-    params.nwm_particles_start = params.nfluid + params.nvirt;
-    params.nvirt += fill_in_boundary_particles(groups_positions[2], params.nwm_particles_start, r, itype);
-    params.nwm_particles_end = params.nfluid + params.nvirt;
+    particle_params.nwm_particles_start = particle_params.nfluid + particle_params.nvirt;
+    particle_params.nvirt += fill_in_boundary_particles(groups_positions[2], particle_params.nwm_particles_start, r, itype);
+    particle_params.nwm_particles_end = particle_params.nfluid + particle_params.nvirt;
 
     try {
-        setupOutput();
+        setupOutput(experiment_dir);
         dump(std::move(r),
             std::move(itype),
             std::move(v),
@@ -258,100 +236,93 @@ void generate_particles_data(rr_float x_mingeom, rr_float y_mingeom, rr_float pa
     SDL_Quit();
 }
 
-// expects:
-// - params.dt_correction_method
-// - params.CFL_coef
-// - params.hsml
-// - params.g
-// - params.depth
-// - params.eos_csqr_k
-// - params.simulation_time
-// - params.dt
-// - params.save_step
-// fills:
-// - params.dt
-// - params.maxtimestep
-// - params.starttimestep
-void fill_in_time_integration_params() {
-    params.starttimestep = 0;
+void create_default_pic_gen() {
+    auto dir = std::filesystem::current_path() / "PicGenDefault";
+    std::filesystem::create_directory(dir);
+    auto path = dir / "PicGenParams.json";
 
-    if (params.dt_correction_method == 1)
-    {
-        params.dt = params.CFL_coef * params.hsml / (2.2f * sqrt(200 * params.g * params.depth * params.eos_csqr_k));
+    if (!std::filesystem::exists(path)) {
+        std::ofstream stream{ path };
+        nlohmann::json json;
+        json["x_mingeom"] = "0.0";
+        json["y_mingeom"] = "0.0";
+        json["delta"] = "1.0";
+        json["use_chess_order"] = "false";
+        json["rho0"] = "1000";
+        stream << json.dump(4) << std::endl;
     }
+}
 
-    if (params.dt_correction_method == 2)
-    {
-        params.dt = 0;
-        params.maxtimestep = 0;
-    }
-    else
-    {
-        params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);
-        if (params.maxtimestep % params.save_step != 0) { // fix last save step
-            params.maxtimestep = params.maxtimestep + (params.save_step - params.maxtimestep % params.save_step);
+
+static std::string getDirectoryToSearch() {
+    std::cout << "Directory to search: " << std::endl;
+    std::cout << "> ";
+    std::string user_directory;
+    std::getline(std::cin, user_directory);
+    return user_directory;
+}
+
+static std::filesystem::path PicGenCLI(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
+    for (;;) {
+        auto experiments = find_experiments(experiments_directory);
+        if (experiments.empty()) {
+            std::cout << "Can't find any experiment in here: " << experiments_directory << std::endl;
+            experiments_directory = getDirectoryToSearch();
+            std::cout << "Directory changed: " << experiments_directory << std::endl;
+            continue;
+        } // no experiments in directory
+
+        auto experiment_indices = enumerate_experiments(experiments, ExperimentEnumerateCondition::pic_gen_params);
+
+        std::cout << "Type [-1] to change directory to search." << std::endl;
+        std::cout << "Type experiment number you want to load: " << std::endl;
+        std::cout << "> ";
+        int experiment_number;
+        std::cin >> experiment_number;
+
+        if (experiment_number == -1) {
+            experiments_directory = getDirectoryToSearch();
+            std::cout << "Directory changed: " << experiments_directory << std::endl;
+            continue;
+        }
+        else if (experiment_number >= experiment_indices.size() || experiment_number < 0) {
+            std::cout << "Wrong experiment number provided!" << std::endl;
+            continue;
+        }
+        else {
+            return experiments[experiment_indices[experiment_number]].dir;
         }
     }
 }
 
-// expects:
-// - params.nwm
-// - params.wave_number
-// - params.wave_amp
-// - params.depth
-// - params.g
-// fills:
-// - params.freq
-// - params.piston_amp
-void fill_in_waves_generator_params()
-{
-    if (params.nwm == 2) {
-        rr_float kd = params.wave_number * params.depth;
-        params.freq = sqrt(params.wave_number * params.g * tanh(kd));
-        params.piston_amp = params.wave_amp * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
-    }
-    else {
-        params.freq = 0;
-        params.piston_amp = 0;
-    }
-}
-
-//params.starttimestep = 0;
-// 
-//params.depth;
-//params.x_fluid_particles;
-//params.y_fluid_particles;
-// 
-//params.freq
-//params.piston_amp = 0;
-//params.beach_x = 0;
-// 
-//params.maxtimestep = 0;
-//params.dt
-void generate_project(const std::string& project_name) {
-    auto project_path = std::filesystem::path{ project_name };
-    auto path_load = project_path / "SPH2DPicGenParams.json";
-    auto path_write = project_path / "Params.json";
-    auto picture_path = project_path / "Particles.bmp";
+void generate_experiment() {
+    experiment_dir = PicGenCLI();
+    auto picture_path = experiment_dir / "Particles.bmp";
 
     if (!std::filesystem::exists(picture_path)) {
         throw std::runtime_error{ "No particles file provided: '" + picture_path.string() + "' expected" };
     }
 
-    params.load(path_load.string());
+    pic_gen_params = load_pic_gen_params(experiment_dir);
+    particle_params.rho0 = pic_gen_params.rho0;
+    particle_params.mass = pic_gen_params.rho0 * sqr(pic_gen_params.delta);
+    particle_params.delta = pic_gen_params.delta;
+    particle_params.use_chess_order = pic_gen_params.use_chess_order;
+    particle_params.boundary_delta = pic_gen_params.delta;
+    particle_params.boundary_separation = pic_gen_params.delta;
 
-    generate_particles_data(params.x_mingeom, params.y_mingeom, params.delta, picture_path.string());
+    generate_particles_data(
+        pic_gen_params.x_mingeom, 
+        pic_gen_params.y_mingeom, 
+        pic_gen_params.delta, 
+        picture_path.string());
 
-    params.depth = params.y_fluid_max - params.y_fluid_min;
-    params.x_fluid_particles = (params.x_fluid_max - params.x_fluid_min) / params.delta;
-    params.y_fluid_particles = (params.y_fluid_max - params.y_fluid_min) / params.delta;
+    particle_params.depth = particle_params.y_fluid_max - particle_params.y_fluid_min;
+    particle_params.x_fluid_particles = (particle_params.x_fluid_max - particle_params.x_fluid_min) / pic_gen_params.delta;
+    particle_params.y_fluid_particles = (particle_params.y_fluid_max - particle_params.y_fluid_min) / pic_gen_params.delta;
 
-    fill_in_time_integration_params();
-    fill_in_waves_generator_params();
-
-    params.makeJson(path_write.string());
+    params_make_particles_json(experiment_dir, particle_params);
 }
-
 
 
 int main(int argc, char* argv[]) {
@@ -360,23 +331,10 @@ int main(int argc, char* argv[]) {
         SPH2D_PICGEN_VERSION_MINOR << "." <<
         SPH2D_PICGEN_VERSION_PATCH << std::endl;
 
-    std::string project_name;
-
-    if (argc > 2) {
-        std::cerr << "Invalid arguments num" << std::endl;
-        return EXIT_FAILURE;
-    }
-    else if (argc == 2) {
-        project_name = argv[1];
-    }
-    else {
-        std::cout << "Enter project name: " << std::endl;
-        std::cout << ">> ";
-        std::getline(std::cin, project_name);
-    }
+    create_default_pic_gen();
 
     try {
-        generate_project(project_name);
+        generate_experiment();
     }
     catch (std::exception& ex) {
         std::cerr << ex.what() << std::endl;

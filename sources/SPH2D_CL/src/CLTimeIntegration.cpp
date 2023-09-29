@@ -5,7 +5,7 @@
 #include "RR/Time/Timer.h"
 
 #include "Output.h"
-#include "IsNormalCheck.h"
+#include "ConsistencyCheck.h"
 
 namespace {
     RRKernel predict_half_step_kernel;
@@ -77,9 +77,9 @@ static auto make_smoothing_kernels_w(cl_mem_flags flags) {
 static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr;
 
-    smoothing_kernels_dwdr[params.int_force_skf];
+    smoothing_kernels_dwdr[params.intf_skf];
     smoothing_kernels_dwdr[params.artificial_viscosity_skf];
-    if (params.summation_density == false) {
+    if (params.density_treatment == DENSITY_CONTINUITY) {
         smoothing_kernels_dwdr[params.density_skf];
     }
 
@@ -104,7 +104,7 @@ void cl_time_integration(
     makePrograms();
 
     constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
-    constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
+    constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE;// | CL_MEM_HOST_NO_ACCESS;
 
     // common
     auto r_ = makeBufferCopyHost(r);
@@ -131,7 +131,6 @@ void cl_time_integration(
     auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto eta_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // external force
@@ -164,7 +163,7 @@ void cl_time_integration(
             rho_predict_, v_predict_
         ).execute(params.maxn, params.local_threads);
 
-        bool should_check = itimestep % params.normal_check_step == 0;
+        bool should_check = itimestep % params.consistency_check_step == 0;
         bool should_save = itimestep % params.save_step == 0;
         if (should_save || should_check) {
             heap_darray<rr_float2> r_temp(params.maxn);
@@ -172,19 +171,21 @@ void cl_time_integration(
             heap_darray<rr_float> p_temp(params.maxn);
 
             cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_predict_, v_temp.begin(), v_temp.end());
+            cl::copy(v_, v_temp.begin(), v_temp.end());
             cl::copy(p_, p_temp.begin(), p_temp.end());
 
-            if (params.enable_check_consistency && should_check) {
+            if (params.consistency_check && should_check) {
                 try {
                     check_particles_are_within_boundaries(ntotal, r_temp, itype);
                 }
                 catch (...) {
-                    output(
+                    heap_darray<rr_float> rho_temp(params.maxn);
+                    cl::copy(p_, rho_temp.begin(), rho_temp.end());
+                    crash_dump(
                         std::move(r_temp),
                         itype.copy(),
                         std::move(v_temp),
-                        std::nullopt,
+                        std::move(rho_temp),
                         std::move(p_temp),
                         itimestep);
                     throw;
@@ -233,17 +234,17 @@ void cl_time_integration(
         ).execute(params.maxn, params.local_threads);
 
         for (auto& [skf, w] : smoothing_kernels_w) {
-            calculate_kernels_w_kernel(ntotal,
+            calculate_kernels_w_kernel(
                 r_, neighbours_,
                 w, skf).execute(params.maxn, params.local_threads);
         }
         for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
-            calculate_kernels_dwdr_kernel(ntotal,
+            calculate_kernels_dwdr_kernel(
                 r_, neighbours_,
                 dwdr, skf).execute(params.maxn, params.local_threads);
         }
 
-        if (params.summation_density) {
+        if (params.density_treatment == DENSITY_SUMMATION) {
             printlog_debug("sum density")();
             sum_density_kernel(
                 neighbours_, smoothing_kernels_w[params.density_skf],
@@ -262,20 +263,19 @@ void cl_time_integration(
 
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, rho_predict_, neighbours_, smoothing_kernels_dwdr[params.int_force_skf],
+            v_predict_, rho_predict_, neighbours_, smoothing_kernels_dwdr[params.intf_skf],
             txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("update internal state")();
         update_internal_state_kernel(
-            rho_predict_, txx_, txy_, tyy_,
-            p_
+            rho_predict_, p_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, rho_predict_,
-            neighbours_, smoothing_kernels_dwdr[params.int_force_skf],
+            neighbours_, smoothing_kernels_dwdr[params.intf_skf],
             txx_, txy_, tyy_, p_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
@@ -310,7 +310,8 @@ void cl_time_integration(
             a_
         ).execute(params.maxn, params.local_threads);
 
-        if (params.waves_generator && time >= params.generator_time_wait) {
+
+        if (params.nwm && time >= params.nwm_wait) {
             printlog_debug("update boundaries")();
             switch (params.nwm) {
             case 2:
@@ -322,7 +323,7 @@ void cl_time_integration(
                 nwm_disappear_wall_kernel(
                     itype_
                 ).execute(params.maxn, params.local_threads);
-                params.waves_generator = false;
+                params.nwm = false;
                 cl::copy(itype_, itype.begin(), itype.end());
                 break;
             default:
@@ -336,7 +337,7 @@ void cl_time_integration(
             rho_, v_, r_
         ).execute(params.maxn, params.local_threads);
 
-        if (itimestep && itimestep % params.dump_step == 0) {
+        if (itimestep && params.dump_step && itimestep % params.dump_step == 0) {
             heap_darray<rr_float2> r_temp(params.maxn);
             heap_darray<rr_float2> v_temp(params.maxn);
             heap_darray<rr_float> p_temp(params.maxn);

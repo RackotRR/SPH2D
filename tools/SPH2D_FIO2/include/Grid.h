@@ -1,18 +1,19 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <filesystem>
 
 #include <Params.h>
 #include <RR/Memory/HeapDArray.h>
 
 namespace sphfio {
-	using LayersPath = std::vector<std::string>;
+	using LayersPath = std::vector<std::filesystem::path>;
 	using LayersPathPtr = std::shared_ptr<LayersPath>;
 	using ParamsPtr = std::shared_ptr<ExperimentParams>;
 
 	struct TimeLayer {
 		TimeLayer() = default;
-		TimeLayer(const std::string& filename, rr_uint maxn);
+		TimeLayer(const std::filesystem::path& path, rr_uint ntotal);
 
 		RR::Memory::heap_darray<rr_float2> r;
 		RR::Memory::heap_darray<rr_int> itype;

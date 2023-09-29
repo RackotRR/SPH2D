@@ -16,7 +16,7 @@ __kernel void external_force(
 	a_temp.y = -params_g;
 
 
-#if sbt == 1
+#if params_boundary_treatment == 1
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
 #define ext_force_rr0 params_hsml

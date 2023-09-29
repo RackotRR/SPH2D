@@ -5,13 +5,16 @@
 #define SPH2D_VERSION_PATCH @PROJECT_VERSION_PATCH@
 
 // 2.3.1 - start version control
+//
 // 2.3.2 - SPH2D_COMMON: update Output with threads pool
+//
 // 2.3.3 - add SPH2DParamsGenerator project
 //       - SPH2D_PARAMS: add rr_uint2 and rr_int2; zero all params fields on default
 //       - SPH2D_PARAMS: add ParamsGenerator
 //       - SPH2D_PARAMS: add artificial_viscosity, wave_generator, dt_correction_method, CFL_coef params
 //       - SPH2D: add artificial_viscosity, average_velocity, waves_generator are enabled checks
 //       - SPH2D: remove Windows waiting for 1 minute for threads finish to save data (use threads pool now)
+//
 // 2.4.0 - add SPH2DPicGen project
 //       - SPH2DParamsGenerator: add cmake installation
 //       - RR: fix thead pool destruction error
@@ -23,14 +26,17 @@
 //       - SPH2D_FIO: fix loading layers with maxn greater than default
 // 2.4.1 - SPH2D_COMMON: fix no data layers fault
 //       - SPH2D_PARAMS: fix ParamsVersion can't be built with C++ older than C++20
+//
 // 2.4.2 - SPH2D_PARAMS: add eos_sound_vel_method and eos_sound_vel params
 //       - SPH2D: add support for eos_sound_vel_method and eos_sound_vel params
 //       - SPH2D: add data output on inconsistent stop
 //       - SPH2D: fix EOS target density doesn't match density from params
+//
 // 2.4.3 - SPH2D: replace left_wall_start with nwm_particles_start
 //       - SPH2D: replace left_wall_end with nwm_particles_end
 //       - SPH2D: add disappear_wall nwm
 //       - SPH2D: add non-existing particles treatment     
+//
 // 2.4.4 - SPH2D_COMMON: add calculation of some params for loaded experiment
 //       - SPH2D_CL: fix itype output without change in disappeared particles
 //       - SPH2D_PARAMS: - add stepping_treatment param
@@ -39,7 +45,50 @@
 //       - SPH2D_FIO: filesystem::path in interface instead of string
 //       - SPH2D_FIO: if data dir is empty then try to start from dump dir
 //       - SPH2D_FIO: TimeLayers are constructed from ntotal instead of maxn
+//
+// 3.0.0 - SPH2DParamGenerator: new parameters scheme
+//       - SPH2D_PARAMS: new partial loading module
+//       -               add consistency check
+//       -               add defaulted values
+//       -               replace summation_density with density_treatment
+//       -               replace nor_density with density_normalization
+//       -               rename eos_csqr_k -> eos_sound_vel_coef
+//       -               rename intf_skf -> intf_skf
+//       -               rename pa_sph -> intf_sph_approximation
+//       -               add intf_hsml_coef param
+//       -               rename water_dynamic_visc -> visc_coef
+//       -               rename average_velocity_epsilon -> average_velocity_coef
+//       -               rename stepping_treatment -> step_treatment
+//       -               rename enable_check_consistency -> consistency_check
+//       -               rename normal_check_step -> consistency_check_step
+//       -               replace inf_stop with consistency_treatment
+//       -               remove wave_generator param
+//       -               rename generator_time_wait -> nwm_wait
+//       -               rename wave_length -> nwm_nwm_wave_length
+//       -               rename wave_magnitude -> nwm_wave_magnitude
+//       -               rename piston_magnitude -> nwm_piston_magnitude
+//       -               add params_generator_version_major param
+//       -               add params_generator_version_minor param
+//       -               rename version_major -> params_version_major
+//       -               rename version_minor -> params_version_minor
+//       -               add x_boundary_left and x_boundary_right params
+//       -               add y_boundary_bottom and y_boundary_top params
+//       -               add x_boundary_center and boundary_separation params
+//       -               rename sbt -> boundary_treatment
+//       -               rename print_time_est_step -> step_time_estimate
+//       -               add dump_time param
+//       -               add save_time param
+//       - SPH2D_COMMON: remove Params.json print and load
+//       -               add SPH2D params filling
+//       -               remove default experiment generation
+//       -               update CLI experiment loading
+//       -               remove VirtualParticles module
+//       -               rename module IsNormalCheck -> ConsistencyCheck
+//       - SPH2D:        add crash_dump output function
+//       -               add DumBreak particle generation script
+//       - SPH2D_FIO:    move common CLI method to SPH2D_PARAMS
+//       - SPH2D_PicGen: add PicGen params
+//       -               remove params other than ParticleParams
 // TODO:
-// 2.5.0 - Add user guide
-//       - Change logging library
-//       - Particles generation by Python script
+// 3.0.1 - Add user guide
+// 3.0.2 - Change logging library

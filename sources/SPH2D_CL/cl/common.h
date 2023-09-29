@@ -2,6 +2,7 @@
 #define CL_SPH_COMMON_H
 
 #include "clparams.h"
+#include "ParamsEnumeration.h"
 
 #define rr_float float
 #define rr_uint uint

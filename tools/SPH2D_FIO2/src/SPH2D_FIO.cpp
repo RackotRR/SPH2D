@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "SPH2D_FIO.h"
+#include "ParamsIO.h"
 
 using namespace sphfio;
 
@@ -17,43 +18,48 @@ LazyGrid SPHFIO::makeLazyGrid() const {
 	return LazyGrid{ available_layers_path, params };
 }
 
-LayersPathPtr
-SPHFIO::findTimeLayersPath(ParamsPtr params, const std::string& directoryToSearch) {
-	std::cout << "findTimeLayersPath: " << directoryToSearch << std::endl;
-
-	auto available_layers_path = std::make_shared<LayersPath>();
-	int step = 0;
-	while (true) {
-		auto path = std::filesystem::current_path() / params->experiment_name / directoryToSearch / fmt::format("{}.csv", step);
-		if (std::filesystem::exists(path)) {
-			available_layers_path->emplace_back(path.string());
-			step += params->save_step;
-		}
-		else {
-			break;
-		}
+static void loadTimeLayers(
+	LayersPathPtr layers_path, 
+	const std::vector<rr_uint>& layers_num,
+	const std::filesystem::path& data_path) 
+{
+	layers_path->clear();
+	layers_path->reserve(layers_num.size());
+	for (auto& num : layers_num) {
+		layers_path->push_back(data_path / fmt::format("{}.csv", num));
 	}
+}
 
-	if (available_layers_path->empty() && directoryToSearch != "dump") {
-		return findTimeLayersPath(params, "dump");
+LayersPathPtr
+SPHFIO::findTimeLayersPath() {
+
+	auto experiment = ExperimentStatistics::load(directories.getExperimentDirectory());
+	auto available_layers_path = std::make_shared<LayersPath>();
+
+	if (experiment.data_layers.size() > 0) {
+		loadTimeLayers(available_layers_path, experiment.data_layers, experiment.dir / "data");
+	}
+	else if (experiment.dump_layers.size() > 0) {
+		loadTimeLayers(available_layers_path, experiment.dump_layers, experiment.dir / "dump");
 	}
 	else {
-		return available_layers_path;
+		std::cout << "No layers loaded!" << std::endl;
 	}
+
+	return available_layers_path;	
 }
 
 
 ParamsPtr SPHFIO::loadExperimentParams() {
-	auto path = directories.getExperimentDirectory() / "Params.json";
-	ParamsPtr experiment_params = std::make_shared<ExperimentParams>();
-	experiment_params->load(path.string());
+	auto& path = directories.getExperimentDirectory();
+	ParamsPtr experiment_params = std::make_shared<ExperimentParams>(load_experiment_params(path));
 	return experiment_params;
 }
 
-SPHFIO::SPHFIO(const std::string& experiment_name) :
-	directories{ experiment_name },
+SPHFIO::SPHFIO(const std::filesystem::path& experiment_dir) :
+	directories{ experiment_dir },
 	params{ loadExperimentParams() },
-	available_layers_path{ findTimeLayersPath(params, "data")}
+	available_layers_path{ findTimeLayersPath() }
 {
 }
 

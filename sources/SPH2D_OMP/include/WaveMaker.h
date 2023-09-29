@@ -25,6 +25,13 @@ void disappear_wall(
 	const rr_uint ntotal,
 	const rr_float time);
 
+void dynamic_boundaries(
+	heap_darray<rr_float2>& r,
+	heap_darray<rr_float2>& v,
+	const rr_uint nfluid,
+	const rr_uint ntotal,
+	const rr_float time);
+
 void make_waves(
 	heap_darray<rr_float2>& r,
 	heap_darray<rr_float2>& v,

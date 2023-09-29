@@ -13,6 +13,8 @@
 //       - replace left_wall_end with nwm_particles_end
 //       - add disappear_wall nwm
 //       - add non-existing particles treatment
+// 1.1.1 - add density in crash dump
+//       - crash dump is separate function
 // TODO:
-// 1.1.1 - don't allow particles go outside geometry
-// 1.2   - add dynamic dt correction method
+// 1.2   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+//       - don't allow particles go outside geometry (CONSISTENCY_FIX)

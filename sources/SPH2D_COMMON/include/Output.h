@@ -1,6 +1,7 @@
 #pragma once
 #include "CommonIncl.h"
 #include <optional>
+#include <filesystem>
 
 void dump(
 	heap_darray<rr_float2>&& r,
@@ -18,6 +19,14 @@ void output(
 	std::optional<heap_darray<rr_float>> p,
 	const rr_uint itimestep);
 
+void crash_dump(
+	heap_darray<rr_float2>&& r,
+	heap_darray<rr_int>&& itype,
+	std::optional<heap_darray<rr_float2>> v,
+	std::optional<heap_darray<rr_float>> rho,
+	std::optional<heap_darray<rr_float>> p,
+	const rr_uint itimestep);
+
 void fast_output(
 	heap_darray<rr_float2>&& r,	// coordinates of all particles
 	const heap_darray<rr_int>& itype,	// material type 
@@ -25,11 +34,9 @@ void fast_output(
 	const rr_uint itimestep); // current time step
 
 // call once at start
-void setupOutput();
+void setupOutput(const std::filesystem::path& experiment_path);
 
 // call once at start after initialization
 void printParams();
 
 void printTimeEstimate(long long totalTime_ns, rr_uint timeStep);
-
-void makeParamsHeader(std::string path = "cl/clparams.h");

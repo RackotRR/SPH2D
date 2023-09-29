@@ -2,7 +2,7 @@
 #include "CommonIncl.h"
 
 inline bool should_check_normal(rr_uint itimestep) {
-	return itimestep % params.normal_check_step == 0;
+	return itimestep % params.consistency_check_step == 0;
 }
 
 

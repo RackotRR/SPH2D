@@ -26,6 +26,6 @@ __kernel void average_velocity(
 		av_temp += dvx * params_mass / (rho[i] + rho[j]) * w[at(n, j)] * 2.f;
 	}
 
-	av[j] = av_temp * params_average_velocity_epsilon;
+	av[j] = av_temp * params_average_velocity_coef;
 #endif // !params_average_velocity
 }

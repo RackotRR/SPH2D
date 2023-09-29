@@ -12,7 +12,7 @@ __kernel void sum_density(
     
     rr_float wjj;
     rr_float2 dwdrjj;
-    smoothing_kernel(0.f, 0.f, &wjj, &dwdrjj);
+    cubic_kernel(0.f, 0.f, &wjj, &dwdrjj);
     rr_float rho_temp = params_mass * wjj;
 
     rr_uint i;

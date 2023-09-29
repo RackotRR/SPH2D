@@ -70,10 +70,10 @@ __kernel void find_internal_changes_pij_d_rhoij(
         rr_float mrhoij = params_mass / rho[i] / rho[j];
 
 #ifdef params_visc
-        h.x += (txx[i] + txx[j]) * dwdri.x * params_water_dynamic_visc;
-        h.x += (txy[i] + txy[j]) * dwdri.y * params_water_dynamic_visc;
-        h.y += (txy[i] + txy[j]) * dwdri.x * params_water_dynamic_visc;
-        h.y += (tyy[i] + tyy[j]) * dwdri.y * params_water_dynamic_visc;
+        h.x += (txx[i] + txx[j]) * dwdri.x * params_visc_coef;
+        h.x += (txy[i] + txy[j]) * dwdri.y * params_visc_coef;
+        h.y += (txy[i] + txy[j]) * dwdri.x * params_visc_coef;
+        h.y += (tyy[i] + tyy[j]) * dwdri.y * params_visc_coef;
 #endif // params_visc
 
         a_temp -= h * mrhoij;
@@ -111,10 +111,10 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
         rr_float2 h = -dwdri * (p[i] / sqr(rhoi) + p[j] / sqr(rhoj));
 
 #ifdef params_visc
-        h.x += (txx[i] / sqr(rhoi) + txx[j] / sqr(rhoj)) * dwdri.x * params_water_dynamic_visc;
-        h.x += (txy[i] / sqr(rhoi) + txy[j] / sqr(rhoj)) * dwdri.y * params_water_dynamic_visc;
-        h.y += (txy[i] / sqr(rhoi) + txy[j] / sqr(rhoj)) * dwdri.x * params_water_dynamic_visc;
-        h.y += (tyy[i] / sqr(rhoi) + tyy[j] / sqr(rhoj)) * dwdri.y * params_water_dynamic_visc;
+        h.x += (txx[i] / sqr(rhoi) + txx[j] / sqr(rhoj)) * dwdri.x * params_visc_coef;
+        h.x += (txy[i] / sqr(rhoi) + txy[j] / sqr(rhoj)) * dwdri.y * params_visc_coef;
+        h.y += (txy[i] / sqr(rhoi) + txy[j] / sqr(rhoj)) * dwdri.x * params_visc_coef;
+        h.y += (tyy[i] / sqr(rhoi) + tyy[j] / sqr(rhoj)) * dwdri.y * params_visc_coef;
 #endif // params_visc
 
         a_temp -= h * params_mass;
@@ -125,10 +125,6 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
 
 __kernel void update_internal_state(
     __global const rr_float* rho,
-    __global const rr_float* txx,
-    __global const rr_float* txy,
-    __global const rr_float* tyy,
-
     __global rr_float* p)
 {
     size_t j = get_global_id(0);

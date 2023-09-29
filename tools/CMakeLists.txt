@@ -12,3 +12,5 @@ set(SPH2DParamsGeneratorPath ${CMAKE_SOURCE_DIR}/tools/SPH2DParamsGenerator)
 if (EXISTS ${SPH2DParamsGeneratorPath})
     install(DIRECTORY "${SPH2DParamsGeneratorPath}/SPH2DParamsGenerator/bin/Release/" DESTINATION "SPH2D/SPH2DParamsGenerator")
 endif()
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/tools/Scripts" DESTINATION "SPH2D")

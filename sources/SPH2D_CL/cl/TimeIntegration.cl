@@ -32,9 +32,9 @@ __kernel void predict_half_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-#ifndef params_summation_density
+#if params_density_treatment == DENSITY_CONTINUITY
 	rho_predict[i] = rho[i] + drho[i] * params_dt * 0.5f;
-#endif // !params_summation_density
+#endif
 
 	if (itype[i] > 0) {
 		v_predict[i] = v[i] + a[i] * params_dt * 0.5f;
@@ -57,13 +57,12 @@ __kernel void whole_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-	rr_float v_dt = timestep == params_starttimestep ?
-		params_dt * 0.5f : params_dt;
+	rr_float v_dt = timestep == params_starttimestep ? params_dt * 0.5f : params_dt;
 	rr_float r_dt = params_dt;
 
-#ifndef params_summation_density
+#if params_density_treatment == DENSITY_CONTINUITY
 	rho[i] += drho[i] * v_dt;
-#endif // params_summation_density
+#endif
 
 	if (itype[i] > 0) {
 
@@ -86,8 +85,8 @@ __kernel void nwm_dynamic_boundaries(
 	if (i >= params_nwm_particles_end) return;
 	if (i >= params_ntotal || i < params_nfluid) return;
 
-#define generator_phase (-params_freq * params_generator_time_wait)
-	rr_float v_x = params_piston_amp * params_freq * cos(params_freq * time + generator_phase);
+#define generator_phase (-params_nwm_freq * params_nwm_wait)
+	rr_float v_x = params_nwm_piston_magnitude * params_nwm_freq * cos(params_nwm_freq * time + generator_phase);
 
 	r[i].x = r[i].x + v_x * params_dt;
 	v[i].x = v_x;

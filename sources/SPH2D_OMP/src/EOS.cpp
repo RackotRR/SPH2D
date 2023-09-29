@@ -2,7 +2,7 @@
 
 static rr_float get_sound_velocity() {
     if (params.eos_sound_vel_method == 0) {
-        return sqrt(200.f * params.g * params.depth * params.eos_csqr_k); // dam break problem
+        return sqrt(200.f * params.g * params.depth * params.eos_sound_vel_coef); // dam break problem
     }
     else {
         return params.eos_sound_vel;

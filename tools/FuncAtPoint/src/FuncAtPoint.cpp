@@ -9,7 +9,7 @@
 #include <Density.h>
 #include <Kernel.h>
 #include <GridUtils.h>
-#include <IsNormalCheck.h>
+#include <ConsistencyCheck.h>
 
 #include <SPH2D_FIO.h>
 

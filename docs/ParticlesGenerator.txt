@@ -1,0 +1,40 @@
+ParticlesGenerator (генератор частиц) спецификация 1.0
+
+
+1) порядок вызова: 
+- вызывается до генератора параметров и до старта эксперимента
+2) генерация структуры директорий:
+./ имя эксперимента
+    - / Params.json  
+    - / dump / [starttimestep].csv
+3) генерация параметров:
+    mandatory:
+    - x_mingeom
+    - x_maxgeom
+    - y_mingeom
+    - y_maxgeom
+    - delta
+    - ntotal
+    - nfluid
+    - nvirt
+    optional:
+    - rho0 { 1000 }
+    - mass { 1000 * delta * delta }
+    - nwm_particles_start { ntotal }
+    - nwm_particles_end { ntotal }
+    - boundary_layers_num
+    - use_chess_order
+    - depth
+    - x_fluid_min
+    - x_fluid_max
+    - y_fluid_min
+    - y_fluid_max
+    - x_fluid_particles
+    - y_fluid_particles
+    - x_boundary_left
+    - x_boundary_right
+    - x_boundary_center
+    - y_boundary_bottom
+    - y_boundary_top
+    - boundary_delta
+    - boundary_separation

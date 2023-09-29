@@ -2,9 +2,8 @@
 
 using sphfio::Directories;
 
-Directories::Directories(std::filesystem::path experiment_name) :
-    experiment_name{ experiment_name },
-    experiment_directory{ std::filesystem::current_path() / experiment_name },
+Directories::Directories(std::filesystem::path experiment_path) :
+    experiment_directory{ experiment_path },
     analysis_directory{ experiment_directory / "analysis" },
     screenshots_directory{ experiment_directory / "screenshots" },
     videos_directory{ experiment_directory / "videos" },

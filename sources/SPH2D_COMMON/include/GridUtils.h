@@ -29,12 +29,12 @@ inline rr_uint get_cell_scale_k(rr_uint skf) {
 
 inline rr_float get_cell_scale_k(
     rr_uint density_skf,
-    rr_uint int_force_skf,
+    rr_uint intf_skf,
     rr_uint art_visc_skf,
     rr_uint av_vel_skf)
 {
     return std::max(
-        std::max(get_cell_scale_k(density_skf), get_cell_scale_k(int_force_skf)),
+        std::max(get_cell_scale_k(density_skf), get_cell_scale_k(intf_skf)),
         std::max(get_cell_scale_k(art_visc_skf), get_cell_scale_k(av_vel_skf))
     );
 }

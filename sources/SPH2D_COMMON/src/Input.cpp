@@ -2,41 +2,14 @@
 #include <fstream>
 #include <stdexcept>
 #include <csv-parser/csv.hpp>
+#include <fmt/format.h>
+#include <nlohmann/json.hpp>
 
 #include "CommonIncl.h"
 #include "Input.h"
-#include "VirtualParticles.h"
 #include "Output.h"
 #include "GridUtils.h"
-
-
-static rr_uint setup_virt_part(
-	rr_float delta,
-	rr_float hsml,
-	rr_float x_fluid_min,
-	rr_float y_fluid_min,
-	rr_float x_fluid_max,
-	rr_float y_maxgeom)
-{
-	printlog()(__func__)();
-
-	params.boundary_layers_num = 3;
-	params.boundary_delta = delta * 1.f;
-
-	constexpr rr_float spacing = 2;
-
-	params.x_boundary_min = x_fluid_min - spacing * hsml;
-	params.y_boundary_min = y_fluid_min - spacing * hsml;
-	params.x_boundary_max = x_fluid_max + spacing * hsml;
-	params.y_boundary_max = y_maxgeom;
-
-	params.beach_x = 0; // is not in use now
-	params.nwm = 0;
-	params.sbt = 0;
-	params.generator_time_wait = 0.5f;
-
-	return count_virt_part_num();
-}
+#include "ParamsIO.h"
 
 rr_uint countCells(
 	rr_float hsml,
@@ -58,50 +31,26 @@ rr_uint countCells(
 	return max_cells;
 }
 
-void loadDefaultParams() {
-	printlog()(__func__)();
-	
-	constexpr rr_float H = 0.0f;
-	constexpr rr_float L = 1.2f;
-	constexpr rr_float depth = 0.6f;
-	constexpr rr_float ratio = L / depth;
-	constexpr rr_float tank_length = 3.22f;
-	constexpr rr_float tank_height = 2.f;
-	constexpr rr_uint particlesPer_d = 125;
-	constexpr rr_uint particlesPer_L = static_cast<rr_uint>(particlesPer_d * ratio);
-	constexpr rr_uint fluid_particles_x = static_cast<rr_uint>(particlesPer_L);
-	constexpr rr_uint fluid_particles_y = static_cast<rr_uint>(particlesPer_d);
-	constexpr rr_uint fluid_particles = fluid_particles_x * fluid_particles_y;
-	constexpr rr_float delta = depth / particlesPer_d;
+rr_float find_depth(
+	rr_uint nfluid, 
+	const heap_darray<rr_float2>& r) 
+{
+	if (params.depth != 0) return params.depth;
 
-	params.delta = delta;
-	params.hsml = delta * 1.f;
+	rr_float y_fluid_min = FLT_MAX;
+	rr_float y_fluid_max = -FLT_MAX;
 
-	params.mass = 1000 * sqr(delta);
+	for (rr_uint i = 0; i < nfluid; ++i) {
+		y_fluid_max = std::max(r(i).y, y_fluid_max);
+		y_fluid_min = std::min(r(i).y, y_fluid_min);
+	}
 
-	params.x_fluid_particles = fluid_particles_x;
-	params.y_fluid_particles = fluid_particles_y;
-	params.x_fluid_min = 0.f;
-	params.y_fluid_min = 0.f;
-	params.x_fluid_max = params.x_fluid_min + (particlesPer_L / L * tank_length) * params.delta;
-	params.y_fluid_max = params.y_fluid_min + (particlesPer_d / depth * tank_height) * params.delta;
+	return y_fluid_max - y_fluid_min;
+}
 
-	params.x_maxgeom = tank_length + 0.1;
-	params.x_mingeom = -0.3;
-	params.y_maxgeom = tank_height + 0.2;
-	params.y_mingeom = -0.3;
+void fillInSPH2DParams() {
+	params.hsml = params.delta * params.intf_hsml_coef;
 
-	rr_uint nvirt = setup_virt_part(
-		params.delta,
-		params.hsml,
-		params.x_fluid_min,
-		params.y_fluid_min,
-		params.x_fluid_max,
-		params.y_maxgeom);
-
-	params.nvirt = nvirt;
-	params.nfluid = fluid_particles;
-	params.ntotal = params.nvirt + params.nfluid;
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
 
 	params.max_cells = countCells(
@@ -111,195 +60,88 @@ void loadDefaultParams() {
 		params.x_maxgeom,
 		params.y_maxgeom);
 
-	constexpr rr_float k = 2.f * params.pi / L;
-	constexpr rr_float kd = k * depth;
-	params.freq = sqrt(k * params.g * tanh(kd));
-	params.piston_amp = H * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
-	params.wave_amp = H;
-	params.wave_number = k;
-	params.wave_length = L;
-	params.depth = depth;
-
-	params.density_skf = 1;
-	params.int_force_skf = 4;
-	params.artificial_viscosity_skf = 4;
-	params.average_velocity_skf = 3;
-	params.cell_scale_k = get_cell_scale_k(
-		params.density_skf,
-		params.int_force_skf,
-		params.artificial_viscosity_skf,
-		params.average_velocity_skf);;
-
-	params.eos_csqr_k = 1;
-	params.average_velocity = true;
-	params.average_velocity_epsilon = 0.01f;
-	params.artificial_shear_visc = 0.01f;
-	params.artificial_bulk_visc = 0;
-
-	params.save_step = 1000;
-	params.dump_step = 10 * params.save_step;
-	params.normal_check_step = params.save_step;
-	params.simulation_time = 3.f;
-	params.CFL_coef = 0.125f;
-	params.dt = params.CFL_coef * params.hsml / (2.2f * sqrt(200 * params.g * params.depth * params.eos_csqr_k));
-	params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);
-	if (params.maxtimestep % params.save_step != 0) { // fix last save step
-		params.maxtimestep = params.maxtimestep + (params.save_step - params.maxtimestep % params.save_step);
+	if (params.artificial_viscosity_skf == SKF_GAUSS ||
+		params.average_velocity_skf == SKF_GAUSS ||
+		params.density_skf == SKF_GAUSS ||
+		params.intf_skf == SKF_GAUSS)
+	{
+		params.cell_scale_k = 3;
+	}
+	else {
+		params.cell_scale_k = 2;
+	}
+}
+void postFillInSPH2DParams()
+{
+	if (params.eos_sound_vel_method == EOS_SOUND_VEL_DAM_BREAK) {
+		params.eos_sound_vel = sqrt(200 * params.g * params.depth * params.eos_sound_vel_coef);
 	}
 
-	params.print_time_est_step = 500;
-	params.local_threads = 256;
-}
+	if (params.dt_correction_method == DT_CORRECTION_CONST_CFL) {
+		params.dt = params.CFL_coef * params.hsml / (params.eos_sound_vel * (1 + 1.2 * params.artificial_shear_visc));
+	}
+	else if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+		throw std::runtime_error{ "not implemented: DT_CORRECTION_DYNAMIC" };
+	}
 
-static void generateParticles(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& rho, // particle densities
-	heap_darray<rr_float>& p,	 // particle pressure
-	heap_darray<rr_int>& itype)	 // particle material type
-{
-	printlog()(__func__)();
-
-	rr_uint nfluid = 0;
-	for (rr_uint x_i = 0; x_i < params.x_fluid_particles; ++x_i) {
-		for (rr_uint y_i = 0; y_i < params.y_fluid_particles; ++y_i) {
-
-			r(nfluid).x = params.x_fluid_min + x_i * params.delta;
-			r(nfluid).y = params.y_fluid_min + y_i * params.delta;
-			nfluid++;
+	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+		params.maxtimestep = 0;
+	}
+	else {
+		params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);
+		if (params.maxtimestep % params.save_step != 0) { // fix last save step
+			params.maxtimestep = params.maxtimestep + (params.save_step - params.maxtimestep % params.save_step);
 		}
-	}
-	if (nfluid != params.nfluid) {
-		throw std::runtime_error{"Generated nfluid doesn't equal to estimated nfluid" };
-	}
 
-	for (rr_uint i = 0; i < nfluid; i++) {
-		v(i) = { 0.f };
-
-		rho(i) = 1000.f;
-		itype(i) = params.TYPE_WATER;
-		p(i) = 0;
-	}
-}
-
-// loading or generating initial particle information
-void input(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
-	heap_darray<rr_float>& rho,	// particle densities
-	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_int>& itype,	// particle material type 
-	rr_uint& ntotal, // total particle number
-	rr_uint& nfluid, // total fluid particles
-	bool load_default_params)
-{
-	setupOutput();
-	printlog("Experiment name: ")(params.experiment_name)();
-	printlog()(__func__)();
-
-	if (load_default_params) {
-		loadDefaultParams();
-	}
-
-	r = heap_darray<rr_float2>(params.maxn); 
-	v = heap_darray<rr_float2>(params.maxn);
-	rho = heap_darray<rr_float>(params.maxn);
-	p = heap_darray<rr_float>(params.maxn);
-	itype = heap_darray<rr_int>(params.maxn);
-
-	ntotal = params.ntotal;
-	nfluid = params.nfluid;
-
-	generateParticles(r, v, rho, p, itype);
-	virt_part(nfluid, r, v, rho, p, itype);
-	printParams();
-}
-
-void calculateNotFilledParams() {
-	if (params.ntotal == 0) {
-		std::cout << "Params: calc ntotal" << std::endl;
-		params.ntotal = params.nvirt + params.nfluid;
-	}
-
-	if (params.maxn == 0) {
-		std::cout << "Params: calc maxn" << std::endl;
-		params.maxn = 1 << (1 + intlog2(params.ntotal));
-	}
-
-	if (params.max_cells == 0) {
-		std::cout << "Params: calc max_cells" << std::endl;
-		params.max_cells = countCells(
-			params.hsml,
-			params.x_mingeom,
-			params.y_mingeom,
-			params.x_maxgeom,
-			params.y_maxgeom);
-	}
-
-	if (params.waves_generator) {
-		switch (params.nwm) {
-		case 1:
-		case 2:
-		case 3:
-			if (params.wave_number == 0 && params.wave_length != 0) {
-				params.wave_number = 2.f * params.pi / params.wave_length;
-				std::cout << "Params: calc wave_number" << std::endl;
-			}
-			else if (params.wave_number != 0 && params.wave_length == 0) {
-				params.wave_length = 2.f * params.pi / params.wave_number;
-				std::cout << "Params: calc wave_length" << std::endl;
-			}
-			else if (params.wave_number == 0 && params.wave_length == 0) {
-				throw std::runtime_error{"Params check failed: nwm"};
-			}
-
-			if (params.wave_number == 0 || params.wave_length == 0 || params.depth == 0) {
-				throw std::runtime_error{"Params check failed: nwm"};
-			}
-
-			if (params.freq == 0) {
-				rr_float kd = params.wave_number * params.depth;
-				params.freq = sqrt(params.wave_number * params.g * tanh(kd));
-				std::cout << "Params: calc freq" << std::endl;
-			}
-			if (params.freq == 0) {
-				throw std::runtime_error{"Params check failed: nwm"};
-			}
-
-
-			if (params.nwm == 3 && params.piston_amp == 0) {
-				rr_float kd = params.wave_number * params.depth;
-				params.piston_amp = params.wave_amp * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
-				std::cout << "Params: calc piston_amp" << std::endl;
-			}
-			if (params.nwm == 3 && params.piston_amp == 0) {
-				throw std::runtime_error{"Params check failed: nwm"};
-			}
-		default: break;
+		if (params.step_treatment == STEPPING_TREATMENT_TIME) {
+			params.save_step = params.save_time / params.dt;
+			params.dump_step = params.dump_time / params.dt;
 		}
 	}
 
-	if (params.cell_scale_k == 0) {
-		std::cout << "Params: calc cell_scale_k" << std::endl;
-		if (params.artificial_viscosity_skf == 2 ||
-			params.average_velocity_skf == 2 ||
-			params.density_skf == 2 ||
-			params.int_force_skf == 2)
+	switch (params.nwm) {
+	case NWM_METHOD_DYNAMIC: 
 		{
-			params.cell_scale_k = 3;
-		}
-		else {
-			params.cell_scale_k = 2;
-		}
+			params.nwm_wave_number = 2. * params.pi / params.nwm_wave_length;
+			rr_float kd = params.nwm_wave_number * params.depth;
+			params.nwm_freq = sqrt(params.nwm_wave_number * params.g * tanh(kd));
+			params.nwm_piston_magnitude = params.nwm_wave_magnitude * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
+		}	
+		break;
+	default:
+		break;
 	}
+}
 
-	if (params.rho0 == 0) {
-		throw std::runtime_error{"Params check failed: no rho0"};
-	}
+void print_SPH2DParams(const std::filesystem::path& experiment_directory) {
+	std::ofstream stream{ experiment_directory / "SPH2DParams.json" };
 
-	if (params.save_step == 0 && params.dump_step == 0) {
-		throw std::runtime_error{"Params check failed: no dump or save steps"};
-	}
+	nlohmann::json json;
+#define print_param(param) json[#param] = params.param;
+#define print_not_null(param) if (params.param != 0) json[#param] = params.param;
+
+	params.format_line = "fmt: vx vy p ";
+	print_param(format_line)
+	print_param(starttimestep)
+	print_param(pi)
+	print_param(g)
+	print_param(TYPE_BOUNDARY)
+	print_param(TYPE_NON_EXISTENT)
+	print_param(TYPE_WATER)
+	print_param(cell_scale_k)
+	print_param(max_cells)
+	print_param(maxn)
+	print_param(hsml)
+	print_param(depth)
+	print_not_null(maxtimestep)
+	print_not_null(nwm_wave_number)
+	print_not_null(nwm_freq)
+	print_not_null(nwm_piston_magnitude)
+
+#undef print_param
+#undef print_not_null
+
+	stream << json.dump(4) << std::endl;
 }
 
 void fileInput(
@@ -310,19 +152,17 @@ void fileInput(
 	heap_darray<rr_int>& itype,// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
-	std::string particles_path,
-	std::string params_path)
+	rr_uint starttimestep,
+	const std::filesystem::path& experiment_directory)
 {
-	setupOutput();
+	setupOutput(experiment_directory);
+	params = load_experiment_params(experiment_directory);
+	
 	printlog("Experiment name: ")(params.experiment_name)();
 	printlog()(__func__)();
 
-	if (!params_path.empty()) {
-		params.load(params_path);
-	}
 	ntotal = params.ntotal;
 	nfluid = params.nfluid;
-
 
 	r = heap_darray<rr_float2>(params.maxn);
 	v = heap_darray<rr_float2>(params.maxn);
@@ -330,15 +170,12 @@ void fileInput(
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
-	std::string particles_filename = std::filesystem::path(particles_path).stem().string();
-	params.starttimestep = atoi(particles_filename.c_str());
-
-	calculateNotFilledParams();
+	auto particles_data_path = experiment_directory / "dump" / fmt::format("{}.csv", starttimestep);
+	params.starttimestep = std::stoi(particles_data_path.stem().string());
+	fillInSPH2DParams();
 
 	std::cout << "read data...";
-
-	auto read_path = std::filesystem::current_path() / params.experiment_name / "dump" / (particles_filename + ".csv");
-	csv::CSVReader reader(read_path.string());
+	csv::CSVReader reader(particles_data_path.string());
 
 	size_t j = 0;
 	for (const auto& row : reader) {
@@ -355,7 +192,13 @@ void fileInput(
 	if (j != params.ntotal) {
 		throw std::runtime_error{ "dump corrupted: dump ntotal doesn't match params.ntotal!" };
 	}
+
+	params.depth = find_depth(nfluid, r);
+	postFillInSPH2DParams();
+
 	std::cout << "...success" << std::endl;
 
+	print_SPH2DParams(experiment_directory);
+	params_make_json(experiment_directory / "Params.json");
 	printParams();
 }

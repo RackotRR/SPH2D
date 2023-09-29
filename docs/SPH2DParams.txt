@@ -1,0 +1,19 @@
+SPH2D (вычислительное ПО) спецификация 1.0
+
+1) генерация параметров:
+mandatory:    
+- starttimestep
+- pi
+- g
+- TYPE_BOUNDARY
+- TYPE_NON_EXISTENT
+- TYPE_WATER
+- cell_scale_k
+- max_cells
+- maxn
+- depth
+optional:
+- maxtimestep
+- nwm_wave_number
+- nwm_freq
+- nwm_piston_magnitude

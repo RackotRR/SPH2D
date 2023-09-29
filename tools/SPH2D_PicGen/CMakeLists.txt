@@ -14,7 +14,8 @@ target_include_directories(SPH2DPicGen PRIVATE ${SDL2_INCLUDE_DIR})
 target_link_libraries(SPH2DPicGen PRIVATE 
     ${SDL2_LIBRARIES}
     SPH2D_PARAMS
-    SPH2D_COMMON)
+    SPH2D_COMMON
+    nlohmann::json)
 
     
 install(TARGETS SPH2DPicGen DESTINATION SPH2D)

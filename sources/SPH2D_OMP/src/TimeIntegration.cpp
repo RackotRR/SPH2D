@@ -1,12 +1,13 @@
 #include "CommonIncl.h"
 #include "Output.h"
 #include "UpdateAcceleration.h"
-#include "VirtualParticles.h"
-#include "IsNormalCheck.h"
+#include "ConsistencyCheck.h"
 #include "WaveMaker.h"
 #include "TimeIntegration.h"
 
 #include "RR/Time/Timer.h"
+
+#include <iostream>
 
 void predict_half_step(
 	const rr_uint ntotal,
@@ -21,7 +22,7 @@ void predict_half_step(
 	printlog()(__func__)();
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.summation_density == false) {
+		if (params.density_treatment == DENSITY_CONTINUITY) {
 			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
 		}
 
@@ -48,7 +49,7 @@ void whole_step(
 		params.dt * 0.5f : params.dt;
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.summation_density == false) {
+		if (params.density_treatment == DENSITY_CONTINUITY) {
 			rho(i) = rho(i) + drho(i) * v_dt;
 		}
 
@@ -58,6 +59,7 @@ void whole_step(
 		}
 	}
 }
+
 
 void time_integration(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
@@ -73,7 +75,7 @@ void time_integration(
 	heap_darray<rr_float> rho_predict(params.maxn);
 	heap_darray<rr_float> drho(params.maxn);
 	heap_darray<rr_float>* rho_predicted;
-	if (params.summation_density) {
+	if (params.density_treatment == DENSITY_SUMMATION) {
 		rho_predicted = &rho;
 	}
 	else {
@@ -116,7 +118,7 @@ void time_integration(
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		if (params.waves_generator && time >= params.generator_time_wait) {
+		if (params.nwm && time >= params.nwm_wait) {
 			make_waves(r, v, a, itype, nfluid, ntotal, time);
 		}
 
@@ -126,18 +128,18 @@ void time_integration(
 			drho, a, av,
 			rho, v, r);
 
-		if (params.enable_check_consistency) {
+		if (params.consistency_check) {
 			if (should_check_normal(itimestep)) {
 				try {
-					check_finite(r, v, rho, p, itype, ntotal);
+					check_finite(r, v, *rho_predicted, p, itype, ntotal);
 					check_particles_are_within_boundaries(ntotal, r, itype);
 				}
 				catch (...) {
-					output(
+					crash_dump(
 						r.copy(),
 						itype.copy(),
 						v.copy(),
-						std::nullopt,
+						rho_predicted->copy(),
 						p.copy(),
 						itimestep);
 					throw;
@@ -145,7 +147,7 @@ void time_integration(
 			}
 		}
 
-		if (itimestep && itimestep % params.dump_step == 0) {
+		if (itimestep && params.dump_step && itimestep % params.dump_step == 0) {
 			dump(
 				r.copy(),
 				itype.copy(),

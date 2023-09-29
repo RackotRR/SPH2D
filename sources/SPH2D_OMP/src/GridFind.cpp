@@ -19,7 +19,7 @@ void make_grid(
 		rr_uint cell_idx = get_cell_idx(r(i));
 		unsorted_grid(i) = cell_idx;
 
-		if (params.enable_check_consistency) {
+		if (params.consistency_check) {
 			if (cell_idx >= params.max_cells) {
 				printlog("cell_idx: ")(cell_idx)();
 				printlog("max_cells: ")(params.max_cells)();
@@ -86,7 +86,7 @@ void find_neighbours(
 					rr_float dist_sqr = length_sqr(diff);
 
 					if (dist_sqr < max_dist) {
-						if (params.enable_check_consistency) {
+						if (params.consistency_check) {
 							if (neighbour_id == params.max_neighbours - 1) {
 #pragma omp critical
 								{

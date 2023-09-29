@@ -22,8 +22,10 @@ namespace ParamsGeneration {
 		void serialize(const ExperimentParams& params) {
 			print_before("");
 #define set(param) set_param(#param, params.param);
-			set(version_major);
-			set(version_minor);
+			set(params_version_major);
+			set(params_version_minor);
+			set(params_generator_version_major);
+			set(params_generator_version_minor);
 			set(SPH2D_version_major);
 			set(SPH2D_version_minor);
 			set(SPH2D_version_patch);
@@ -48,44 +50,44 @@ namespace ParamsGeneration {
 			set(nfluid);
 			set(nvirt);
 			set(ntotal);
-			set(wave_length);
+			set(nwm_wave_length);
 			set(depth);
-			set(freq);
-			set(piston_amp);
-			set(wave_amp);
-			set(wave_number);
+			set(nwm_freq);
+			set(nwm_piston_magnitude);
+			set(nwm_wave_magnitude);
+			set(nwm_wave_number);
 			set(beach_x);
 			set(nwm_particles_start);
 			set(nwm_particles_end);
-			set(generator_time_wait);
+			set(nwm_wait);
 			set(CFL_coef);
 			set(dt);
 			set(dt_correction_method);
 			set(simulation_time);
 			set(local_threads);
-			set(eos_csqr_k);
+			set(eos_sound_vel_coef);
 			set(eos_sound_vel_method);
 			set(eos_sound_vel);
-			set(pa_sph);
+			set(intf_sph_approximation);
+			set(intf_hsml_coef);
 			set(density_skf);
-			set(int_force_skf);
+			set(intf_skf);
 			set(average_velocity_skf);
 			set(artificial_viscosity_skf);
 			set(cell_scale_k);
 			set(nwm);
-			set(waves_generator);
 			set(boundary_layers_num);
-			set(sbt);
+			set(boundary_treatment);
 			set(use_chess_order);
 			set(hsml);
 			set(delta);
 			set(boundary_delta);
-			set(summation_density);
-			set(nor_density);
+			set(density_treatment);
+			set(density_normalization);
 			set(average_velocity);
-			set(average_velocity_epsilon);
+			set(average_velocity_coef);
 			set(visc);
-			set(water_dynamic_visc);
+			set(visc_coef);
 			set(artificial_viscosity);
 			set(artificial_shear_visc);
 			set(artificial_bulk_visc);
@@ -94,19 +96,20 @@ namespace ParamsGeneration {
 			set_param("TYPE_WATER", params.TYPE_WATER);
 			set(mass);
 			set(rho0);
-			set(enable_check_consistency);
-			set(inf_stop);
+			set(consistency_check);
+			set(consistency_treatment);
 			set(starttimestep);
 			set(maxtimestep);
-			set(normal_check_step);
+			set(consistency_check_step);
 			set(save_step);
 			set(dump_step);
-			set(print_time_est_step);
-			set(stepping_treatment);
+			set(save_time);
+			set(dump_time);
+			set(step_time_estimate);
+			set(step_treatment);
 			set(pi);
 			set(g);
 			set(experiment_name);
-			set(format_line);
 #undef set
 			print_after("");
 		}
@@ -208,21 +211,21 @@ namespace ParamsGeneration {
 	};
 
 
-	void makeHeader(const std::string& path, const ExperimentParams& params) {
+	void makeHeader(const std::filesystem::path& path, const ExperimentParams& params) {
 		ParamsHeader header;
 		header.serialize(params);
 		std::string params_str = header.string();
 		std::ofstream stream{ path };
 		stream << params_str << std::endl;
 	}
-	void makeJson(const std::string& path, const ExperimentParams& params) {
+	void makeJson(const std::filesystem::path& path, const ExperimentParams& params) {
 		ParamsJson json;
 		json.serialize(params);
 		std::string params_str = json.string();
 		std::ofstream stream{ path };
 		stream << params_str << std::endl;
 	}
-	void makeParamsGeneratorClass(const std::string& path) {
+	void makeParamsGeneratorClass(const std::filesystem::path& path) {
 		ParamsGeneratorClass generatorClass;
 		generatorClass.serialize(ExperimentParams{});
 		std::string params_str = generatorClass.string();
@@ -232,9 +235,9 @@ namespace ParamsGeneration {
 }
 
 
-void ExperimentParams::makeHeader(const std::string& path) {
-	ParamsGeneration::makeHeader(path, *this);
+void params_make_header(const std::filesystem::path& path) {
+	ParamsGeneration::makeHeader(path, params);
 }
-void ExperimentParams::makeJson(const std::string& path) {
-	ParamsGeneration::makeJson(path, *this);
+void params_make_json(const std::filesystem::path& path) {
+	ParamsGeneration::makeJson(path, params);
 }

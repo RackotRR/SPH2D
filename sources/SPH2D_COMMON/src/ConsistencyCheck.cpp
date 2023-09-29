@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <fmt/format.h>
 
-#include "IsNormalCheck.h"
+#include "ConsistencyCheck.h"
 
 bool check_finite(
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
@@ -28,7 +28,7 @@ bool check_finite(
 		}
 
 
-		if (params.inf_stop) {
+		if (params.consistency_treatment == CONSISTENCY_STOP) {
 			if (!is_finite) {
 				throw std::runtime_error{
 					std::string{"encounter particle outside boundaries: "}
@@ -72,7 +72,7 @@ bool check_particles_are_within_boundaries(
 	}
 
 	if (!are_within_boundaries) {
-		if (params.inf_stop) {
+		if (params.consistency_treatment == CONSISTENCY_STOP) {
 			throw std::runtime_error{
 				fmt::format("encounter particle outside boundaries: \n\t type: {}\n\t r: ({}; {}) // ({} .. {}; {} .. {})\n\t k: {}",
 				itype(outside_k), r(outside_k).x, r(outside_k).y, 

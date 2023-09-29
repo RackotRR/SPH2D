@@ -1,7 +1,7 @@
 #pragma once
 #define SPH2D_CL_VERSION_MAJOR 1
 #define SPH2D_CL_VERSION_MINOR 1
-#define SPH2D_CL_VERSION_PATCH 0
+#define SPH2D_CL_VERSION_PATCH 2
 
 // 1.0.0 - start version control for SPH2D_CL
 // 1.0.1 - add artificial_viscosity, average_velocity, waves_generator are enabled checks
@@ -15,6 +15,8 @@
 //       - add disappear_wall nwm
 //       - add non-existing particles treatment
 // 1.1.1 - fix itype output without change in disappeared particles
+// 1.1.2 - add density in crash dump
+//       - crash dump is separate function
 // TODO:
-// 1.1.1 - don't allow particles go outside geometry
-// 1.2   - add dynamic dt correction method
+// 1.2   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+//       - don't allow particles go outside geometry (CONSISTENCY_FIX)

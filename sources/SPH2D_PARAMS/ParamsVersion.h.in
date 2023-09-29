@@ -14,7 +14,7 @@
 //      2.5 - add starttimestep
 //      2.6 - add average_velocity_skf
 //      2.7 - rename skf->density_skf    
-//          - replace int_force_kernel by int_force_skf 
+//          - replace int_force_kernel by int_force_skf
 //          - add artificial_viscosity_skf 
 //          - add cell_scale_k
 //      2.8 - add SPH2D_PARAMS_VERSION_PATCH
@@ -36,7 +36,39 @@
 //          - replace left_wall_end with nwm_particles_end
 //     2.13 - add stepping_treatment param
 //          - add rho0 params
+//      3.0 - new partial loading module
+//          - add consistency check
+//          - add defaulted values
+//          - add ExperimentStatistics module
+//          - replace summation_density with density_treatment
+//          - replace nor_density with density_normalization
+//          - rename eos_csqr_k -> eos_sound_vel_coef
+//          - rename intf_skf -> intf_skf
+//          - rename pa_sph -> intf_sph_approximation
+//          - add intf_hsml_coef param
+//          - rename water_dynamic_visc -> visc_coef
+//          - rename average_velocity_epsilon -> average_velocity_coef
+//          - rename stepping_treatment -> step_treatment
+//          - rename enable_check_consistency -> consistency_check
+//          - rename normal_check_step -> consistency_check_step
+//          - replace inf_stop with consistency_treatment
+//          - remove wave_generator param
+//          - rename generator_time_wait -> nwm_wait
+//          - rename wave_length -> nwm_nwm_wave_length
+//          - rename wave_magnitude -> nwm_wave_magnitude
+//          - rename piston_magnitude -> nwm_piston_magnitude
+//          - add params_generator_version_major param
+//          - add params_generator_version_minor param
+//          - rename version_major -> params_version_major
+//          - rename version_minor -> params_version_minor
+//          - add x_boundary_left and x_boundary_right params
+//          - add y_boundary_bottom and y_boundary_top params
+//          - add x_boundary_center and boundary_separation params
+//          - rename sbt -> boundary_treatment
+//          - rename print_time_est_step -> step_time_estimate
+//          - add dump_time param
+//          - add save_time param
+//          - rename wave_number -> nwm_wave_number
+//          - rename freq -> nwm_freq
 // TODO:
-//     3.0  - add consistency check
-//          - add partial load
-//          - add autogeneration on partial load
+//      3.1 - move format line generation to SPH2DParamsGenerator
