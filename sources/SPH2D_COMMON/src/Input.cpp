@@ -49,6 +49,7 @@ rr_float find_depth(
 }
 
 void fillInSPH2DParams() {
+	params.format_line = "fmt: vx vy p ";
 	params.hsml = params.delta * params.intf_hsml_coef;
 
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
@@ -59,6 +60,8 @@ void fillInSPH2DParams() {
 		params.y_mingeom,
 		params.x_maxgeom,
 		params.y_maxgeom);
+
+	params.mass = params.rho0 * params.delta * params.delta;
 
 	if (params.artificial_viscosity_skf == SKF_GAUSS ||
 		params.average_velocity_skf == SKF_GAUSS ||
@@ -71,14 +74,14 @@ void fillInSPH2DParams() {
 		params.cell_scale_k = 2;
 	}
 }
-void postFillInSPH2DParams()
+void postFillInModelParams(ModelParams& model_params)
 {
 	if (params.eos_sound_vel_method == EOS_SOUND_VEL_DAM_BREAK) {
-		params.eos_sound_vel = sqrt(200 * params.g * params.depth * params.eos_sound_vel_coef);
+		model_params.eos_sound_vel = params.eos_sound_vel = sqrt(200 * params.g * params.depth * params.eos_sound_vel_coef);
 	}
 
 	if (params.dt_correction_method == DT_CORRECTION_CONST_CFL) {
-		params.dt = params.CFL_coef * params.hsml / (params.eos_sound_vel * (1 + 1.2 * params.artificial_shear_visc));
+		model_params.dt = params.dt = params.CFL_coef * params.hsml / (params.eos_sound_vel * (1 + 1.2 * params.artificial_shear_visc));
 	}
 	else if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
 		throw std::runtime_error{ "not implemented: DT_CORRECTION_DYNAMIC" };
@@ -86,6 +89,9 @@ void postFillInSPH2DParams()
 
 	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
 		params.maxtimestep = 0;
+		if (params.step_time_estimate == 0) {
+			model_params.step_time_estimate = params.step_time_estimate = 1;
+		}
 	}
 	else {
 		params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);
@@ -94,8 +100,12 @@ void postFillInSPH2DParams()
 		}
 
 		if (params.step_treatment == STEPPING_TREATMENT_TIME) {
-			params.save_step = params.save_time / params.dt;
-			params.dump_step = params.dump_time / params.dt;
+			model_params.save_step = params.save_step = params.save_time / params.dt;
+			model_params.dump_step = params.dump_step = params.dump_time / params.dt;
+		}
+
+		if (params.step_time_estimate == 0) {
+			model_params.step_time_estimate = params.step_time_estimate = params.save_step;
 		}
 	}
 
@@ -113,35 +123,33 @@ void postFillInSPH2DParams()
 	}
 }
 
-void print_SPH2DParams(const std::filesystem::path& experiment_directory) {
-	std::ofstream stream{ experiment_directory / "SPH2DParams.json" };
+SPH2DParams make_SPH2DParams() {
+	SPH2DParams sph2DParams;
 
-	nlohmann::json json;
-#define print_param(param) json[#param] = params.param;
-#define print_not_null(param) if (params.param != 0) json[#param] = params.param;
+#define set_param(param) do { sph2DParams.param = params.param; } while(false)
+#define set_param_not_null(param) do {if (params.param != 0) sph2DParams.param = params.param;} while(false)
 
-	params.format_line = "fmt: vx vy p ";
-	print_param(format_line)
-	print_param(starttimestep)
-	print_param(pi)
-	print_param(g)
-	print_param(TYPE_BOUNDARY)
-	print_param(TYPE_NON_EXISTENT)
-	print_param(TYPE_WATER)
-	print_param(cell_scale_k)
-	print_param(max_cells)
-	print_param(maxn)
-	print_param(hsml)
-	print_param(depth)
-	print_not_null(maxtimestep)
-	print_not_null(nwm_wave_number)
-	print_not_null(nwm_freq)
-	print_not_null(nwm_piston_magnitude)
+	params.format_line = "fmt: p vx vy ";
+	set_param(format_line);
+	set_param(starttimestep);
+	set_param(pi);
+	set_param(g);
+	set_param(TYPE_BOUNDARY);
+	set_param(TYPE_NON_EXISTENT);
+	set_param(TYPE_WATER);
+	set_param(cell_scale_k);
+	set_param(max_cells);
+	set_param(maxn);
+	set_param(hsml);
+	set_param(mass);
+	set_param_not_null(maxtimestep);
+	set_param_not_null(nwm_wave_number);
+	set_param_not_null(nwm_freq);
+	set_param_not_null(nwm_piston_magnitude);
 
-#undef print_param
-#undef print_not_null
-
-	stream << json.dump(4) << std::endl;
+#undef set_param
+#undef set_param_not_null
+	return sph2DParams;
 }
 
 void fileInput(
@@ -156,9 +164,13 @@ void fileInput(
 	const std::filesystem::path& experiment_directory)
 {
 	setupOutput(experiment_directory);
-	params = load_experiment_params(experiment_directory);
+
+	auto particle_params = load_particle_params(experiment_directory);
+	auto model_params = load_model_params(experiment_directory);
+	apply_particle_params(params, particle_params);
+	apply_model_params(params, model_params);
 	
-	printlog("Experiment name: ")(params.experiment_name)();
+	printlog("Experiment name: ")(experiment_directory.stem().string())();
 	printlog()(__func__)();
 
 	ntotal = params.ntotal;
@@ -193,12 +205,14 @@ void fileInput(
 		throw std::runtime_error{ "dump corrupted: dump ntotal doesn't match params.ntotal!" };
 	}
 
-	params.depth = find_depth(nfluid, r);
-	postFillInSPH2DParams();
+	particle_params.depth = params.depth = find_depth(nfluid, r);
+	postFillInModelParams(model_params);
 
 	std::cout << "...success" << std::endl;
 
-	print_SPH2DParams(experiment_directory);
-	params_make_json(experiment_directory / "Params.json");
+	params_make_SPH2D_json(experiment_directory, make_SPH2DParams());
+	params_make_model_json(experiment_directory, model_params);
+	params_make_particles_json(experiment_directory, particle_params);
+	params_make_json(experiment_directory);
 	printParams();
 }

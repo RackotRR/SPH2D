@@ -7,6 +7,8 @@
 #include "Params.h"
 #include "ModelParams.h"
 
+std::string ModelParams::filename = "ModelParams.json";
+
 void check_optional_params(const ModelParams& model_params) {
 #define need_param(param) \
     do { \
@@ -138,7 +140,6 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(nwm_wait);
     move_param(nwm_wave_length);
     move_param(nwm_wave_magnitude);
-    move_param(nwm_piston_magnitude);
 
     move_param(simulation_time);
 
@@ -151,7 +152,7 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
 }
 
 ModelParams load_model_params(const std::filesystem::path& experiment_directory) {
-    auto params_path = experiment_directory / "ModelParams.json";
+    auto params_path = experiment_directory / ModelParams::filename;
 	if (!std::filesystem::exists(params_path)) {
 		throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };
 	}
@@ -159,7 +160,7 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
 	nlohmann::json json;
 	std::ifstream stream{ params_path };
 	stream >> json;
-    
+        
     ModelParams model_params;    
 
 #define load(param) \
@@ -168,16 +169,15 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
 		else throw std::runtime_error{ "Mandatory param not specified: " #param }; \
 	} while (false) 
     
-#define load_default(param, default_value) \
+#define load_default(param) \
 	do { \
 	if (json.contains(#param)) json.at(#param).get_to(model_params.param); \
-    else model_params.param = default_value; \
 	} while (false)
 
 #define load_optional(param) \
 	do { \
 	    if (json.contains(#param)) { \
-            model_params.param = 0;  \
+            model_params.param = decltype(model_params.param)::value_type{};  \
             json.at(#param).get_to(model_params.param.value()); \
         } \
 	} while (false)
@@ -185,58 +185,132 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load(params_generator_version_major);
     load(params_generator_version_minor);
 
-    load_default(density_treatment, DENSITY_CONTINUITY);
-    load_default(density_normalization, DENSITY_NORMALIZATION_NONE);
-    load_default(density_skf, SKF_CUBIC);
+    load_default(density_treatment);
+    load_default(density_normalization);
+    load_default(density_skf);
 
     load(eos_sound_vel_method);
     load_optional(eos_sound_vel);
     load_optional(eos_sound_vel_coef);
 
-    load_default(intf_hsml_coef, 1.0f);
-    load_default(intf_sph_approximation, INTF_SPH_APPROXIMATION_2);
-    load_default(intf_skf, SKF_CUBIC);
+    load_default(intf_hsml_coef);
+    load_default(intf_sph_approximation);
+    load_default(intf_skf);
 
-    load_default(visc, true);
-    load_default(visc_coef, 0.001);
+    load_default(visc);
+    load_default(visc_coef);
 
-    load_default(artificial_viscosity, false);
+    load_default(artificial_viscosity);
     load_optional(artificial_shear_visc);
     load_optional(artificial_bulk_visc);
-    load_default(artificial_viscosity_skf, SKF_CUBIC);
+    load_default(artificial_viscosity_skf);
 
-    load_default(average_velocity, false);
+    load_default(average_velocity);
     load_optional(average_velocity_coef);
-    load_default(average_velocity_skf, SKF_CUBIC);
+    load_default(average_velocity_skf);
 
-    load_default(step_treatment, STEPPING_TREATMENT_STEP);
+    load_default(step_treatment);
     load_optional(save_step);
     load_optional(dump_step);
     load_optional(save_time);
     load_optional(dump_time);
-    load_default(step_time_estimate, model_params.save_step.value_or(1));
+    load_optional(step_time_estimate);
 
-    load_default(consistency_check, true);
-    load_default(consistency_check_step, 1);
-    load_default(consistency_treatment, CONSISTENCY_STOP);
+    load_default(consistency_check);
+    load_default(consistency_check_step);
+    load_default(consistency_treatment);
 
     load(boundary_treatment);
 
-    load_default(nwm, NWM_NO_WAVES);
-    load_default(nwm_wait, 0);
+    load_default(nwm);
+    load_default(nwm_wait);
     load_optional(nwm_wave_length);
     load_optional(nwm_wave_magnitude);
-    load_optional(nwm_piston_magnitude);
 
     load(simulation_time);
 
-    load_default(dt_correction_method, DT_CORRECTION_DYNAMIC);
+    load_default(dt_correction_method);
     load_optional(dt);
     load_optional(CFL_coef);
 
-    load_default(max_neighbours, 64);
+    load_default(max_neighbours);
     load_optional(local_threads);
 
     check_optional_params(model_params);
     return model_params;
+}
+
+
+void params_make_model_json(const std::filesystem::path& experiment_directory, const ModelParams& model_params) {
+    std::ofstream stream{ experiment_directory / ModelParams::filename };
+    nlohmann::json json;
+
+#define print_param(param) \
+    do { \
+        json[#param] = model_params.param; \
+    } while (false)
+#define print_not_null(param) \
+    do { \
+        if (model_params.param.has_value()) json[#param] = model_params.param.value(); \
+    } while (false)
+
+    print_param(params_generator_version_major);
+    print_param(params_generator_version_minor);
+
+    print_param(density_treatment);
+    print_param(density_normalization);
+    print_param(density_skf);
+
+    print_param(eos_sound_vel_method);
+    print_not_null(eos_sound_vel);
+    print_not_null(eos_sound_vel_coef);
+
+    print_param(intf_hsml_coef);
+    print_param(intf_sph_approximation);
+    print_param(intf_skf);
+
+    print_param(visc);
+    print_param(visc_coef);
+
+    print_param(artificial_viscosity);
+    print_not_null(artificial_shear_visc);
+    print_not_null(artificial_bulk_visc);
+    print_param(artificial_viscosity_skf);
+
+    print_param(average_velocity);
+    print_not_null(average_velocity_coef);
+    print_param(average_velocity_skf);
+
+    print_param(step_treatment);
+    print_not_null(save_step);
+    print_not_null(dump_step);
+    print_not_null(save_time);
+    print_not_null(dump_time);
+    print_not_null(step_time_estimate);
+
+    print_param(consistency_check);
+    print_param(consistency_check_step);
+    print_param(consistency_treatment);
+
+    print_param(boundary_treatment);
+
+    print_param(nwm);
+    print_param(nwm_wait);
+
+    print_not_null(nwm_wave_length);
+    print_not_null(nwm_wave_magnitude);
+
+    print_param(simulation_time);
+    print_param(dt_correction_method);
+
+    print_not_null(dt);
+    print_not_null(CFL_coef);
+
+    print_param(max_neighbours);
+    print_not_null(local_threads);
+
+#undef print_param
+#undef print_not_null
+
+    stream << json.dump(4) << std::endl;
 }

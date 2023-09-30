@@ -7,6 +7,8 @@
 #include "ParticleParams.h"
 #include "Params.h"
 
+std::string ParticleParams::filename = "ParticleParams.json";
+
 template<typename T>
 void move_param_impl(T& params_param, const T& model_param) {
     params_param = model_param;
@@ -38,7 +40,7 @@ void apply_particle_params(ExperimentParams& experiment_params, const ParticlePa
 }
 
 ParticleParams load_particle_params(const std::filesystem::path& experiment_directory) {
-    auto params_path = experiment_directory / "ParticleParams.json";
+    auto params_path = experiment_directory / ParticleParams::filename;
 	if (!std::filesystem::exists(params_path)) {
 		throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };
 	}
@@ -64,7 +66,7 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
 #define load_optional(param) \
 	do { \
 	    if (json.contains(#param)) { \
-            particle_params.param = 0;  \
+            particle_params.param = decltype(particle_params.param)::value_type{};  \
             json.at(#param).get_to(particle_params.param.value()); \
         } \
 	} while (false)
@@ -80,7 +82,6 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
     load(nvirt);
 
     load_default(rho0, 1000);
-    load_default(mass, particle_params.rho0 * particle_params.delta * particle_params.delta);
     load_default(nwm_particles_start, particle_params.ntotal);
     load_default(nwm_particles_end, particle_params.ntotal);
     load_optional(depth);
@@ -90,30 +91,37 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
 
 
 void params_make_particles_json(const std::filesystem::path& experiment_directory, const ParticleParams& particle_params) {
-    auto params_path = experiment_directory / "ParticleParams.json";
+    auto params_path = experiment_directory / ParticleParams::filename;
 
     nlohmann::json json;
 
-#define set(param) \
+#define print_param(param) \
     do { \
         json[#param] = particle_params.param; \
     } while (false)
+#define print_not_null(param) \
+    do { \
+        if (particle_params.param.has_value()) json[#param] = particle_params.param.value(); \
+    } while (false)
 
-    set(x_maxgeom);
-    set(x_mingeom);
-    set(y_maxgeom);
-    set(y_mingeom);
+    print_param(x_maxgeom);
+    print_param(x_mingeom);
+    print_param(y_maxgeom);
+    print_param(y_mingeom);
 
-    set(delta);
-    set(ntotal);
-    set(nfluid);
-    set(nvirt);
+    print_param(delta);
+    print_param(ntotal);
+    print_param(nfluid);
+    print_param(nvirt);
 
-    set(rho0);
-    set(mass);
-    set(nwm_particles_start);
-    set(nwm_particles_end);    
+    print_param(rho0);
+    print_param(nwm_particles_start);
+    print_param(nwm_particles_end);
+    print_not_null(depth);
 
     std::ofstream stream{ params_path };
     stream << json.dump(4) << std::endl;
+
+#undef print_param
+#undef print_not_null
 }

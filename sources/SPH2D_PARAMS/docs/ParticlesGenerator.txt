@@ -1,5 +1,4 @@
-ParticlesGenerator (генератор частиц) спецификация 1.0
-
+ParticlesGenerator (генератор частиц)
 
 1) порядок вызова: 
 - вызывается до генератора параметров и до старта эксперимента
@@ -19,7 +18,6 @@ ParticlesGenerator (генератор частиц) спецификация 1.0
     - nvirt
     optional:
     - rho0 { 1000 }
-    - mass { 1000 * delta * delta }
     - nwm_particles_start { ntotal }
     - nwm_particles_end { ntotal }
     - boundary_layers_num

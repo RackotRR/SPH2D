@@ -56,10 +56,10 @@ class particle_type:
 def fill_in_common_params():
     params["x_fluid_min"] = 0.0
     params["y_fluid_min"] = 0.0    
-    params["x_fluid_max"] = 1.2
-    params["y_fluid_max"] = 0.6
+    params["x_fluid_max"] = 4.65
+    params["y_fluid_max"] = 0.25
     
-    params["delta"] = 0.0048
+    params["delta"] = 0.002
     params["boundary_delta"] = params["delta"] * 0.5
     
     params["x_fluid_particles"] = int((params["x_fluid_max"] - params["x_fluid_min"]) / params["delta"])
@@ -69,8 +69,8 @@ def fill_in_common_params():
     params["boundary_separation"] = boundary_separation
     params["x_boundary_left"] = params["x_fluid_min"] - 3 * boundary_separation
     params["y_boundary_bottom"] = params["y_fluid_min"] - 3 * boundary_separation
-    params["x_boundary_right"] = 3.2 + boundary_separation
-    params["y_boundary_top"] = 2.0 + boundary_separation
+    params["x_boundary_right"] = 8.9 + boundary_separation
+    params["y_boundary_top"] = 0.35 + boundary_separation
     params["x_boundary_center"] = params["x_fluid_max"] + 3 * boundary_separation
     params["boundary_layers_num"] = 3
     params["use_chess_order"] = True
@@ -79,8 +79,8 @@ def fill_in_common_params():
 
     params["x_mingeom"] = -1.0
     params["y_mingeom"] = -1.0
-    params["x_maxgeom"] = 4.2
-    params["y_maxgeom"] = 3.0
+    params["x_maxgeom"] = 10.0
+    params["y_maxgeom"] = 1.0
 
     params["depth"] = params["y_fluid_max"] - params["y_fluid_min"]
 

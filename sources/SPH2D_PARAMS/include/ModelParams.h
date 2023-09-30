@@ -1,63 +1,65 @@
 #pragma once
 #include <optional>
 #include "Types.h"
+#include "ParamsEnumeration.h"
 
 using opt_uint = std::optional<rr_uint>;
 using opt_float = std::optional<rr_float>;
 using opt_bool = std::optional<bool>;
 
 struct ModelParams {
+    static std::string filename;
+
     rr_uint params_generator_version_major;
     rr_uint params_generator_version_minor;
 
-    rr_uint density_treatment;
-    rr_uint density_normalization;
-    rr_uint density_skf;
+    rr_uint density_treatment{ DENSITY_CONTINUITY };
+    rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };
+    rr_uint density_skf{ SKF_CUBIC };
 
     rr_uint eos_sound_vel_method;
     opt_float eos_sound_vel;
     opt_float eos_sound_vel_coef;
 
-    rr_float intf_hsml_coef;
-    rr_uint intf_sph_approximation;
-    rr_uint intf_skf;
+    rr_float intf_hsml_coef{ 1.f };
+    rr_uint intf_sph_approximation{ INTF_SPH_APPROXIMATION_2 };
+    rr_uint intf_skf{ SKF_CUBIC };
 
-    bool visc;
-    rr_float visc_coef;
+    bool visc{ true };
+    rr_float visc_coef{ 0.001f };
 
-    bool artificial_viscosity;
+    bool artificial_viscosity{ false };
     opt_float artificial_shear_visc;
     opt_float artificial_bulk_visc;
-    rr_uint artificial_viscosity_skf;
+    rr_uint artificial_viscosity_skf{ SKF_CUBIC };
 
-    bool average_velocity;
+    bool average_velocity{ false };
     opt_float average_velocity_coef;
-    rr_uint average_velocity_skf;
+    rr_uint average_velocity_skf{ SKF_CUBIC };
 
-    rr_uint step_treatment;
+    rr_uint step_treatment{ STEPPING_TREATMENT_STEP };
     opt_uint save_step;
     opt_uint dump_step;
     opt_float save_time;
     opt_float dump_time;
-    rr_uint step_time_estimate;
+    opt_uint step_time_estimate;
 
-    bool consistency_check;
-    rr_uint consistency_check_step;
-    rr_uint consistency_treatment;
+    bool consistency_check{ true };
+    rr_uint consistency_check_step{ 1 };
+    rr_uint consistency_treatment{ CONSISTENCY_STOP };
 
     rr_uint boundary_treatment;
 
-    rr_uint nwm;
-    rr_float nwm_wait;
+    rr_uint nwm{ NWM_NO_WAVES };
+    rr_float nwm_wait{ 0 };
     opt_float nwm_wave_length;
     opt_float nwm_wave_magnitude;
-    opt_float nwm_piston_magnitude;
 
     rr_float simulation_time;
-    rr_uint dt_correction_method;
+    rr_uint dt_correction_method{ DT_CORRECTION_DYNAMIC };
     opt_float dt;
     opt_float CFL_coef;
 
-    rr_uint max_neighbours;
+    rr_uint max_neighbours{ 64 };
     opt_uint local_threads;
 };

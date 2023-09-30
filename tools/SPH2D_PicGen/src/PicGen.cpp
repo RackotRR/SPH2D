@@ -305,7 +305,6 @@ void generate_experiment() {
 
     pic_gen_params = load_pic_gen_params(experiment_dir);
     particle_params.rho0 = pic_gen_params.rho0;
-    particle_params.mass = pic_gen_params.rho0 * sqr(pic_gen_params.delta);
     particle_params.delta = pic_gen_params.delta;
     particle_params.use_chess_order = pic_gen_params.use_chess_order;
     particle_params.boundary_delta = pic_gen_params.delta;

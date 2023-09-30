@@ -8,6 +8,7 @@
 #include "ModelParams.h"
 #include "ParticleParams.h"
 #include "PicGenParams.h"
+#include "SPH2DParams.h"
 #include "ExperimentStatistics.h"
 
 ParticleParams load_particle_params(const std::filesystem::path& experiment_directory);
@@ -16,6 +17,12 @@ void params_make_particles_json(const std::filesystem::path& experiment_director
 
 ModelParams load_model_params(const std::filesystem::path& experiment_directory);
 void apply_model_params(ExperimentParams& experiment_params, const ModelParams& model_params);
+void params_make_model_json(const std::filesystem::path& experiment_directory, const ModelParams& model_params);
+
+SPH2DParams load_SPH2DParams(const std::filesystem::path& experiment_directory);
+void apply_SPH2DParams(ExperimentParams& experiment_params, const SPH2DParams& sph2D_params);
+void params_make_SPH2D_json(const std::filesystem::path& experiment_directory, const SPH2DParams& sph2D_params);
+
 
 PicGenParams load_pic_gen_params(const std::filesystem::path& experiment_directory);
 

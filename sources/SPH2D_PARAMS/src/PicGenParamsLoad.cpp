@@ -30,7 +30,7 @@ PicGenParams load_pic_gen_params(const std::filesystem::path& experiment_directo
 #define load_optional(param) \
 	do { \
 	    if (json.contains(#param)) { \
-            pic_gen_params.param = 0;  \
+            pic_gen_params.param = decltype(pic_gen_params.param)::value_type{};  \
             json.at(#param).get_to(pic_gen_params.param.value()); \
         } \
 	} while (false)

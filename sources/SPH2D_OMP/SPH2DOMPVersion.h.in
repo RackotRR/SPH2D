@@ -15,6 +15,6 @@
 //       - add non-existing particles treatment
 // 1.1.1 - add density in crash dump
 //       - crash dump is separate function
+// 1.1.2 - don't allow particles go outside geometry (CONSISTENCY_FIX)
 // TODO:
 // 1.2   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
-//       - don't allow particles go outside geometry (CONSISTENCY_FIX)

@@ -89,6 +89,14 @@
 //       - SPH2D_FIO:    move common CLI method to SPH2D_PARAMS
 //       - SPH2D_PicGen: add PicGen params
 //       -               remove params other than ParticleParams
+// 3.0.1 - SPH2D: add script for another popular dam break problem
+//       - SPH2D: don't allow particles go outside geometry (CONSISTENCY_FIX)
+//       - SPH2D_COMMON: complete params files
+//       - SPH2D_CL: fix particles type doesn't change in output
+//       - SPH2D_PARAMS: move docs to Params
+//       - SPH2D_PARAMS: move mass param from ParticlesParams to SPH2DParams
+//       - SPH2D_PARAMS: add static filename field for params classes
+//       - SPH2D_PARAMS: add SPH2DParams input and output
 // TODO:
-// 3.0.1 - Add user guide
-// 3.0.2 - Change logging library
+// 3.0.2 - Add user guide
+// 3.0.3 - Change logging library

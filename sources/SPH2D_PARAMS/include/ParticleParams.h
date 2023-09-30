@@ -7,6 +7,8 @@ using opt_float = std::optional<rr_float>;
 using opt_bool = std::optional<bool>;
 
 struct ParticleParams {
+    static std::string filename;
+
     rr_float x_mingeom;
     rr_float x_maxgeom;
     rr_float y_mingeom;

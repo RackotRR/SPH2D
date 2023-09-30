@@ -8,6 +8,7 @@
 #include "RR/Time/Timer.h"
 
 #include <iostream>
+#include <fmt/format.h>
 
 void predict_half_step(
 	const rr_uint ntotal,
@@ -31,13 +32,20 @@ void predict_half_step(
 		}
 	}
 }
+
+static bool is_point_within_geometry(const rr_float2& point) {
+	return point.x < params.x_maxgeom &&
+		point.x > params.x_mingeom &&
+		point.y < params.y_maxgeom &&
+		point.y > params.y_mingeom;
+}
 void whole_step(
 	const rr_uint ntotal,
 	const rr_uint timestep,
-	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& a,	// acceleration
 	const heap_darray<rr_float2>& av,	// average velocity
+	heap_darray<rr_int>& itype, // material type 
 	heap_darray<rr_float>& rho, // density
 	heap_darray<rr_float2>& v,	// velocities
 	heap_darray<rr_float2>& r)	// coordinates of all particles
@@ -55,7 +63,19 @@ void whole_step(
 
 		if (itype(i) > 0) {
 			v(i) += a(i) * v_dt + av(i);
-			r(i) += v(i) * r_dt;
+
+			if (params.consistency_treatment == CONSISTENCY_FIX) {
+				rr_float2 new_r = r(i) + v(i) * r_dt;
+				if (is_point_within_geometry(new_r)) {
+					r(i) = new_r;
+				}
+				else {
+					itype(i) = params.TYPE_NON_EXISTENT;
+				}
+			}
+			else {
+				r(i) += v(i) * r_dt;
+			}
 		}
 	}
 }
@@ -90,7 +110,7 @@ void time_integration(
 	RR::Timer timer;
 
 	for (rr_uint itimestep = params.starttimestep; itimestep <= params.maxtimestep; itimestep++) {
-		printlog()("timestep: ")(itimestep)(" / ")(params.maxtimestep)();
+		printlog()(fmt::format("timestep: {}/{} ({}s)", itimestep, params.maxtimestep, time))();
 		timer.start();
 
 		time = itimestep * params.dt;
@@ -124,9 +144,8 @@ void time_integration(
 
 		whole_step(ntotal,
 			itimestep,
-			itype,
 			drho, a, av,
-			rho, v, r);
+			itype, rho, v, r);
 
 		if (params.consistency_check) {
 			if (should_check_normal(itimestep)) {

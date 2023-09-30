@@ -41,15 +41,21 @@ __kernel void predict_half_step(
 	}
 }
 
+static bool is_point_within_geometry(rr_float2 point) {
+	return point.x < params_x_maxgeom &&
+		point.x > params_x_mingeom &&
+		point.y < params_y_maxgeom &&
+		point.y > params_y_mingeom;
+}
 __kernel void whole_step(
 	const rr_uint timestep,
 
-	__global const rr_int* itype,
 	__global const rr_float* drho,
 	__global const rr_float2* a,
 
 	__global const rr_float2* av,
 
+	__global rr_int* itype,
 	__global rr_float* rho,
 	__global rr_float2* v,
 	__global rr_float2* r)
@@ -72,7 +78,19 @@ __kernel void whole_step(
 		v[i] += a[i] * v_dt;
 #endif // params_average_velocity
 		
+
+#if params_consistency_treatment == CONSISTENCY_FIX
+		rr_float2 new_r = r[i] + v[i] * r_dt;
+		if (is_point_within_geometry(new_r)) {
+			r[i] = new_r;
+		}
+		else {
+			itype[i] = params_TYPE_NON_EXISTENT;
+		}
+#else
 		r[i] += v[i] * r_dt;
+#endif
+
 	}
 }
 

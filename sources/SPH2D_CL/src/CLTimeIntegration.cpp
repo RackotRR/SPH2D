@@ -2,6 +2,7 @@
 #include "CLAdapter.h"
 
 #include <iostream>
+#include <fmt/format.h>
 #include "RR/Time/Timer.h"
 
 #include "Output.h"
@@ -104,14 +105,14 @@ void cl_time_integration(
     makePrograms();
 
     constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
-    constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE;// | CL_MEM_HOST_NO_ACCESS;
+    constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 
     // common
     auto r_ = makeBufferCopyHost(r);
     auto v_ = makeBufferCopyHost(v);
     auto rho_ = makeBufferCopyHost(rho);
     auto p_ = makeBufferCopyHost(p);
-    auto itype_ = makeBufferCopyHost(HOST_INPUT, itype);
+    auto itype_ = makeBufferCopyHost(CL_MEM_READ_WRITE, itype);
 
     auto rho_predict_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
     auto v_predict_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, params.maxn);
@@ -148,7 +149,7 @@ void cl_time_integration(
     rr_float time = 0;
     RR::Timer timer;
     for (rr_uint itimestep = params.starttimestep; itimestep <= params.maxtimestep; itimestep++) {
-        printlog()("timestep: ")(itimestep)(" / ")(params.maxtimestep)();
+        printlog()(fmt::format("timestep: {}/{} ({}s)", itimestep, params.maxtimestep, time))();
         timer.start();
 
         time = itimestep * params.dt;
@@ -180,10 +181,12 @@ void cl_time_integration(
                 }
                 catch (...) {
                     heap_darray<rr_float> rho_temp(params.maxn);
+                    heap_darray<rr_int> itype_temp(params.maxn);
+                    cl::copy(itype_, itype_temp.begin(), itype_temp.end());
                     cl::copy(p_, rho_temp.begin(), rho_temp.end());
                     crash_dump(
                         std::move(r_temp),
-                        itype.copy(),
+                        std::move(itype_temp),
                         std::move(v_temp),
                         std::move(rho_temp),
                         std::move(p_temp),
@@ -193,9 +196,11 @@ void cl_time_integration(
             }
 
             if (should_save) {
+                heap_darray<rr_int> itype_temp(params.maxn);
+                cl::copy(itype_, itype_temp.begin(), itype_temp.end());
                 output(
                     std::move(r_temp),
-                    itype.copy(),
+                    std::move(itype_temp),
                     std::move(v_temp),
                     std::nullopt,
                     std::move(p_temp),
@@ -333,8 +338,8 @@ void cl_time_integration(
 
         printlog_debug("whole step")();
         whole_step_kernel(itimestep,
-            itype_, drho_, a_, av_,
-            rho_, v_, r_
+            drho_, a_, av_,
+            itype_, rho_, v_, r_
         ).execute(params.maxn, params.local_threads);
 
         if (itimestep && params.dump_step && itimestep % params.dump_step == 0) {

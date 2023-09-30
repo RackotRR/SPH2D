@@ -1,0 +1,26 @@
+SPH2D (вычислительное ѕќ)
+
+1) генераци€ параметров:
+mandatory:    
+- starttimestep
+- pi
+- g
+- TYPE_BOUNDARY
+- TYPE_NON_EXISTENT
+- TYPE_WATER
+- cell_scale_k
+- max_cells
+- maxn
+- mass
+optional:
+- maxtimestep
+- nwm_wave_number
+- nwm_freq
+- nwm_piston_magnitude
+
+2) некоторые параметры частиц или модели могут быть изменены при запуске эксперимента (добавлены):
+- dt
+- save_step
+- dump_step
+- step_time_estimate
+- depth

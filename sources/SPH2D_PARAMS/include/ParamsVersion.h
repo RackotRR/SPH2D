@@ -1,7 +1,7 @@
 #pragma once
 #define SPH2D_PARAMS_VERSION_MAJOR 3
 #define SPH2D_PARAMS_VERSION_MINOR 0
-#define SPH2D_PARAMS_VERSION_PATCH 0
+#define SPH2D_PARAMS_VERSION_PATCH 1
 
 //      1.1 - remove artificial heat as it used in gas simulation
 //          - add water_dynamic_visc
@@ -70,5 +70,9 @@
 //          - add save_time param
 //          - rename wave_number -> nwm_wave_number
 //          - rename freq -> nwm_freq
+//    3.0.1 - move docs to Params
+//          - move mass param from ParticlesParams to SPH2DParams
+//          - add static filename field for params classes
+//          - add SPH2DParams input and output
 // TODO:
 //      3.1 - move format line generation to SPH2DParamsGenerator

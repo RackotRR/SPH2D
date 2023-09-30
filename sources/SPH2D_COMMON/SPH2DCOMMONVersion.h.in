@@ -16,3 +16,4 @@
 //       - remove VirtualParticles module
 //       - rename module IsNormalCheck -> ConsistencyCheck
 //       - add crash_dump output function
+// 1.1.1 - complete params files
