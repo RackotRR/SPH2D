@@ -5,3 +5,5 @@
 #define FUNC_AT_POINT_VERSION_PATCH @PROJECT_VERSION_MINOR@
 
 // 1.0.0 - start version control
+// 1.0.1 - fix output path
+//       - add version to console title

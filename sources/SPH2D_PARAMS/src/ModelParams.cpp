@@ -7,8 +7,6 @@
 #include "Params.h"
 #include "ModelParams.h"
 
-std::string ModelParams::filename = "ModelParams.json";
-
 void check_optional_params(const ModelParams& model_params) {
 #define need_param(param) \
     do { \
@@ -42,13 +40,23 @@ void check_optional_params(const ModelParams& model_params) {
     switch (model_params.step_treatment) {
     case STEPPING_TREATMENT_STEP:
         need_param(save_step);
+        if (model_params.use_dump) {
+            need_param(dump_step);
+        }
         break;
     case STEPPING_TREATMENT_TIME:
         need_param(save_time);
+        if (model_params.use_dump) {
+            need_param(dump_time);
+        }
         break;
     default:
         throw_invalid_enum(step_treatment);
         break;
+    }
+
+    if (model_params.use_custom_time_estimate_step) {
+        need_param(step_time_estimate);
     }
 
     switch (model_params.nwm) {
@@ -129,6 +137,8 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(save_time);
     move_param(dump_time);
     move_param(step_time_estimate);
+    move_param(use_dump);
+    move_param(use_custom_time_estimate_step);
 
     move_param(consistency_check);
     move_param(consistency_check_step);
@@ -215,6 +225,8 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_optional(save_time);
     load_optional(dump_time);
     load_optional(step_time_estimate);
+    load_default(use_dump);
+    load_default(use_custom_time_estimate_step);
 
     load_default(consistency_check);
     load_default(consistency_check_step);
@@ -287,6 +299,8 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_not_null(save_time);
     print_not_null(dump_time);
     print_not_null(step_time_estimate);
+    print_param(use_dump);
+    print_param(use_custom_time_estimate_step);
 
     print_param(consistency_check);
     print_param(consistency_check_step);

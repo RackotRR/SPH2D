@@ -8,7 +8,7 @@ using opt_float = std::optional<rr_float>;
 using opt_bool = std::optional<bool>;
 
 struct ModelParams {
-    static std::string filename;
+    static constexpr const char* filename = "ModelParams.json";
 
     rr_uint params_generator_version_major;
     rr_uint params_generator_version_minor;
@@ -43,6 +43,8 @@ struct ModelParams {
     opt_float save_time;
     opt_float dump_time;
     opt_uint step_time_estimate;
+    bool use_dump{ false };
+    bool use_custom_time_estimate_step{ false };
 
     bool consistency_check{ true };
     rr_uint consistency_check_step{ 1 };

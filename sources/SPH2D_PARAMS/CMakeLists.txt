@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_PARAMS VERSION 3.0.1)
+project(SPH2D_PARAMS VERSION 3.0.2)
 configure_file(ParamsVersion.h.in "${PROJECT_SOURCE_DIR}/include/ParamsVersion.h")
 file(COPY "${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h" DESTINATION "${PROJECT_SOURCE_DIR}/include/")
 
@@ -17,3 +17,5 @@ target_include_directories(SPH2D_PARAMS PUBLIC include)
 target_link_libraries(SPH2D_PARAMS PRIVATE
     nlohmann::json
     fmt::fmt)
+
+install(DIRECTORY docs DESTINATION SPH2D)

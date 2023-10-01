@@ -12,6 +12,7 @@
 #include <ConsistencyCheck.h>
 
 #include <SPH2D_FIO.h>
+#include "FuncAtPointVersion.h"
 
 
 rr_float findValue(rr_float2 rj,
@@ -70,8 +71,8 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
     }
 
     const auto& directories = sphfio.directories;
-    std::ofstream output{ fmt::format("{}func_{}_at_{}_{}.txt", directories.getAnalysisDirectory().string(), value, x, y) };
-    std::ofstream csv_output{ fmt::format("{}func_{}_at_{}_{}.csv", directories.getAnalysisDirectory().string(), value, x, y) };
+    std::ofstream output{ directories.getAnalysisDirectory() / fmt::format("func_{}_at_{}_{}.txt", value, x, y) };
+    std::ofstream csv_output{ directories.getAnalysisDirectory() / fmt::format("func_{}_at_{}_{}.csv", value, x, y) };
 
     rr_float2 rj = { (rr_float)x, (rr_float)y };
     rr_uint maxn = params->maxn;
@@ -136,17 +137,20 @@ void CLI(const sphfio::SPHFIO& sphfio) {
 
 int main(int argc, const char* argv[]) {
     std::string experiment_name;
+    std::string title = fmt::format("[FuncAtPoint v{}.{}.{}]",
+        FUNC_AT_POINT_VERSION_MAJOR,
+        FUNC_AT_POINT_VERSION_MINOR,
+        FUNC_AT_POINT_VERSION_PATCH);
+    std::cout << title << std::endl;
 
     try {
         if (argc == 1) {
-            std::cout << "[FuncAtPoint tool]" << std::endl;
             sphfio::SPHFIO sphfio;
             for (;;) {
                 CLI(sphfio);
             }
         }
         else if (argc == 2) {
-            std::cout << "[FuncAtPoint tool]" << std::endl;
             experiment_name = argv[1];
             sphfio::SPHFIO sphfio{ experiment_name };
             for (;;) {

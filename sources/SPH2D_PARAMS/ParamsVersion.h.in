@@ -74,5 +74,13 @@
 //          - move mass param from ParticlesParams to SPH2DParams
 //          - add static filename field for params classes
 //          - add SPH2DParams input and output
+//    3.0.2 - add SBT enumeration
+//          - replace numeric values by enums in Params.h
+//          - add use_dump model param
+//          - add use_custom_time_estimate_step model param
+//          - replace static variables for params classes with constants
+//          - add params description in docs
+//          - add docs install
 // TODO:
 //      3.1 - move format line generation to SPH2DParamsGenerator
+//          - add repulsive SBT parameters

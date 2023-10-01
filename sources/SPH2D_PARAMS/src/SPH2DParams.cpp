@@ -7,8 +7,6 @@
 #include "SPH2DParams.h"
 #include "Params.h"
 
-std::string SPH2DParams::filename = "SPH2DParams.json";
-
 template<typename T>
 void move_param_impl(T& params_param, const T& model_param) {
     params_param = model_param;

@@ -239,16 +239,16 @@ void generate_particles_data(
 void create_default_pic_gen() {
     auto dir = std::filesystem::current_path() / "PicGenDefault";
     std::filesystem::create_directory(dir);
-    auto path = dir / "PicGenParams.json";
+    auto path = dir / PicGenParams::filename;
 
     if (!std::filesystem::exists(path)) {
         std::ofstream stream{ path };
         nlohmann::json json;
-        json["x_mingeom"] = "0.0";
-        json["y_mingeom"] = "0.0";
-        json["delta"] = "1.0";
-        json["use_chess_order"] = "false";
-        json["rho0"] = "1000";
+        json["x_mingeom"] = 0.0;
+        json["y_mingeom"] = 0.0;
+        json["delta"] = 1.0;
+        json["use_chess_order"] = false;
+        json["rho0"] = 1000;
         stream << json.dump(4) << std::endl;
     }
 }

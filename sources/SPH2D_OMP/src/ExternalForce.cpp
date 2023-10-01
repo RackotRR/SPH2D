@@ -9,7 +9,7 @@ void update_repulsive_force_part(rr_uint ntotal,
 {
 	// boundary particle force and penalty anti-penetration force
 	// virtual particles with Lennard-Jones potential force (Liu... SPH - eq 4.93)  
-	const rr_float rr0 = params.hsml;
+	const rr_float rr0 = 2 * params.hsml;
 	const rr_float D = 5 * params.g * params.depth;
 	constexpr rr_uint p1 = 12;
 	constexpr rr_uint p2 = 4;
@@ -54,7 +54,7 @@ void external_force(
 		a(j).x = 0;
 		a(j).y = -params.g;
 
-		if (params.boundary_treatment == 1 && itype(j) > 0) {
+		if (params.boundary_treatment == SBT_REPULSIVE && itype(j) > 0) {
 			update_repulsive_force_part(ntotal, j,
 				r, neighbours, itype,
 				a);

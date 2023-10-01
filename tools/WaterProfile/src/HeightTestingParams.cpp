@@ -25,9 +25,9 @@ void TimeTestingParams::print() {
 }
 
 
-std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesystem::path& filePath) {
+std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesystem::path& experiment_dir) {
 	nlohmann::json json;
-	std::ifstream stream{ filePath };
+	std::ifstream stream{ experiment_dir / HeightTestingParams::filename };
 	stream >> json;
 
 	std::string mode;
@@ -61,4 +61,23 @@ std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesy
 	if (json.contains("y_k")) json.at("y_k").get_to(testing_params->y_k);
 	if (json.contains("search_n")) json.at("search_n").get_to(testing_params->search_n);
 	return testing_params;
+}
+
+void HeightTestingParams::generate_default(const std::filesystem::path& experiment_dir) {
+	std::filesystem::path path = experiment_dir / HeightTestingParams::filename;	
+
+	if (!std::filesystem::exists(path)) {
+		std::ofstream stream{ path };
+		nlohmann::json json;
+		json["mode"] = "space";
+		json["t"] = 0;
+		json["x"] = nullptr;
+		json["x0"] = 0;
+		json["x_k"] = 1;
+		json["y0"] = 1;
+		json["y_k"] = 1;
+		json["t0"] = nullptr;
+		json["t_k"] = nullptr;
+		stream << json.dump(4) << std::endl;
+	}
 }

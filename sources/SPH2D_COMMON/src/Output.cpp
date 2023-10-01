@@ -238,7 +238,10 @@ static std::string getTimeInAppropriateForm(long long timeSec) {
 
 void printTimeEstimate(long long totalTime_ns, rr_uint timeStep) {
 	rr_uint time_steps_passed = timeStep - params.starttimestep;
-	if (time_steps_passed && timeStep % params.step_time_estimate == 0) {
+	rr_uint step_time_estimate = params.use_custom_time_estimate_step ?
+		params.step_time_estimate : params.save_step;
+
+	if (time_steps_passed && timeStep % step_time_estimate == 0) {
 		constexpr rr_float coefNanosecondsToSeconds = 1.E-9f;
 		long long timeEstimates = static_cast<long long>(
 			(totalTime_ns / time_steps_passed) * coefNanosecondsToSeconds * (params.maxtimestep - timeStep)

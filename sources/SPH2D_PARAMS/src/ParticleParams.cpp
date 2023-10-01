@@ -7,8 +7,6 @@
 #include "ParticleParams.h"
 #include "Params.h"
 
-std::string ParticleParams::filename = "ParticleParams.json";
-
 template<typename T>
 void move_param_impl(T& params_param, const T& model_param) {
     params_param = model_param;

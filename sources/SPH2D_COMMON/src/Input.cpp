@@ -89,7 +89,7 @@ void postFillInModelParams(ModelParams& model_params)
 
 	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
 		params.maxtimestep = 0;
-		if (params.step_time_estimate == 0) {
+		if (params.use_custom_time_estimate_step) {
 			model_params.step_time_estimate = params.step_time_estimate = 1;
 		}
 	}
@@ -101,11 +101,9 @@ void postFillInModelParams(ModelParams& model_params)
 
 		if (params.step_treatment == STEPPING_TREATMENT_TIME) {
 			model_params.save_step = params.save_step = params.save_time / params.dt;
-			model_params.dump_step = params.dump_step = params.dump_time / params.dt;
-		}
-
-		if (params.step_time_estimate == 0) {
-			model_params.step_time_estimate = params.step_time_estimate = params.save_step;
+			if (params.use_dump) {
+				model_params.dump_step = params.dump_step = params.dump_time / params.dt;
+			}
 		}
 	}
 

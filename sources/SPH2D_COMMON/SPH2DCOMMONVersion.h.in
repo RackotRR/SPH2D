@@ -17,3 +17,4 @@
 //       - rename module IsNormalCheck -> ConsistencyCheck
 //       - add crash_dump output function
 // 1.1.1 - complete params files
+// 1.1.2 - support use_custom_time_estimate_step param

@@ -13,6 +13,7 @@ target_link_libraries(FuncAtPoint PRIVATE
     fmt::fmt
     SPH2D_OMP_SHARED
 )
+target_include_directories(FuncAtPoint PUBLIC "include")
 
 
 install(TARGETS FuncAtPoint DESTINATION SPH2D)

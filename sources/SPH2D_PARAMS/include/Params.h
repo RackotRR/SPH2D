@@ -72,7 +72,7 @@ struct ExperimentParams {
 	// dt_correction_method = 0 : dt = const, provided by value
 	//					    = 1 : dt = const, calculated by CFL
 	//						= 2 : dt = dynamic, calculated by CFL
-	rr_uint dt_correction_method{ 1 };
+	rr_uint dt_correction_method{ DT_CORRECTION_CONST_CFL };
 
 	rr_uint local_threads{ 32 };
 
@@ -85,17 +85,17 @@ struct ExperimentParams {
 	// SPH algorithm for particle approximation
 	// intf_sph_approximation = 1 : (p[i] + p[j])/(rho[i]*rho[j])
 	//		    2 : p[i]/sqr(rho[i]) + p[j]/sqr(rho[j]
-	rr_uint intf_sph_approximation{ 2 };
+	rr_uint intf_sph_approximation{ INTF_SPH_APPROXIMATION_2 };
 
 	// smoothing kernel function
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
 	//		 4 : Desbrun kernel (Desbrun 1996) 
-	rr_uint density_skf{ 1 };
-	rr_uint intf_skf{ 4 }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
-	rr_uint artificial_viscosity_skf{ 1 };
-	rr_uint average_velocity_skf{ 1 };
+	rr_uint density_skf{ SKF_CUBIC };
+	rr_uint intf_skf{ SKF_DESBRUN }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
+	rr_uint artificial_viscosity_skf{ SKF_CUBIC };
+	rr_uint average_velocity_skf{ SKF_CUBIC };
 	rr_float cell_scale_k{ 2.f }; // cell size in hsml
 
 	// numerical waves maker
@@ -104,12 +104,12 @@ struct ExperimentParams {
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
 	//		 4 : wall disappear
-	rr_uint nwm{ 2 };
+	rr_uint nwm{ NWM_NO_WAVES };
 
 	// solid boundary treatment
 	// sbt = 0 : dynamic particles
 	//       1 : repulsive particles
-	rr_uint boundary_treatment{ 1 };
+	rr_uint boundary_treatment{ SBT_REPULSIVE };
 	rr_uint boundary_layers_num = 1;
 	bool use_chess_order = true;
 
@@ -125,11 +125,11 @@ struct ExperimentParams {
 
 	// 0 : density summation
 	// 1 : continuity equation
-	rr_uint density_treatment{ 1 };
+	rr_uint density_treatment{ DENSITY_CONTINUITY };
 
 	// none - 0 : no normalization
 	// base - 1 : density normalization by using CSPM
-	rr_uint density_normalization{ 0 };
+	rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
@@ -153,27 +153,31 @@ struct ExperimentParams {
 	rr_float rho0 = 1000;
 	rr_float mass = rho0 * delta * delta; // mass in 2 dim
 
-	/// control parameters for output
-
-	bool consistency_check{ true };
-
 	// 0 - just say
 	// 1 - stop on not normal
 	// 2 - try to fix
-	rr_uint consistency_treatment{ 1 };
+	rr_uint consistency_treatment{ CONSISTENCY_STOP };
+	rr_uint consistency_check_step{}; // step for checking boundaries and finite values
+	bool consistency_check{ true };
+
+	/// control parameters for output
 
 	rr_uint starttimestep{ 0 };
 	rr_uint maxtimestep{}; // time step to finish
-	rr_uint consistency_check_step{}; // step for checking boundaries and finite values
-	rr_uint save_step{}; // save timestep (on disk)
-	rr_uint dump_step{};
-	rr_float save_time{};
-	rr_float dump_time{};
-	rr_uint step_time_estimate{}; // time estimations every N steps
 
 	// 0 - steps from time layers
 	// 1 - steps from seconds
-	rr_uint step_treatment{};
+	rr_uint step_treatment{ STEPPING_TREATMENT_STEP };
+	rr_uint save_step{}; // save timestep (on disk)
+	rr_float save_time{};
+
+	bool use_dump{ false };
+	rr_uint dump_step{};
+	rr_float dump_time{};
+
+	bool use_custom_time_estimate_step{ false };
+	rr_uint step_time_estimate{}; // time estimations every N steps
+
 
 	static constexpr rr_float pi{ 3.14159265358979323846f };
 	static constexpr rr_float g{ 9.81f };

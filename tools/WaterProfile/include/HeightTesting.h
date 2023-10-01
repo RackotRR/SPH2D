@@ -34,11 +34,13 @@ public:
             int thread = omp_get_thread_num();
 #pragma omp for
             for (int i = 0; i < layer.ntotal; ++i) {
-                double current_x = layer.r(i).x;
-                double current_y = layer.r(i).y;
+                if (layer.itype(i) != params->TYPE_NON_EXISTENT) {
+                    double current_x = layer.r(i).x;
+                    double current_y = layer.r(i).y;
 
-                if (std::fabs(current_x - x) < search_radius) {
-                    max_values[thread] = std::max(max_values[thread], current_y);
+                    if (std::fabs(current_x - x) < search_radius) {
+                        max_values[thread] = std::max(max_values[thread], current_y);
+                    }
                 }
             }
         }

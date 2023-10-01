@@ -31,10 +31,12 @@ PicGenParams load_pic_gen_params(const std::filesystem::path& experiment_directo
 inline ExperimentParams load_experiment_params(const std::filesystem::path& experiment_directory) {
     auto particle_params = load_particle_params(experiment_directory);
     auto model_params = load_model_params(experiment_directory);
+    auto sph2D_params = load_SPH2DParams(experiment_directory);
 
     ExperimentParams experiment_params;
     apply_particle_params(experiment_params, particle_params);
     apply_model_params(experiment_params, model_params);
+    apply_SPH2DParams(experiment_params, sph2D_params);
     return experiment_params;
 }
 

@@ -5,7 +5,7 @@
 #include "PicGenParams.h"
 
 PicGenParams load_pic_gen_params(const std::filesystem::path& experiment_directory) {
-	auto params_path = experiment_directory / "PicGenParams.json";
+	auto params_path = experiment_directory / PicGenParams::filename;
 	if (!std::filesystem::exists(params_path)) {
 		throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };
 	}

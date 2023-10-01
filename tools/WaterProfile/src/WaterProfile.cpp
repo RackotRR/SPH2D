@@ -6,6 +6,7 @@
 
 #include "HeightTestingParams.h"
 #include "HeightTesting.h"
+#include "WaterProfileVersion.h"
 
 #ifdef _WIN32
 #include "ToClipboardWin.h"
@@ -48,7 +49,12 @@ void printWaterHeight(
 }
 
 int main() {
-    std::cout << "[WaterProfile tool]" << std::endl;
+    std::string title = fmt::format("[WaterProfile v{}.{}.{}]",
+        WATER_PROFILE_VERSION_MAJOR,
+        WATER_PROFILE_VERSION_MINOR,
+        WATER_PROFILE_VERSION_PATCH);
+    std::cout << title << std::endl;
+
     std::unique_ptr<sphfio::SPHFIO> sphfio;
     try {
         sphfio = std::make_unique<sphfio::SPHFIO>();
@@ -61,17 +67,19 @@ int main() {
     std::filesystem::path experiment_directory = sphfio->directories.getExperimentDirectory();
     std::filesystem::path analysis_directory = sphfio->directories.getAnalysisDirectory();
 
+    HeightTestingParams::generate_default(experiment_directory);
+
     auto grid = sphfio->makeGrid();
     auto params = sphfio->getParams();
 
     for (;;) {
-        std::cout << "Press [enter] to load testing params and compute (dir/AnalysisParams.json)" << std::endl;
+        std::cout << "Press [enter] to load testing params and compute (dir/HeightTestingParams.json)" << std::endl;
         std::string tmp;
         std::getline(std::cin, tmp);
 
         std::shared_ptr<HeightTestingParams> testing_params;
         try {
-            testing_params = HeightTestingParams::load(experiment_directory / "AnalysisParams.json");
+            testing_params = HeightTestingParams::load(experiment_directory);
             testing_params->print();
         }
         catch (const std::exception& e) {

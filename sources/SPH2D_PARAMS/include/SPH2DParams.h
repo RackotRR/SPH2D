@@ -6,7 +6,7 @@ using opt_uint = std::optional<rr_uint>;
 using opt_float = std::optional<rr_float>;
 
 struct SPH2DParams {
-    static std::string filename;
+    static constexpr const char* filename = "SPH2DParams.json";
 
     std::string format_line;
     rr_uint starttimestep;

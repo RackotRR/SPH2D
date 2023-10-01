@@ -14,7 +14,9 @@ struct HeightTestingParams {
 	double y_k = 1;
 	double search_n = 3;
 
-	static std::shared_ptr<HeightTestingParams> load(const std::filesystem::path& filePath);
+	static std::shared_ptr<HeightTestingParams> load(const std::filesystem::path& experiment_dir);
+	static void generate_default(const std::filesystem::path& experiment_dir);
+	static constexpr const char* filename = "HeightTestingParams.json";
 
 	virtual void print() = 0;
 };

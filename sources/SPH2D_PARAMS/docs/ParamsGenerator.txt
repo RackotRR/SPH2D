@@ -9,78 +9,81 @@ SPH2DParamsGenerator (генератор параметров)
 
     Density
     optional:
-        - density_treatment { continuity }
-        - density_normalization { none }
-        - density_skf { cubic }
+        - density_treatment { continuity } = метод обработки плотности
+        - density_normalization { none } = нормализация плотности, не реализована
+        - density_skf { cubic } = сглаживающее ядро для плотности
     
     Internal Force
     mandatory:
-        - intf_hsml_coef { 1 }
-        - eos_sound_vel_method:
-            specific -> eos_sound_vel 
-            dam_break -> eos_sound_vel_coef
+        - intf_hsml_coef { 1 } = коэффициент длины сглаживания (hsml = delta * intf_hsml_coef)
+        - eos_sound_vel_method: = метод вычисления искусственной скорости звука
+            specific -> eos_sound_vel = задана скорость звука
+            dam_break -> eos_sound_vel_coef = задан коэффициент скорости звука
     optional:
-        - intf_sph_approximation { 2 }
-        - intf_skf { cubic }
+        - intf_sph_approximation { 2 } = метод аппроксимации частиц (1 - не реализовано в CL версии)
+        - intf_skf { cubic } = сглаживающее ядро для давления
         
     Viscosity
     optional:
-        - visc { true }
-        - visc_coef { 0.001 }
+        - visc { true } = использовать динамическую вязкость
+        - visc_coef { 0.001 } = коэффициент динамической вязкости
 
     Artificial Viscosity
     optional:
-        - artificial_viscosity { false }:
-            true -> artificial_shear_visc
-            true -> artificial_bulk_visc
-        - artificial_viscosity_skf
+        - artificial_viscosity { false }: = использовать искусственную вязкость
+            true -> artificial_shear_visc = коэффициент alpha в уравнении (обычно 0.01 .. 0.1)
+            true -> artificial_bulk_visc = коэффициент beta в уравнении (обычно 0 для жидкости)
+        - artificial_viscosity_skf = сглаживающее ядро для искусственной вязкости
 
     Average Velocity
     optional:
-        - average_velocity { false }:
-            true -> average_velocity_coef
-        - average_velocity_skf { cubic }
+        - average_velocity { false }: = использовать усреднение скорости (XSPH)
+            true -> average_velocity_coef = коэффициент усреднения скорости (обычно до 0.3)
+        - average_velocity_skf { cubic } = сглаживающее ядро для усреднения скорости
 
     Stepping
     optional:
-        - step_treatment { step }:
-            time -> save_time
-            time -> dump_time { 0 }
-            step -> save_step
-            step -> dump_step { 0 }
-        - step_time_estimate { on output }
+        - use_dump { false } = оставлять данные для возобновления расчёта
+        - step_treatment { step }: = задать шаг вывода данных в виде временных слоёв, либо по времени
+            time -> save_time = шаг вывода данных
+            time && use_dump -> dump_time { 0 } = шаг вывода данных для возобновления расчёта
+            step -> save_step = время вывода данных
+            step && use_dump -> dump_step { 0 } = время вывода данных для возобновления расчёта
+        - use_custom_time_estimate_step { false } = использовать особый шаг вывода информации о ходе вычислений
+            true -> step_time_estimate
+            false = вывод информации будет одновременно с выводом данных
         
     Consistency:
     optional:
-        - consistency_check { true }:
-        - consistency_check_step { 1 }
-        - consistency_treatment { stop }
+        - consistency_check { true }: = использовать проверку целостности
+        - consistency_check_step { 1 } = шаг проверки целостности
+        - consistency_treatment { stop } = обработка целостности (вывод на экран, остановка, либо продолжение, несмотря ни на что)
 
     Boundaries:
     mandatory:
-        - boundary_treatment
+        - boundary_treatment = метод обработки границ
 
     Waves Generator:
     optional: 
-        - nwm { no_waves }:
-            rzm, impulse -> err
-            dynamic -> nwm_nwm_wave_length
-            dynamic -> nwm_wave_magnitude
-            dynamic -> nwm_piston_magnitude (optional)
-        - nwm_wait { 0 }
+        - nwm { no_waves }: = метод генерации волн
+            rzm, impulse -> err = методы не реализованы
+            dynamic -> nwm_nwm_wave_length = длина волны
+            dynamic -> nwm_wave_magnitude = амплитуда волны
+            dynamic -> nwm_piston_magnitude (optional) = амплитуда поршня при динамическом методе
+        - nwm_wait { 0 } = ожидание генератора волн перед началом работы
 
     Time Integration:
     mandatory:
-        - simulation_time
+        - simulation_time = полное время моделирования в секундах
     optional:
-        - dt_correction_method { dynamic }
-            dynamic -> err
-            const_CFL -> CFL_coef
-            const_value -> dt
+        - dt_correction_method { dynamic } = метод изменения шага интегрирования
+            dynamic -> err = метод не реализован
+            const_CFL -> CFL_coef = производится оценка шага по времени из скорости звука
+            const_value -> dt = шаг по времени
 
     Extra:
     optional:
-        - max_neighbours { 64 }
-        - local_threads:
-            SPH2D_OMP -> 64
+        - max_neighbours { 64 } = максимальное количество соседних частиц (размер буфера)
+        - local_threads: = количество локальных потоков
+            SPH2D_OMP -> 64 
             SPH2D_CL -> 256

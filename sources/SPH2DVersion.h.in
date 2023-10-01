@@ -97,6 +97,23 @@
 //       - SPH2D_PARAMS: move mass param from ParticlesParams to SPH2DParams
 //       - SPH2D_PARAMS: add static filename field for params classes
 //       - SPH2D_PARAMS: add SPH2DParams input and output
+// 3.0.2 - SPH2D:        add generated versions headers in gitignore
+//       -               add TODO and User manual docs
+//       -               add docs install
+//       -               greater SBT_REPULSIVE distance
+//       - SPH2D_PARAMS: add SBT enumeration
+//       -               replace numeric values by enums in Params.h
+//       -               add use_dump model param
+//       -               add use_custom_time_estimate_step model param
+//       -               replace static variables for params classes with constants
+//       -               add params description in docs
+//       - SPH2D_COMMON: support use_custom_time_estimate_step param
+//       - WaterProfile: add support for non-existing particles
+//       -               add default params generation
+//       -               change params filename: AnalysisParams.json -> HeightTestingParams.json
+//       -               add version to console title
+//       - FuncAtPoint:  fix output path
+//       -               add version to console title
 // TODO:
 // 3.0.2 - Add user guide
 // 3.0.3 - Change logging library

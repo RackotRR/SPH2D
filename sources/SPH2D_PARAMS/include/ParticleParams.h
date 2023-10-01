@@ -7,7 +7,7 @@ using opt_float = std::optional<rr_float>;
 using opt_bool = std::optional<bool>;
 
 struct ParticleParams {
-    static std::string filename;
+    static constexpr const char* filename = "ParticleParams.json";
 
     rr_float x_mingeom;
     rr_float x_maxgeom;

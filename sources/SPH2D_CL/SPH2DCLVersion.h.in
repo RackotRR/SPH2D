@@ -19,5 +19,6 @@
 //       - crash dump is separate function
 // 1.1.3 - don't allow particles go outside geometry (CONSISTENCY_FIX)
 //       - fix particles type doesn't change in output
+// 1.1.4 - greater SBT_REPULSIVE distance
 // TODO:
 // 1.2   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
