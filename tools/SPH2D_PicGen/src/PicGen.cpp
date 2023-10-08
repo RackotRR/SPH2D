@@ -219,6 +219,7 @@ void generate_particles_data(
     particle_params.nwm_particles_end = particle_params.nfluid + particle_params.nvirt;
 
     try {
+        params.ntotal = ntotal;
         setupOutput(experiment_dir);
         dump(std::move(r),
             std::move(itype),

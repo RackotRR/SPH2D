@@ -8,7 +8,7 @@ namespace sphfio {
 	public:
 		Directories(std::filesystem::path experiment_path);
 
-		const std::filesystem::path& getExperimentName() const {
+		std::filesystem::path getExperimentName() const {
 			return experiment_directory.stem();
 		}
 		const std::filesystem::path& getExperimentDirectory() const {

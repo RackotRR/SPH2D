@@ -70,6 +70,7 @@ static auto make_smoothing_kernels_w(cl_mem_flags flags) {
     smoothing_kernels_w[params.average_velocity_skf];
 
     for (auto& [skf, w] : smoothing_kernels_w) {
+        printlog_debug("make buffer w skf ")(skf)();
         smoothing_kernels_w[skf] = makeBuffer<rr_float>(flags, params.max_neighbours * params.maxn);
     }
 
@@ -85,6 +86,7 @@ static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
     }
 
     for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+        printlog_debug("make buffer dwdr skf ")(skf)();
         smoothing_kernels_dwdr[skf] = makeBuffer<rr_float2>(flags, params.max_neighbours * params.maxn);
     }
 
@@ -239,11 +241,13 @@ void cl_time_integration(
         ).execute(params.maxn, params.local_threads);
 
         for (auto& [skf, w] : smoothing_kernels_w) {
+            printlog_debug("calculate_kernels_w_kernel: ")(skf)();
             calculate_kernels_w_kernel(
                 r_, neighbours_,
                 w, skf).execute(params.maxn, params.local_threads);
         }
         for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+            printlog_debug("calculate_kernels_dwdr_kernel: ")(skf)();
             calculate_kernels_dwdr_kernel(
                 r_, neighbours_,
                 dwdr, skf).execute(params.maxn, params.local_threads);

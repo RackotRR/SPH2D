@@ -81,6 +81,7 @@
 //          - replace static variables for params classes with constants
 //          - add params description in docs
 //          - add docs install
+//    3.0.3 - double floating point type
 // TODO:
 //      3.1 - move format line generation to SPH2DParamsGenerator
 //          - add repulsive SBT parameters

@@ -2,12 +2,13 @@
 
 #define WATER_PROFILE_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
 #define WATER_PROFILE_VERSION_MINOR @PROJECT_VERSION_MINOR@
-#define WATER_PROFILE_VERSION_PATCH @PROJECT_VERSION_PATCH@ 
+#define WATER_PROFILE_VERSION_PATCH @PROJECT_VERSION_PATCH@
 
 // 2.1.0 - start version control for WATER_PROFILE
 // 2.2.0 - add support for non-existing particles
 //       - add default params generation
 //       - change params filename: AnalysisParams.json -> HeightTestingParams.json
 //       - add version to console title
-// TODO:
-// 2.2.1 - add support for several testings from one params file
+// 2.2.1 - remove yotx support
+//       - add postfix param for output file name
+//       - add support for several testings from one params file

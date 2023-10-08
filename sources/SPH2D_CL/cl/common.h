@@ -4,11 +4,11 @@
 #include "clparams.h"
 #include "ParamsEnumeration.h"
 
-#define rr_float float
+#define rr_float double
 #define rr_uint uint
 #define rr_iter uint
 #define rr_int int
-#define rr_float2 float2
+#define rr_float2 double2
 
 #define sqr(a) ((a) * (a))
 #define cube(a) ((a) * (a) * (a))

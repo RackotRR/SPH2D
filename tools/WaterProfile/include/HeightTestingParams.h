@@ -7,8 +7,10 @@
 #include <nlohmann/json.hpp>
 
 struct HeightTestingParams {
+	using Ptr = std::shared_ptr<HeightTestingParams>;
 	virtual ~HeightTestingParams() = default;
     std::string mode;
+	std::string postfix;
 
 	double y0 = 0;
 	double y_k = 1;
@@ -22,9 +24,10 @@ struct HeightTestingParams {
 };
 
 struct SpaceTestingParams : HeightTestingParams {
+	using Ptr = std::shared_ptr<SpaceTestingParams>;
 	virtual ~SpaceTestingParams() = default;
 
-	double t;
+	std::vector<double> t;
 	double x0 = 0;
 	double x_k = 1;
 
@@ -32,9 +35,10 @@ struct SpaceTestingParams : HeightTestingParams {
 };
 
 struct TimeTestingParams : HeightTestingParams {
+	using Ptr = std::shared_ptr<TimeTestingParams>;
 	virtual ~TimeTestingParams() = default;
 
-	double x;
+	std::vector<double> x;
 	double t0 = 0;
 	double t_k = 1;
 

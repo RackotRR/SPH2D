@@ -114,6 +114,11 @@
 //       -               add version to console title
 //       - FuncAtPoint:  fix output path
 //       -               add version to console title
+// 3.0.3 - SPH2D: use double arithmetic
+//       - SPH2D_COMMON: fix GCC building
+//       - WaterProfile: remove yotx support
+//       - WaterProfile: add postfix param for output file name
+//       - WaterProfile: add support for several testings from one params file
+//       - SPH2D_CL: add debug log for skf calculation
 // TODO:
-// 3.0.2 - Add user guide
-// 3.0.3 - Change logging library
+// 3.1.0 - Change logging library

@@ -385,3 +385,4 @@ FodyWeavers.xsd
 /sources/SPH2D_CL/include/SPH2DCLVersion.h
 /sources/SPH2D_OMP/include/SPH2DOMPVersion.h
 /sources/SPH2DVersion.h
+/tools/SPH2D_PicGen/include/SPH2DPicGenVersion.h

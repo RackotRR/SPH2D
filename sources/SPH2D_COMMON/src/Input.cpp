@@ -4,6 +4,7 @@
 #include <csv-parser/csv.hpp>
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <cfloat>
 
 #include "CommonIncl.h"
 #include "Input.h"
