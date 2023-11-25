@@ -82,6 +82,19 @@
 //          - add params description in docs
 //          - add docs install
 //    3.0.3 - double floating point type
+//    3.0.4 - add start_simulation_time param
+//          - remove starttimestep param
+//          - remove maxtimestep param
+//          - remove format_line
+//          - add save_velocity param
+//          - add save_pressure param
+//          - add save_density param
+//          - sort result of searching for experiments
 // TODO:
-//      3.1 - move format line generation to SPH2DParamsGenerator
+//    3.0.5 - move format line generation to SPH2DParamsGenerator
 //          - add repulsive SBT parameters
+//          - fix null piston_magnitude param
+//      3.1 - rename nwm_wait -> nwm_time_start
+//          - add nwm_time_stop param
+//          - add nwm_equation param
+//          - add nwm_direction param

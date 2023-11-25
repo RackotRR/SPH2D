@@ -20,8 +20,7 @@ void move_param_impl(T& params_param, const std::optional<T>& model_param) {
 void apply_SPH2DParams(ExperimentParams& experiment_params, const SPH2DParams& sph2D_params) {
 #define move_param(param) move_param_impl(experiment_params.param, sph2D_params.param)
 
-    move_param(format_line);
-    move_param(starttimestep);
+    move_param(start_simulation_time);
 
     move_param(cell_scale_k);
     move_param(max_cells);
@@ -65,8 +64,7 @@ SPH2DParams load_SPH2DParams(const std::filesystem::path& experiment_directory) 
         } \
 	} while (false)
 
-    load(format_line);
-    load(starttimestep);
+    load(start_simulation_time);
     load(pi);
     load(g);
 
@@ -103,9 +101,7 @@ void params_make_SPH2D_json(const std::filesystem::path& experiment_directory, c
         if (sph2D_params.param.has_value()) json[#param] = sph2D_params.param.value(); \
     } while (false)
 
-    params.format_line = "fmt: vx vy p ";
-    print_param(format_line);
-    print_param(starttimestep);
+    print_param(start_simulation_time);
     print_param(pi);
     print_param(g);
     print_param(TYPE_BOUNDARY);

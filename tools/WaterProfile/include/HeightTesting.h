@@ -34,7 +34,7 @@ public:
             int thread = omp_get_thread_num();
 #pragma omp for
             for (int i = 0; i < layer.ntotal; ++i) {
-                if (layer.itype(i) != params->TYPE_NON_EXISTENT) {
+                if (layer.itype(i) == params->TYPE_WATER) {
                     double current_x = layer.r(i).x;
                     double current_y = layer.r(i).y;
 

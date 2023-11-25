@@ -1,5 +1,6 @@
 #pragma once
 #include <utility>
+#include <memory>
 #include <array>
 #include <cassert>
 
@@ -228,4 +229,17 @@ namespace RR::Memory {
 			}
 		}
 	};
+
+	
+	template<typename T>
+	using shared_darray = std::shared_ptr<heap_darray<T>>;
+
+	template<typename T>
+	shared_darray<T> make_shared_darray(heap_darray<T>&& arr) {
+		return std::make_shared<heap_darray<T>>(std::move(arr));
+	}
+	template<typename T>
+	shared_darray<T> make_shared_darray_copy(const heap_darray<T>& arr) {
+		return make_shared_darray<T>(arr.copy());
+	}
 }

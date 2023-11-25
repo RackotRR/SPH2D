@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <filesystem>
+#include <unordered_set>
 #include "Params.h"
 
 #include "Grid.h"
@@ -37,9 +38,11 @@ namespace sphfio {
 	private:
 		ParamsPtr loadExperimentParams();
 		LayersPathPtr findTimeLayersPath();
+		std::unordered_set<std::string> findAvailableVariables(ParamsPtr params);
 	private:
 		ParamsPtr params;
 		LayersPathPtr available_layers_path;
+		std::unordered_set<std::string> available_variables;
 	};
 
 }

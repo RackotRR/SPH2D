@@ -99,7 +99,7 @@ void find_neighbours(
 									printlog("cell_y: ")(get_cell_y(center_cell_idx))();
 									err = true;
 								}
-								--neighbour_id;
+								continue;
 							}
 						}
 						neighbours(neighbour_id, j) = i;

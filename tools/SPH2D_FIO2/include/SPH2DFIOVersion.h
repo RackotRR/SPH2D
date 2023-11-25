@@ -2,7 +2,7 @@
 
 #define SPH2D_FIO_VERSION_MAJOR 2
 #define SPH2D_FIO_VERSION_MINOR 3
-#define SPH2D_FIO_VERSION_PATCH 1
+#define SPH2D_FIO_VERSION_PATCH 2
 
 // 2.2.0 - start version control
 // 2.2.1 - fix loading layers with maxn greater than default
@@ -11,3 +11,4 @@
 //       - if data dir is empty then try to start from dump dir
 //       - TimeLayers are constructed from ntotal instead of maxn
 // 2.3.1 - move common CLI method to SPH2D_PARAMS
+// 2.3.2 - update additional values search without format line

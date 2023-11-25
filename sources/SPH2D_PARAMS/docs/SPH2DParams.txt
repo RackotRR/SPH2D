@@ -1,8 +1,8 @@
 SPH2D (вычислительное ПО)
 
 1) генерация параметров:
-mandatory:    
-- starttimestep
+mandatory:
+- start_simulation_time
 - pi
 - g
 - TYPE_BOUNDARY
@@ -13,7 +13,6 @@ mandatory:
 - maxn
 - mass
 optional:
-- maxtimestep
 - nwm_wave_number
 - nwm_freq
 - nwm_piston_magnitude

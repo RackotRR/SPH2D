@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_FIO VERSION 2.3.1)
+project(SPH2D_FIO VERSION 2.3.2)
 configure_file(SPH2DFIOVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DFIOVersion.h")
 
 add_library(SPH2D_FIO 

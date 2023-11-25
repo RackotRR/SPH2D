@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fmt/format.h>
+#include <set>
 
 #include "ExperimentStatistics.h"
 #include "ParamsIO.h"
@@ -84,11 +85,16 @@ ExperimentStatistics ExperimentStatistics::load(const std::filesystem::path& exp
 
 Experiments find_experiments(const std::filesystem::path& search_directory) {
 	Experiments experiments;
+	std::set<std::filesystem::path> sorted_path;
 
 	for (auto& entry : std::filesystem::directory_iterator{ search_directory }) {
 		if (entry.is_directory() && any_param_file_presented(entry.path())) {
-			experiments.push_back(ExperimentStatistics::load(entry.path()));
+			sorted_path.insert(entry.path());
 		}
+	}
+	
+	for (auto& path : sorted_path) {
+			experiments.push_back(ExperimentStatistics::load(path));
 	}
 
 	return experiments;

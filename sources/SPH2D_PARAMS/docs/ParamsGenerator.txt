@@ -1,89 +1,95 @@
-SPH2DParamsGenerator (ãåíåğàòîğ ïàğàìåòğîâ)
+SPH2DParamsGenerator (˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜)
 
-1) ïîğÿäîê âûçîâà:
-- âûçûâàåòñÿ ïîñëå ãåíåğàòîğà ÷àñòèö, äî ñòàğòà ıêñïåğèìåíòà
-- ïîëó÷àåò íà âõîä ïàğàìåòğû ÷àñòèö
-2) âûõîäíûå äàííûå:
+1) ˜˜˜˜˜˜˜ ˜˜˜˜˜˜:
+- ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜, ˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜
+- ˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
+2) ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜:
 - Params.json
-3) ãåíåğàöèÿ ïàğàìåòğîâ:
+3) ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜:
 
     Density
     optional:
-        - density_treatment { continuity } = ìåòîä îáğàáîòêè ïëîòíîñòè
-        - density_normalization { none } = íîğìàëèçàöèÿ ïëîòíîñòè, íå ğåàëèçîâàíà
-        - density_skf { cubic } = ñãëàæèâàşùåå ÿäğî äëÿ ïëîòíîñòè
+        - density_treatment { continuity } = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
+        - density_normalization { none } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜, ˜˜ ˜˜˜˜˜˜˜˜˜˜˜
+        - density_skf { cubic } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜
     
     Internal Force
     mandatory:
-        - intf_hsml_coef { 1 } = êîıôôèöèåíò äëèíû ñãëàæèâàíèÿ (hsml = delta * intf_hsml_coef)
-        - eos_sound_vel_method: = ìåòîä âû÷èñëåíèÿ èñêóññòâåííîé ñêîğîñòè çâóêà
-            specific -> eos_sound_vel = çàäàíà ñêîğîñòü çâóêà
-            dam_break -> eos_sound_vel_coef = çàäàí êîıôôèöèåíò ñêîğîñòè çâóêà
+        - intf_hsml_coef { 1 } = ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ (hsml = delta * intf_hsml_coef)
+        - eos_sound_vel_method: = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜
+            specific -> eos_sound_vel = ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜
+            dam_break -> eos_sound_vel_coef = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜
     optional:
-        - intf_sph_approximation { 2 } = ìåòîä àïïğîêñèìàöèè ÷àñòèö (1 - íå ğåàëèçîâàíî â CL âåğñèè)
-        - intf_skf { cubic } = ñãëàæèâàşùåå ÿäğî äëÿ äàâëåíèÿ
+        - intf_sph_approximation { 2 } = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ (1 - ˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜ CL ˜˜˜˜˜˜)
+        - intf_skf { cubic } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜
         
     Viscosity
     optional:
-        - visc { true } = èñïîëüçîâàòü äèíàìè÷åñêóş âÿçêîñòü
-        - visc_coef { 0.001 } = êîıôôèöèåíò äèíàìè÷åñêîé âÿçêîñòè
+        - visc { true } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
+        - visc_coef { 0.001 } = ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
 
     Artificial Viscosity
     optional:
-        - artificial_viscosity { false }: = èñïîëüçîâàòü èñêóññòâåííóş âÿçêîñòü
-            true -> artificial_shear_visc = êîıôôèöèåíò alpha â óğàâíåíèè (îáû÷íî 0.01 .. 0.1)
-            true -> artificial_bulk_visc = êîıôôèöèåíò beta â óğàâíåíèè (îáû÷íî 0 äëÿ æèäêîñòè)
-        - artificial_viscosity_skf = ñãëàæèâàşùåå ÿäğî äëÿ èñêóññòâåííîé âÿçêîñòè
+        - artificial_viscosity { false }: = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
+            true -> artificial_shear_visc = ˜˜˜˜˜˜˜˜˜˜˜ alpha ˜ ˜˜˜˜˜˜˜˜˜ (˜˜˜˜˜˜ 0.01 .. 0.1)
+            true -> artificial_bulk_visc = ˜˜˜˜˜˜˜˜˜˜˜ beta ˜ ˜˜˜˜˜˜˜˜˜ (˜˜˜˜˜˜ 0 ˜˜˜ ˜˜˜˜˜˜˜˜)
+        - artificial_viscosity_skf = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
 
     Average Velocity
     optional:
-        - average_velocity { false }: = èñïîëüçîâàòü óñğåäíåíèå ñêîğîñòè (XSPH)
-            true -> average_velocity_coef = êîıôôèöèåíò óñğåäíåíèÿ ñêîğîñòè (îáû÷íî äî 0.3)
-        - average_velocity_skf { cubic } = ñãëàæèâàşùåå ÿäğî äëÿ óñğåäíåíèÿ ñêîğîñòè
+        - average_velocity { false }: = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ (XSPH)
+            true -> average_velocity_coef = ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ (˜˜˜˜˜˜ ˜˜ 0.3)
+        - average_velocity_skf { cubic } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
 
     Stepping
     optional:
-        - use_dump { false } = îñòàâëÿòü äàííûå äëÿ âîçîáíîâëåíèÿ ğàñ÷¸òà
-        - step_treatment { step }: = çàäàòü øàã âûâîäà äàííûõ â âèäå âğåìåííûõ ñëî¸â, ëèáî ïî âğåìåíè
-            time -> save_time = øàã âûâîäà äàííûõ
-            time && use_dump -> dump_time { 0 } = øàã âûâîäà äàííûõ äëÿ âîçîáíîâëåíèÿ ğàñ÷¸òà
-            step -> save_step = âğåìÿ âûâîäà äàííûõ
-            step && use_dump -> dump_step { 0 } = âğåìÿ âûâîäà äàííûõ äëÿ âîçîáíîâëåíèÿ ğàñ÷¸òà
-        - use_custom_time_estimate_step { false } = èñïîëüçîâàòü îñîáûé øàã âûâîäà èíôîğìàöèè î õîäå âû÷èñëåíèé
+        - use_dump { false } = ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
+        - step_treatment { step }: = ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜, ˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜
+            time -> save_time = ˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜
+            time && use_dump -> dump_time { 0 } = ˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
+            step -> save_step = ˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜
+            step && use_dump -> dump_step { 0 } = ˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
+        - use_custom_time_estimate_step { false } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜
             true -> step_time_estimate
-            false = âûâîä èíôîğìàöèè áóäåò îäíîâğåìåííî ñ âûâîäîì äàííûõ
+            false = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜
         
     Consistency:
     optional:
-        - consistency_check { true }: = èñïîëüçîâàòü ïğîâåğêó öåëîñòíîñòè
-        - consistency_check_step { 1 } = øàã ïğîâåğêè öåëîñòíîñòè
-        - consistency_treatment { stop } = îáğàáîòêà öåëîñòíîñòè (âûâîä íà ıêğàí, îñòàíîâêà, ëèáî ïğîäîëæåíèå, íåñìîòğÿ íè íà ÷òî)
+        - consistency_check { true }: = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜
+        - consistency_check_step { 1 } = ˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜
+        - consistency_treatment { stop } = ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ (˜˜˜˜˜ ˜˜ ˜˜˜˜˜, ˜˜˜˜˜˜˜˜˜, ˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜, ˜˜˜˜˜˜˜˜ ˜˜ ˜˜ ˜˜˜)
 
     Boundaries:
     mandatory:
-        - boundary_treatment = ìåòîä îáğàáîòêè ãğàíèö
+        - boundary_treatment = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
 
     Waves Generator:
     optional: 
-        - nwm { no_waves }: = ìåòîä ãåíåğàöèè âîëí
-            rzm, impulse -> err = ìåòîäû íå ğåàëèçîâàíû
-            dynamic -> nwm_nwm_wave_length = äëèíà âîëíû
-            dynamic -> nwm_wave_magnitude = àìïëèòóäà âîëíû
-            dynamic -> nwm_piston_magnitude (optional) = àìïëèòóäà ïîğøíÿ ïğè äèíàìè÷åñêîì ìåòîäå
-        - nwm_wait { 0 } = îæèäàíèå ãåíåğàòîğà âîëí ïåğåä íà÷àëîì ğàáîòû
+        - nwm { no_waves }: = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜
+            rzm, impulse -> err = ˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜˜
+            dynamic -> nwm_nwm_wave_length = ˜˜˜˜˜ ˜˜˜˜˜
+            dynamic -> nwm_wave_magnitude = ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜
+            dynamic -> nwm_piston_magnitude (optional) = ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
+        - nwm_wait { 0 } = ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜
 
     Time Integration:
     mandatory:
-        - simulation_time = ïîëíîå âğåìÿ ìîäåëèğîâàíèÿ â ñåêóíäàõ
+        - simulation_time = ˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜
     optional:
-        - dt_correction_method { dynamic } = ìåòîä èçìåíåíèÿ øàãà èíòåãğèğîâàíèÿ
-            dynamic -> err = ìåòîä íå ğåàëèçîâàí
-            const_CFL -> CFL_coef = ïğîèçâîäèòñÿ îöåíêà øàãà ïî âğåìåíè èç ñêîğîñòè çâóêà
-            const_value -> dt = øàã ïî âğåìåíè
+        - dt_correction_method { dynamic } = ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜˜˜
+            dynamic -> err = ˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜
+            const_CFL -> CFL_coef = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜
+            const_value -> dt = ˜˜˜ ˜˜ ˜˜˜˜˜˜˜
 
     Extra:
     optional:
-        - max_neighbours { 64 } = ìàêñèìàëüíîå êîëè÷åñòâî ñîñåäíèõ ÷àñòèö (ğàçìåğ áóôåğà)
-        - local_threads: = êîëè÷åñòâî ëîêàëüíûõ ïîòîêîâ
+        - max_neighbours { 64 } = ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ (˜˜˜˜˜˜ ˜˜˜˜˜˜)
+        - local_threads: = ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
             SPH2D_OMP -> 64 
             SPH2D_CL -> 256
+
+    Output:
+    mandatory:
+        - save_velocity
+        - save_pressure
+        - save_density

@@ -98,9 +98,11 @@ namespace ParamsGeneration {
 			set(rho0);
 			set(consistency_check);
 			set(consistency_treatment);
-			set(starttimestep);
-			set(maxtimestep);
+			set(start_simulation_time);
 			set(consistency_check_step);
+			set(save_velocity);
+			set(save_pressure);
+			set(save_density);
 			set(save_step);
 			set(dump_step);
 			set(save_time);

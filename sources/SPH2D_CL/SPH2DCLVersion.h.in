@@ -22,5 +22,8 @@
 // 1.1.4 - greater SBT_REPULSIVE distance
 // 1.1.5 - add debug log for skf calculation
 //       - double floating point arithmetic
+// 1.2.0 - new output manager (SPH2DOutput)
+//       - remove starttimestep param
+//       - remove maxtimestep param
 // TODO:
 // 1.2   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)

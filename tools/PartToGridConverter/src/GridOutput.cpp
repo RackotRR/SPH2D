@@ -17,7 +17,6 @@ void printGridParams(const std::filesystem::path& path,
     json["size_y"] = square.size_y;
     json["rows"] = countRows(square);
     json["columns"] = countColumns(square);
-    json["fmt_line"] = ::params.format_line;
 
     std::ofstream stream{ path };
     stream << json.dump(4) << std::endl;

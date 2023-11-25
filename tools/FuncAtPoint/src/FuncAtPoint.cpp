@@ -94,9 +94,9 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
     for (auto time_layer : time_layers) {
         double val = 0;
 
-        check_particles_are_within_boundaries(time_layer.ntotal,
-            time_layer.r,
-            time_layer.itype);
+        check_particles_are_within_boundaries(
+            std::make_shared<heap_darray<rr_float2>>(time_layer.r.copy()),
+            std::make_shared<heap_darray<rr_int>>(time_layer.itype.copy()));
 
         make_grid(time_layer.ntotal, time_layer.r, 
             grid, cell_starts_in_grid);

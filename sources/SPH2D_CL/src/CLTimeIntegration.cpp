@@ -2,9 +2,11 @@
 #include "CLAdapter.h"
 
 #include <iostream>
+#include <utility>
 #include <fmt/format.h>
 #include "RR/Time/Timer.h"
 
+#include "TimeEstimate.h"
 #include "Output.h"
 #include "ConsistencyCheck.h"
 
@@ -93,6 +95,13 @@ static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
     return smoothing_kernels_dwdr;
 }
 
+template<typename T>
+static shared_darray<T> load_array(const cl::Buffer& buffer) {
+    auto arr_ptr = std::make_shared<heap_darray<T>>(params.maxn);
+    cl::copy(buffer, arr_ptr->begin(), arr_ptr->end());
+    return arr_ptr;
+}
+
 void cl_time_integration(
     heap_darray<rr_float2>& r,	// coordinates of all particles
     heap_darray<rr_float2>& v,	// velocities of all particles
@@ -148,15 +157,19 @@ void cl_time_integration(
     // bitonic sort passes
     rr_uint passes = intlog2(params.maxn);
 
-    rr_float time = 0;
-    RR::Timer timer;
-    for (rr_uint itimestep = params.starttimestep; itimestep <= params.maxtimestep; itimestep++) {
-        printlog()(fmt::format("timestep: {}/{} ({}s)", itimestep, params.maxtimestep, time))();
-        timer.start();
+    rr_uint itimestep = 0;
+    rr_float time = params.start_simulation_time;
 
-        time = itimestep * params.dt;
+    SPH2DOutput::instance().setup_output(
+        std::bind(load_array<rr_float2>, r_),
+        std::bind(load_array<rr_int>, itype_),
+        std::bind(load_array<rr_float2>, v_),
+        std::bind(load_array<rr_float>, p_),
+        std::bind(load_array<rr_float>, rho_));
 
-        printTimeEstimate(timer.total(), itimestep);
+    while (time <= params.simulation_time) {
+        printlog()(fmt::format("time: {}/{} s", time, params.simulation_time))();
+        SPH2DOutput::instance().start_step();
 
         printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(
@@ -165,50 +178,6 @@ void cl_time_integration(
             rho_, v_,
             rho_predict_, v_predict_
         ).execute(params.maxn, params.local_threads);
-
-        bool should_check = itimestep % params.consistency_check_step == 0;
-        bool should_save = itimestep % params.save_step == 0;
-        if (should_save || should_check) {
-            heap_darray<rr_float2> r_temp(params.maxn);
-            heap_darray<rr_float2> v_temp(params.maxn);
-            heap_darray<rr_float> p_temp(params.maxn);
-
-            cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_, v_temp.begin(), v_temp.end());
-            cl::copy(p_, p_temp.begin(), p_temp.end());
-
-            if (params.consistency_check && should_check) {
-                try {
-                    check_particles_are_within_boundaries(ntotal, r_temp, itype);
-                }
-                catch (...) {
-                    heap_darray<rr_float> rho_temp(params.maxn);
-                    heap_darray<rr_int> itype_temp(params.maxn);
-                    cl::copy(itype_, itype_temp.begin(), itype_temp.end());
-                    cl::copy(p_, rho_temp.begin(), rho_temp.end());
-                    crash_dump(
-                        std::move(r_temp),
-                        std::move(itype_temp),
-                        std::move(v_temp),
-                        std::move(rho_temp),
-                        std::move(p_temp),
-                        itimestep);
-                    throw;
-                }
-            }
-
-            if (should_save) {
-                heap_darray<rr_int> itype_temp(params.maxn);
-                cl::copy(itype_, itype_temp.begin(), itype_temp.end());
-                output(
-                    std::move(r_temp),
-                    std::move(itype_temp),
-                    std::move(v_temp),
-                    std::nullopt,
-                    std::move(p_temp),
-                    itimestep);
-            }
-        }
 
         printlog_debug("fill in grid")();
         fill_in_grid_kernel(
@@ -325,7 +294,7 @@ void cl_time_integration(
             switch (params.nwm) {
             case 2:
                 nwm_dynamic_boundaries_kernel(
-                    v_, r_
+                    v_, r_, time
                 ).execute(params.maxn, params.local_threads);
                 break;
             case 4:
@@ -346,27 +315,10 @@ void cl_time_integration(
             itype_, rho_, v_, r_
         ).execute(params.maxn, params.local_threads);
 
-        if (itimestep && params.dump_step && itimestep % params.dump_step == 0) {
-            heap_darray<rr_float2> r_temp(params.maxn);
-            heap_darray<rr_float2> v_temp(params.maxn);
-            heap_darray<rr_float> p_temp(params.maxn);
-            heap_darray<rr_float> rho_temp(params.maxn);
-
-            cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_predict_, v_temp.begin(), v_temp.end());
-            cl::copy(p_, p_temp.begin(), p_temp.end());
-            cl::copy(rho_predict_, rho_temp.begin(), rho_temp.end());
-
-            dump(
-                std::move(r_temp),
-                itype.copy(),
-                std::move(v_temp),
-                std::move(rho_temp),
-                std::move(p_temp),
-                itimestep);
-        }
-
         time += params.dt;
-        timer.finish();
+        itimestep++;
+
+        SPH2DOutput::instance().finish_step();
+        SPH2DOutput::instance().update_step(time, itimestep);
     }
 }

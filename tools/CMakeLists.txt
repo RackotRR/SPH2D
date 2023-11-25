@@ -7,10 +7,11 @@ add_subdirectory(WaterProfile)
 add_subdirectory(SPH2D_Drawer)
 add_subdirectory(SPH2D_PicGen)
 
-
-set(SPH2DParamsGeneratorPath ${CMAKE_SOURCE_DIR}/tools/SPH2DParamsGenerator)
-if (EXISTS ${SPH2DParamsGeneratorPath})
-    install(DIRECTORY "${SPH2DParamsGeneratorPath}/SPH2DParamsGenerator/bin/Release/" DESTINATION "SPH2D/SPH2DParamsGenerator")
+if (WIN32)
+    set(SPH2DParamsGeneratorPath ${CMAKE_SOURCE_DIR}/tools/SPH2DParamsGenerator)
+    if (EXISTS ${SPH2DParamsGeneratorPath})
+        install(DIRECTORY "${SPH2DParamsGeneratorPath}/SPH2DParamsGenerator/bin/Release/" DESTINATION "SPH2D/SPH2DParamsGenerator")
+    endif()
 endif()
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/tools/Scripts" DESTINATION "SPH2D")

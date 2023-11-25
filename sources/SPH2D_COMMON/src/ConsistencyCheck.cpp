@@ -5,83 +5,108 @@
 #include "ConsistencyCheck.h"
 
 bool check_finite(
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
-	const heap_darray<rr_float2>& v,	// velocities of all particles
-	const heap_darray<rr_float>& rho,	// density
-	const heap_darray<rr_float>& p,	// pressure
-	const heap_darray<rr_int>& itype,	// type
-	const rr_uint ntotal)
+	shared_darray<rr_float2> r,
+	shared_darray<rr_int> itype,
+	shared_darray<rr_float2> v,
+	shared_darray<rr_float> rho,
+	shared_darray<rr_float> p)
 {
 	printlog_debug(__func__)();
+	assert(r.get());
+	assert(itype.get());
+	assert(v.get());
+	assert(rho.get());
+	assert(p.get());
 
-	bool is_finite = true;
+	rr_int infinite_count = 0;
+	rr_uint i = 0;
 
-	for (rr_uint i = 0; i < ntotal; ++i) {
-		if (!std::isfinite(r(i).x) || !std::isfinite(r(i).y) ||
-			!std::isfinite(v(i).x) || !std::isfinite(v(i).y)) {
-			is_finite = false;
-		}
-		if (!std::isfinite(rho(i)) ||
-			!std::isfinite(p(i)))
+#pragma omp parallel for reduction(+: infinite_count)
+	for (rr_iter k = 0; k < params.ntotal; ++k) {
+		if (!std::isfinite(r->at(k).x) || !std::isfinite(r->at(k).y) ||
+			!std::isfinite(v->at(k).x) || !std::isfinite(v->at(k).y)) 
 		{
-			is_finite = false;
+			infinite_count++;
+			i = k;
 		}
+		else if (!std::isfinite(rho->at(k)) ||
+			!std::isfinite(p->at(k)))
+		{
+			infinite_count++;
+			i = k;
+		}
+	}
 
+	if (infinite_count > 0) {
+		std::string message = fmt::format("not finite particle: \n\t type: {}\n\t r: ({}; {})\n\t v: ({}; {})\n\t rho: {}\n\t p: {}\n\t k: {}",
+			itype->at(i), 
+			r->at(i).x, 
+			r->at(i).y, 
+			v->at(i).x, 
+			v->at(i).y, 
+			rho->at(i), 
+			p->at(i), 
+			i);
 
 		if (params.consistency_treatment == CONSISTENCY_STOP) {
-			if (!is_finite) {
-				throw std::runtime_error{
-					std::string{"encounter particle outside boundaries: "}
-					+ fmt::format("\n\t type: {}\n\t r: ({}; {})\n\t v: ({}; {})\n\t rho: {}\n\t p: {}\n\t k: {}",
-						itype(i), r(i).x, r(i).y, v(i).x, v(i).y, rho(i), p(i), i)
-				};
-			}
+			throw std::runtime_error{ message };
+		}
+		else {
+			printlog(message)();
+			std::cerr << "encounter not finite value!" << std::endl;
 		}
 	}
 
-	if (!is_finite) {
-		std::cerr << "encounter not finite value!" << std::endl;
-	}
-
-	return is_finite;
+	return infinite_count == 0;
 }
 
 
 bool check_particles_are_within_boundaries(
-	const rr_uint ntotal,
-	const heap_darray<rr_float2>& r,
-	const heap_darray<rr_int>& itype)
+	shared_darray<rr_float2> r,
+	shared_darray<rr_int> itype)
 {
 	printlog_debug(__func__)();
+	assert(r.get());
+	assert(itype.get());
 
-	bool are_within_boundaries = true;
+	rr_int count_outside_boundaries = 0;
 	rr_iter outside_k = 0;
 
-#pragma omp parallel for
-	for (rr_iter k = 0; k < ntotal; ++k) {
-		if (r(k).x > params.x_maxgeom ||
-			r(k).x < params.x_mingeom ||
-			r(k).y > params.y_maxgeom ||
-			r(k).y < params.y_mingeom ||
-			!std::isfinite(r(k).x) ||
-			!std::isfinite(r(k).y))
+#pragma omp parallel for reduction(+: count_outside_boundaries)
+	for (rr_iter k = 0; k < params.ntotal; ++k) {
+		rr_float x = r->at(k).x;
+		rr_float y = r->at(k).y;
+
+		if (x > params.x_maxgeom ||
+			x < params.x_mingeom ||
+			y > params.y_maxgeom ||
+			y < params.y_mingeom ||
+			!std::isfinite(x) ||
+			!std::isfinite(y))
 		{
-			are_within_boundaries = false;
+			count_outside_boundaries++;
 			outside_k = k;
 		}
 	}
 
-	if (!are_within_boundaries) {
+	if (count_outside_boundaries > 0) {
+		std::string message = fmt::format("encounter particle outside boundaries: \n\t type: {}\n\t r: ({}; {}) // ({} .. {}; {} .. {})\n\t k: {}",
+			itype->at(outside_k),
+			r->at(outside_k).x,
+			r->at(outside_k).y,
+			params.x_mingeom,
+			params.x_maxgeom,
+			params.y_mingeom,
+			params.y_maxgeom,
+			outside_k);
+
 		if (params.consistency_treatment == CONSISTENCY_STOP) {
-			throw std::runtime_error{
-				fmt::format("encounter particle outside boundaries: \n\t type: {}\n\t r: ({}; {}) // ({} .. {}; {} .. {})\n\t k: {}",
-				itype(outside_k), r(outside_k).x, r(outside_k).y, 
-				params.x_mingeom, params.x_maxgeom, params.y_mingeom, params.y_maxgeom, outside_k)
-			};
+			throw std::runtime_error{ message };
 		}
 		else {
-			std::cerr << "encounter particle outside boundaries!" << std::endl;
+			printlog(message)();
+			std::cerr << fmt::format("encounter {} particles outside boundaries!", count_outside_boundaries) << std::endl;
 		}
 	}
-	return are_within_boundaries;
+	return count_outside_boundaries == 0;
 }

@@ -64,4 +64,8 @@ struct ModelParams {
 
     rr_uint max_neighbours{ 64 };
     opt_uint local_threads;
+
+    bool save_velocity{ true };
+    bool save_pressure{ true };
+    bool save_density{ true };
 };

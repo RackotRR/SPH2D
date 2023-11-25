@@ -220,12 +220,14 @@ void generate_particles_data(
 
     try {
         params.ntotal = ntotal;
-        setupOutput(experiment_dir);
-        dump(std::move(r),
-            std::move(itype),
-            std::move(v),
-            std::move(rho),
-            std::move(p),
+        SPH2DOutput::instance().initialize(experiment_dir);
+        SPH2DOutput::instance().dump(
+            make_shared_darray(std::move(r)),
+            make_shared_darray(std::move(itype)),
+            make_shared_darray(std::move(v)),
+            make_shared_darray(std::move(rho)),
+            make_shared_darray(std::move(p)),
+            0,
             0);
     }
     catch (std::exception& ex) {

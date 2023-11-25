@@ -8,8 +8,7 @@ using opt_float = std::optional<rr_float>;
 struct SPH2DParams {
     static constexpr const char* filename = "SPH2DParams.json";
 
-    std::string format_line;
-    rr_uint starttimestep;
+    rr_float start_simulation_time;
     rr_float pi;
     rr_float g;
     rr_float mass;

@@ -159,6 +159,10 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
 
     move_param(max_neighbours);
     move_param(local_threads);
+
+    move_param(save_velocity);
+    move_param(save_pressure);
+    move_param(save_density);
 }
 
 ModelParams load_model_params(const std::filesystem::path& experiment_directory) {
@@ -248,6 +252,10 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_default(max_neighbours);
     load_optional(local_threads);
 
+    load_default(save_velocity);
+    load_default(save_pressure);
+    load_default(save_density);
+
     check_optional_params(model_params);
     return model_params;
 }
@@ -322,6 +330,10 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
 
     print_param(max_neighbours);
     print_not_null(local_threads);
+
+    print_param(save_velocity);
+    print_param(save_pressure);
+    print_param(save_density);
 
 #undef print_param
 #undef print_not_null

@@ -11,6 +11,7 @@
 #include "Output.h"
 #include "GridUtils.h"
 #include "ParamsIO.h"
+#include "SPH2DCOMMONVersion.h"
 
 rr_uint countCells(
 	rr_float hsml,
@@ -50,7 +51,6 @@ rr_float find_depth(
 }
 
 void fillInSPH2DParams() {
-	params.format_line = "fmt: vx vy p ";
 	params.hsml = params.delta * params.intf_hsml_coef;
 
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
@@ -89,21 +89,15 @@ void postFillInModelParams(ModelParams& model_params)
 	}
 
 	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
-		params.maxtimestep = 0;
 		if (params.use_custom_time_estimate_step) {
 			model_params.step_time_estimate = params.step_time_estimate = 1;
 		}
 	}
 	else {
-		params.maxtimestep = static_cast<rr_uint>(params.simulation_time / params.dt);
-		if (params.maxtimestep % params.save_step != 0) { // fix last save step
-			params.maxtimestep = params.maxtimestep + (params.save_step - params.maxtimestep % params.save_step);
-		}
-
-		if (params.step_treatment == STEPPING_TREATMENT_TIME) {
-			model_params.save_step = params.save_step = params.save_time / params.dt;
+		if (params.step_treatment == STEPPING_TREATMENT_STEP) {
+			model_params.save_time = params.save_time = params.save_step * params.dt;
 			if (params.use_dump) {
-				model_params.dump_step = params.dump_step = params.dump_time / params.dt;
+				model_params.dump_time = params.dump_time = params.dump_step * params.dt;
 			}
 		}
 	}
@@ -128,9 +122,7 @@ SPH2DParams make_SPH2DParams() {
 #define set_param(param) do { sph2DParams.param = params.param; } while(false)
 #define set_param_not_null(param) do {if (params.param != 0) sph2DParams.param = params.param;} while(false)
 
-	params.format_line = "fmt: p vx vy ";
-	set_param(format_line);
-	set_param(starttimestep);
+	set_param(start_simulation_time);
 	set_param(pi);
 	set_param(g);
 	set_param(TYPE_BOUNDARY);
@@ -141,7 +133,6 @@ SPH2DParams make_SPH2DParams() {
 	set_param(maxn);
 	set_param(hsml);
 	set_param(mass);
-	set_param_not_null(maxtimestep);
 	set_param_not_null(nwm_wave_number);
 	set_param_not_null(nwm_freq);
 	set_param_not_null(nwm_piston_magnitude);
@@ -162,7 +153,7 @@ void fileInput(
 	rr_uint starttimestep,
 	const std::filesystem::path& experiment_directory)
 {
-	setupOutput(experiment_directory);
+	SPH2DOutput::instance().initialize(experiment_directory);
 
 	auto particle_params = load_particle_params(experiment_directory);
 	auto model_params = load_model_params(experiment_directory);
@@ -170,6 +161,18 @@ void fileInput(
 	apply_model_params(params, model_params);
 	
 	printlog("Experiment name: ")(experiment_directory.stem().string())();
+	printlog(fmt::format("SPH2D v{}.{}.{}", 
+		SPH2D_VERSION_MAJOR, 
+		SPH2D_VERSION_MINOR, 
+		SPH2D_VERSION_PATCH))();
+	printlog(fmt::format("Params v{}.{}.{}", 
+		SPH2D_PARAMS_VERSION_MAJOR, 
+		SPH2D_PARAMS_VERSION_MINOR, 
+		SPH2D_PARAMS_VERSION_PATCH))();
+	printlog(fmt::format("Common v{}.{}.{}",
+		SPH2D_COMMON_VERSION_MAJOR,
+		SPH2D_COMMON_VERSION_MINOR,
+		SPH2D_COMMON_VERSION_PATCH))();
 	printlog()(__func__)();
 
 	ntotal = params.ntotal;
@@ -182,7 +185,7 @@ void fileInput(
 	itype = heap_darray<rr_int>(params.maxn);
 
 	auto particles_data_path = experiment_directory / "dump" / fmt::format("{}.csv", starttimestep);
-	params.starttimestep = std::stoi(particles_data_path.stem().string());
+	params.start_simulation_time = std::stod(particles_data_path.stem().string());
 	fillInSPH2DParams();
 
 	std::cout << "read data...";
@@ -213,5 +216,5 @@ void fileInput(
 	params_make_model_json(experiment_directory, model_params);
 	params_make_particles_json(experiment_directory, particle_params);
 	params_make_json(experiment_directory);
-	printParams();
+	params_make_header(std::filesystem::current_path() / "cl" / "clparams.h");
 }

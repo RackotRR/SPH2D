@@ -120,5 +120,24 @@
 //       - WaterProfile: add postfix param for output file name
 //       - WaterProfile: add support for several testings from one params file
 //       - SPH2D_CL: add debug log for skf calculation
+// 3.0.4 - SPH2D: new output manager (SPH2DOutput)
+//       - SPH2D_COMMON: separate time estimation module
+//       -               update output with shared_ptr
+//       -               remove fast output functions
+//       -               remove paramsMakeHeader function
+//       -               add shared_darray type
+//       -               consistency check refactoring
+//       -               add version logging
+//       - RR: Timer returns chrono type instead of integer 
+//       - SPH2D_PARAMS: add start_simulation_time param
+//       -               remove starttimestep param
+//       -               remove maxtimestep param
+//       -               remove format_line
+//       -               add save_velocity param
+//       -               add save_pressure param
+//       -               add save_density param
+//       - RRSPH2D: add TsunamiGenerator script
+//       - RRSPH2D: remove SPH2DParamsGenerator copy on systems other than Windows
+//       - SPH2D_PARAMS: sort result of searching for experiments
 // TODO:
 // 3.1.0 - Change logging library

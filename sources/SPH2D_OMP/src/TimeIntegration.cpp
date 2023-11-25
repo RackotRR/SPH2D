@@ -7,6 +7,7 @@
 
 #include "RR/Time/Timer.h"
 
+#include <functional>
 #include <iostream>
 #include <fmt/format.h>
 
@@ -53,8 +54,7 @@ void whole_step(
 	printlog()(__func__)();
 
 	rr_float r_dt = params.dt;
-	rr_float v_dt = timestep == params.starttimestep ?
-		params.dt * 0.5f : params.dt;
+	rr_float v_dt = timestep ? params.dt : params.dt * 0.5f;
 
 	for (rr_uint i = 0; i < ntotal; i++) {
 		if (params.density_treatment == DENSITY_CONTINUITY) {
@@ -80,7 +80,6 @@ void whole_step(
 	}
 }
 
-
 void time_integration(
 	heap_darray<rr_float2>& r,	// coordinates of all particles
 	heap_darray<rr_float2>& v,	// velocities of all particles
@@ -105,33 +104,25 @@ void time_integration(
 	heap_darray<rr_float2> v_predict(params.maxn);
 	heap_darray<rr_float2> a(params.maxn);
 	heap_darray<rr_float2> av(params.maxn);
-	rr_float time = 0;
+	rr_float time = params.start_simulation_time;
+	rr_uint itimestep = 0;
 
-	RR::Timer timer;
+	SPH2DOutput::instance().setup_output(
+		std::bind(make_shared_darray_copy<rr_float2>, std::cref(r)),
+		std::bind(make_shared_darray_copy<rr_int>, std::cref(itype)),
+		std::bind(make_shared_darray_copy<rr_float2>, std::cref(v)),
+		std::bind(make_shared_darray_copy<rr_float>, std::cref(p)),
+		std::bind(make_shared_darray_copy<rr_float>, std::cref(rho)));
 
-	for (rr_uint itimestep = params.starttimestep; itimestep <= params.maxtimestep; itimestep++) {
-		printlog()(fmt::format("timestep: {}/{} ({}s)", itimestep, params.maxtimestep, time))();
-		timer.start();
-
-		time = itimestep * params.dt;
-
-		printTimeEstimate(timer.total(), itimestep);
+	while (time <= params.simulation_time) {
+		printlog()(fmt::format("time: {}/{} s", time, params.simulation_time))();
+		SPH2DOutput::instance().start_step();
 
 		predict_half_step(ntotal,
 			itype,
 			rho, drho, 
 			v, a, 
 			*rho_predicted, v_predict);
-
-		if (itimestep % params.save_step == 0) {
-			output(
-				r.copy(),
-				itype.copy(),
-				v_predict.copy(),
-				std::nullopt,
-				p.copy(),
-				itimestep);
-		}
 
 		// definition of variables out of the function vector:
 		update_acceleration(nfluid, ntotal, itype, r, 
@@ -147,36 +138,8 @@ void time_integration(
 			drho, a, av,
 			itype, rho, v, r);
 
-		if (params.consistency_check) {
-			if (should_check_normal(itimestep)) {
-				try {
-					check_finite(r, v, *rho_predicted, p, itype, ntotal);
-					check_particles_are_within_boundaries(ntotal, r, itype);
-				}
-				catch (...) {
-					crash_dump(
-						r.copy(),
-						itype.copy(),
-						v.copy(),
-						rho_predicted->copy(),
-						p.copy(),
-						itimestep);
-					throw;
-				}
-			}
-		}
-
-		if (itimestep && params.dump_step && itimestep % params.dump_step == 0) {
-			dump(
-				r.copy(),
-				itype.copy(),
-				v_predict.copy(),
-				rho_predicted->copy(),
-				p.copy(),
-				itimestep);
-		}
-
 		time += params.dt;
-		timer.finish();
+		SPH2DOutput::instance().finish_step();
+		SPH2DOutput::instance().update_step(time, itimestep);
 	}
 }
