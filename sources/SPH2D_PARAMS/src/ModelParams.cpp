@@ -3,11 +3,13 @@
 #include <iostream>
 #include <filesystem>
 #include <stdexcept>
+#include <RR/Logger/Logger.h>
 
 #include "Params.h"
 #include "ModelParams.h"
 
 void check_optional_params(const ModelParams& model_params) {
+    RR::Logger::printlog(__func__)();
 #define need_param(param) \
     do { \
         if (model_params.param.has_value() == false) \
@@ -37,22 +39,11 @@ void check_optional_params(const ModelParams& model_params) {
         need_param(average_velocity_coef);
     }
 
-    switch (model_params.step_treatment) {
-    case STEPPING_TREATMENT_STEP:
-        need_param(save_step);
-        if (model_params.use_dump) {
-            need_param(dump_step);
-        }
-        break;
-    case STEPPING_TREATMENT_TIME:
+    if (!model_params.save_every_step) {
         need_param(save_time);
-        if (model_params.use_dump) {
-            need_param(dump_time);
-        }
-        break;
-    default:
-        throw_invalid_enum(step_treatment);
-        break;
+    }
+    if (model_params.use_dump) {
+        need_param(dump_time);
     }
 
     if (model_params.use_custom_time_estimate_step) {
@@ -102,6 +93,7 @@ void move_param_impl(T& params_param, const std::optional<T>& model_param) {
 }
 
 void apply_model_params(ExperimentParams& experiment_params, const ModelParams& model_params) {
+    RR::Logger::printlog(__func__)();
     #define move_param(param) move_param_impl(experiment_params.param, model_params.param)
 
     move_param(params_generator_version_major);
@@ -131,9 +123,7 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(average_velocity_coef);
     move_param(average_velocity_skf);
 
-    move_param(step_treatment);
-    move_param(save_step);
-    move_param(dump_step);
+    move_param(save_every_step);
     move_param(save_time);
     move_param(dump_time);
     move_param(step_time_estimate);
@@ -141,13 +131,12 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(use_custom_time_estimate_step);
 
     move_param(consistency_check);
-    move_param(consistency_check_step);
     move_param(consistency_treatment);
 
     move_param(boundary_treatment);
 
     move_param(nwm);
-    move_param(nwm_wait);
+    move_param(nwm_time_start);
     move_param(nwm_wave_length);
     move_param(nwm_wave_magnitude);
 
@@ -166,6 +155,7 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
 }
 
 ModelParams load_model_params(const std::filesystem::path& experiment_directory) {
+    RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / ModelParams::filename;
 	if (!std::filesystem::exists(params_path)) {
 		throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };
@@ -223,9 +213,7 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_optional(average_velocity_coef);
     load_default(average_velocity_skf);
 
-    load_default(step_treatment);
-    load_optional(save_step);
-    load_optional(dump_step);
+    load_default(save_every_step);
     load_optional(save_time);
     load_optional(dump_time);
     load_optional(step_time_estimate);
@@ -233,13 +221,12 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_default(use_custom_time_estimate_step);
 
     load_default(consistency_check);
-    load_default(consistency_check_step);
     load_default(consistency_treatment);
 
     load(boundary_treatment);
 
     load_default(nwm);
-    load_default(nwm_wait);
+    load_default(nwm_time_start);
     load_optional(nwm_wave_length);
     load_optional(nwm_wave_magnitude);
 
@@ -262,6 +249,7 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
 
 
 void params_make_model_json(const std::filesystem::path& experiment_directory, const ModelParams& model_params) {
+    RR::Logger::printlog(__func__)();
     std::ofstream stream{ experiment_directory / ModelParams::filename };
     nlohmann::json json;
 
@@ -301,9 +289,7 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_not_null(average_velocity_coef);
     print_param(average_velocity_skf);
 
-    print_param(step_treatment);
-    print_not_null(save_step);
-    print_not_null(dump_step);
+    print_param(save_every_step);
     print_not_null(save_time);
     print_not_null(dump_time);
     print_not_null(step_time_estimate);
@@ -311,13 +297,12 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_param(use_custom_time_estimate_step);
 
     print_param(consistency_check);
-    print_param(consistency_check_step);
     print_param(consistency_treatment);
 
     print_param(boundary_treatment);
 
     print_param(nwm);
-    print_param(nwm_wait);
+    print_param(nwm_time_start);
 
     print_not_null(nwm_wave_length);
     print_not_null(nwm_wave_magnitude);

@@ -53,7 +53,7 @@ void dynamic_boundaries(
 		return;
 	}
 
-	rr_float phase = -params.nwm_freq * params.nwm_wait;
+	rr_float phase = -params.nwm_freq * params.nwm_time_start;
 	rr_float v_x = params.nwm_piston_magnitude * params.nwm_freq * cos(params.nwm_freq * time + phase);
 
 	for (rr_uint i = params.nwm_particles_start; i < params.nwm_particles_end; i++) {

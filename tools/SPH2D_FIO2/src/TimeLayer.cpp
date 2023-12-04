@@ -52,7 +52,8 @@ TimeLayer::TimeLayer(const std::filesystem::path& path, rr_uint ntotal) :
 		r,
 		itype,
 		v,
-		p) }
+		p) },
+	time{ std::stod(path.stem().string()) }
 {
 }
 

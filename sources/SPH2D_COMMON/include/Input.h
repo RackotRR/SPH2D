@@ -10,7 +10,7 @@ void fileInput(
 	heap_darray<rr_int>& itype,// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
-	rr_uint starttimestep,
+	const std::filesystem::path& initial_dump_path,
 	const std::filesystem::path& experiment_directory);
 
 // loading or generating initial particle information

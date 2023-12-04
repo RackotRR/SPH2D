@@ -63,7 +63,7 @@ __kernel void whole_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-	rr_float v_dt = timestep == params_starttimestep ? params_dt * 0.5f : params_dt;
+	rr_float v_dt = timestep == 0 ? params_dt * 0.5f : params_dt;
 	rr_float r_dt = params_dt;
 
 #if params_density_treatment == DENSITY_CONTINUITY
@@ -103,7 +103,7 @@ __kernel void nwm_dynamic_boundaries(
 	if (i >= params_nwm_particles_end) return;
 	if (i >= params_ntotal || i < params_nfluid) return;
 
-#define generator_phase (-params_nwm_freq * params_nwm_wait)
+#define generator_phase (-params_nwm_freq * params_nwm_time_start)
 	rr_float v_x = params_nwm_piston_magnitude * params_nwm_freq * cos(params_nwm_freq * time + generator_phase);
 
 	r[i].x = r[i].x + v_x * params_dt;

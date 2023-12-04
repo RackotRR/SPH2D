@@ -8,7 +8,7 @@
 #include "HeightTesting.h"
 #include "WaterProfileVersion.h"
 
-static void print_water_height(
+static void print_water_height_space(
     const std::filesystem::path& output_path,
     const std::vector<double>& heights,
     double x0, double x_k, 
@@ -19,6 +19,27 @@ static void print_water_height(
 
     for (int i = 0; i < heights.size(); i++) {
         double x = x_min + dx * i;
+        double y = heights[i];
+        float x_ = static_cast<float>((x - x0) * x_k);
+        float y_ = static_cast<float>((y - y0) * y_k);
+        csv_output << fmt::format("{},{}", x_, y_) << std::endl;
+    }
+
+    std::cout << output_path.filename() << " rdy" << std::endl;
+}
+static void print_water_height_time(
+    const std::filesystem::path& output_path,
+    const std::vector<double>& heights,
+    const sphfio::Grid::time_points_t& times,
+    double x0, double x_k, 
+    double y0, double y_k)
+{
+    assert(heights.size() == times.size());
+
+    std::ofstream csv_output{ output_path };
+
+    for (int i = 0; i < heights.size(); i++) {
+        double x = times[i];
         double y = heights[i];
         float x_ = static_cast<float>((x - x0) * x_k);
         float y_ = static_cast<float>((y - y0) * y_k);
@@ -74,10 +95,10 @@ int main() {
             for (double x : time_testing_params->x) {
                 auto result = testing.timeProfile(x, time_testing_params->search_n);
                 auto output_path = analysis_directory / fmt::format("time_at_{}_{}.csv", x, testing_params->postfix);
-                print_water_height(output_path, std::move(result),
+                print_water_height_time(output_path, 
+                    std::move(result), grid.time_points(),
                     time_testing_params->t0, time_testing_params->t_k,
-                    time_testing_params->y0, time_testing_params->y_k,
-                    0, params->dt * params->save_step);
+                    time_testing_params->y0, time_testing_params->y_k);
             }
         }
         else if (mode == "space") {
@@ -85,7 +106,7 @@ int main() {
             for (double t : space_testing_params->t) {
                 auto result = testing.spaceProfile(t, space_testing_params->search_n);
                 auto output_path = analysis_directory / fmt::format("space_at_{}_{}.csv", t, testing_params->postfix);
-                print_water_height(output_path, std::move(result),
+                print_water_height_space(output_path, std::move(result),
                     space_testing_params->x0, space_testing_params->x_k,
                     space_testing_params->y0, space_testing_params->y_k,
                     params->x_mingeom, params->delta);

@@ -27,3 +27,10 @@
 //       - add shared_darray type
 //       - consistency check refactoring
 //       - add version logging
+// 1.2.1 - add data output on SPH2DOutput setup (initial state)
+//       - fix output on every step
+//       - remove should_check_normal function
+//       - add TimeFormat module
+//       - move removing layers for showing into SPH2D_PARAMS
+// TODO:
+// 1.2.2 - add confirmation for deletion (suffix f to skip confirmation)

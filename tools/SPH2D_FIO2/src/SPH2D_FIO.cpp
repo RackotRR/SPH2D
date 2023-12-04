@@ -20,13 +20,13 @@ LazyGrid SPHFIO::makeLazyGrid() const {
 
 static void loadTimeLayers(
 	LayersPathPtr layers_path, 
-	const std::vector<rr_uint>& layers_num,
+	const ExperimentLayers& layers,
 	const std::filesystem::path& data_path) 
 {
 	layers_path->clear();
-	layers_path->reserve(layers_num.size());
-	for (auto& num : layers_num) {
-		layers_path->push_back(data_path / fmt::format("{}.csv", num));
+	layers_path->reserve(layers.count);
+	for (auto& layer : layers.paths) {
+		layers_path->push_back(data_path / layer.filename());
 	}
 }
 
@@ -36,12 +36,11 @@ SPHFIO::findTimeLayersPath() {
 	auto experiment = ExperimentStatistics::load(directories.getExperimentDirectory());
 	auto available_layers_path = std::make_shared<LayersPath>();
 
-	if (experiment.data_layers.size() > 0) {
+	if (!experiment.data_layers.empty()) {
 		loadTimeLayers(available_layers_path, experiment.data_layers, experiment.dir / "data");
 	}
-	else if (experiment.dump_layers.size() > 0) {
+	else if (!experiment.dump_layers.empty()) {
 		loadTimeLayers(available_layers_path, experiment.dump_layers, experiment.dir / "dump");
-		params->save_step = params->dump_step;
 	}
 	else {
 		std::cout << "No layers loaded!" << std::endl;

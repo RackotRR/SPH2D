@@ -93,14 +93,6 @@ void postFillInModelParams(ModelParams& model_params)
 			model_params.step_time_estimate = params.step_time_estimate = 1;
 		}
 	}
-	else {
-		if (params.step_treatment == STEPPING_TREATMENT_STEP) {
-			model_params.save_time = params.save_time = params.save_step * params.dt;
-			if (params.use_dump) {
-				model_params.dump_time = params.dump_time = params.dump_step * params.dt;
-			}
-		}
-	}
 
 	switch (params.nwm) {
 	case NWM_METHOD_DYNAMIC: 
@@ -150,7 +142,7 @@ void fileInput(
 	heap_darray<rr_int>& itype,// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid, // total fluid particles
-	rr_uint starttimestep,
+	const std::filesystem::path& initial_dump_path,
 	const std::filesystem::path& experiment_directory)
 {
 	SPH2DOutput::instance().initialize(experiment_directory);
@@ -184,12 +176,11 @@ void fileInput(
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
-	auto particles_data_path = experiment_directory / "dump" / fmt::format("{}.csv", starttimestep);
-	params.start_simulation_time = std::stod(particles_data_path.stem().string());
+	params.start_simulation_time = std::stod(initial_dump_path.stem().string());
 	fillInSPH2DParams();
 
 	std::cout << "read data...";
-	csv::CSVReader reader(particles_data_path.string());
+	csv::CSVReader reader(initial_dump_path.string());
 
 	size_t j = 0;
 	for (const auto& row : reader) {

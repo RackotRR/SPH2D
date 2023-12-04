@@ -20,5 +20,6 @@
 // 1.2.0 - new output manager (SPH2DOutput)
 //       - remove starttimestep param
 //       - remove maxtimestep param
+// 1.2.1 - fix timestep didn't increment
 // TODO:
 // 1.2   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)

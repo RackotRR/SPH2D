@@ -59,7 +59,7 @@ namespace ParamsGeneration {
 			set(beach_x);
 			set(nwm_particles_start);
 			set(nwm_particles_end);
-			set(nwm_wait);
+			set(nwm_time_start);
 			set(CFL_coef);
 			set(dt);
 			set(dt_correction_method);
@@ -99,16 +99,13 @@ namespace ParamsGeneration {
 			set(consistency_check);
 			set(consistency_treatment);
 			set(start_simulation_time);
-			set(consistency_check_step);
 			set(save_velocity);
 			set(save_pressure);
 			set(save_density);
-			set(save_step);
-			set(dump_step);
+			set(save_every_step);
 			set(save_time);
 			set(dump_time);
 			set(step_time_estimate);
-			set(step_treatment);
 			set(pi);
 			set(g);
 			set(experiment_name);

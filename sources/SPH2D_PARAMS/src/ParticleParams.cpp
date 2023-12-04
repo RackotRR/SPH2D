@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include <stdexcept>
+#include <RR/Logger/Logger.h>
 
 #include "ParticleParams.h"
 #include "Params.h"
@@ -18,6 +19,7 @@ void move_param_impl(T& params_param, const std::optional<T>& model_param) {
 }
 
 void apply_particle_params(ExperimentParams& experiment_params, const ParticleParams& particle_params) {
+    RR::Logger::printlog(__func__)();
     #define move_param(param) move_param_impl(experiment_params.param, particle_params.param)
 
     move_param(x_mingeom);
@@ -38,6 +40,7 @@ void apply_particle_params(ExperimentParams& experiment_params, const ParticlePa
 }
 
 ParticleParams load_particle_params(const std::filesystem::path& experiment_directory) {
+    RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / ParticleParams::filename;
 	if (!std::filesystem::exists(params_path)) {
 		throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };
@@ -89,6 +92,7 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
 
 
 void params_make_particles_json(const std::filesystem::path& experiment_directory, const ParticleParams& particle_params) {
+    RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / ParticleParams::filename;
 
     nlohmann::json json;

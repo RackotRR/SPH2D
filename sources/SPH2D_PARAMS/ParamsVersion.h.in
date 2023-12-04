@@ -90,11 +90,17 @@
 //          - add save_pressure param
 //          - add save_density param
 //          - sort result of searching for experiments
+//    3.0.5 - remove save_step param
+//          - remove dump_step param
+//          - remove stepping_treatment param
+//          - remove consistency_check_step param
+//          - add save_every_step param
+//          - rename nwm_wait -> nwm_time_start
+//          - add ExperimentLayers module
 // TODO:
-//    3.0.5 - move format line generation to SPH2DParamsGenerator
-//          - add repulsive SBT parameters
+//    3.0.5 - add repulsive SBT parameters
 //          - fix null piston_magnitude param
-//      3.1 - rename nwm_wait -> nwm_time_start
+//      3.1 
 //          - add nwm_time_stop param
 //          - add nwm_equation param
 //          - add nwm_direction param

@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include <RR/Logger/Logger.h>
+
 #include "SPH2DParams.h"
 #include "Params.h"
 
@@ -18,6 +20,7 @@ void move_param_impl(T& params_param, const std::optional<T>& model_param) {
 }
 
 void apply_SPH2DParams(ExperimentParams& experiment_params, const SPH2DParams& sph2D_params) {
+    RR::Logger::printlog(__func__)();
 #define move_param(param) move_param_impl(experiment_params.param, sph2D_params.param)
 
     move_param(start_simulation_time);
@@ -34,6 +37,7 @@ void apply_SPH2DParams(ExperimentParams& experiment_params, const SPH2DParams& s
 }
 
 SPH2DParams load_SPH2DParams(const std::filesystem::path& experiment_directory) {
+    RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / SPH2DParams::filename;
     if (!std::filesystem::exists(params_path)) {
         throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };
@@ -88,6 +92,7 @@ SPH2DParams load_SPH2DParams(const std::filesystem::path& experiment_directory) 
 
 
 void params_make_SPH2D_json(const std::filesystem::path& experiment_directory, const SPH2DParams& sph2D_params) {
+    RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / SPH2DParams::filename;
 
     nlohmann::json json;

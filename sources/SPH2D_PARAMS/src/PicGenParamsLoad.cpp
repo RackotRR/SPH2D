@@ -2,9 +2,11 @@
 #include <stdexcept>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <RR/Logger/Logger.h>
 #include "PicGenParams.h"
 
 PicGenParams load_pic_gen_params(const std::filesystem::path& experiment_directory) {
+    RR::Logger::printlog(__func__)();
 	auto params_path = experiment_directory / PicGenParams::filename;
 	if (!std::filesystem::exists(params_path)) {
 		throw std::runtime_error{ "No params file provided: '" + params_path.string() + "' expected" };

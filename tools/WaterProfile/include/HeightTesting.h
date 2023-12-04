@@ -64,10 +64,9 @@ public:
         int N = static_cast<int>(width / params->delta);
         std::vector<double> waves_height(N);
 
-        int layer_num = static_cast<int>(t / params->dt);
-        auto grid_iter = grid.find(layer_num);
+        auto grid_iter = grid.find(t);
         if (grid_iter == grid.end()) {
-            throw std::runtime_error{ fmt::format("error: searching for {} layer of {}", layer_num, grid.size()) };
+            throw std::runtime_error{ fmt::format("error: searching for {}s", t) };
         }
         auto& layer = *grid_iter;
 

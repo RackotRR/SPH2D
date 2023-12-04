@@ -289,7 +289,7 @@ void cl_time_integration(
         ).execute(params.maxn, params.local_threads);
 
 
-        if (params.nwm && time >= params.nwm_wait) {
+        if (params.nwm && time >= params.nwm_time_start) {
             printlog_debug("update boundaries")();
             switch (params.nwm) {
             case 2:

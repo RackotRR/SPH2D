@@ -129,7 +129,7 @@ void time_integration(
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		if (params.nwm && time >= params.nwm_wait) {
+		if (params.nwm && time >= params.nwm_time_start) {
 			make_waves(r, v, a, itype, nfluid, ntotal, time);
 		}
 
@@ -139,6 +139,7 @@ void time_integration(
 			itype, rho, v, r);
 
 		time += params.dt;
+		itimestep++;
 		SPH2DOutput::instance().finish_step();
 		SPH2DOutput::instance().update_step(time, itimestep);
 	}

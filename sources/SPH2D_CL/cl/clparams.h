@@ -38,7 +38,7 @@
 #define params_beach_x 0.0000000000f
 #define params_nwm_particles_start 40319
 #define params_nwm_particles_end 42842
-#define params_nwm_wait 2.0000000000f
+#define params_nwm_time_start 2.0000000000f
 #define params_CFL_coef 0.1250000000f
 #define params_dt 0.0000002780f
 #define params_dt_correction_method 1

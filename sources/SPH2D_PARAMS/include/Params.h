@@ -63,7 +63,7 @@ struct ExperimentParams {
 
 	rr_uint nwm_particles_start{};
 	rr_uint nwm_particles_end{};
-	rr_float nwm_wait{};
+	rr_float nwm_time_start{};
 
 	rr_float CFL_coef{};
 	rr_float dt{};
@@ -157,23 +157,18 @@ struct ExperimentParams {
 	// 1 - stop on not normal
 	// 2 - try to fix
 	rr_uint consistency_treatment{ CONSISTENCY_STOP };
-	rr_uint consistency_check_step{}; // step for checking boundaries and finite values
 	bool consistency_check{ true };
 
 	/// control parameters for output
 	rr_float start_simulation_time{ 0.f };
 
-	// 0 - steps from time layers
-	// 1 - steps from seconds
-	rr_uint step_treatment{ STEPPING_TREATMENT_STEP };
-	rr_uint save_step{}; // save timestep (on disk)
 	rr_float save_time{};
+	bool save_every_step{ false };
 	bool save_velocity{ true };
 	bool save_pressure{ true };
 	bool save_density{ true };
 
 	bool use_dump{ false };
-	rr_uint dump_step{};
 	rr_float dump_time{};
 
 	bool use_custom_time_estimate_step{ false };

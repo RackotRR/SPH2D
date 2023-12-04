@@ -12,3 +12,4 @@
 // 2.2.1 - remove yotx support
 //       - add postfix param for output file name
 //       - add support for several testings from one params file
+// 2.2.2 - update with arbitrary time step

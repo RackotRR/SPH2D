@@ -8,6 +8,7 @@
 #include "Output.h"
 #include "ConsistencyCheck.h"
 #include "TimeEstimate.h"
+#include "TimeFormat.h"
 
 template<typename T>
 static void check_passed_consistency(const shared_darray<T>& arr, bool need) {
@@ -43,6 +44,24 @@ void SPH2DOutput::setup_output(
 	this->load_v = load_v;
 	this->load_p = load_p;
 	this->load_rho = load_rho;
+	this->save_time_decimal_digits = format_count_decimal_digits(params.save_time);
+	this->dump_time_decimal_digits = format_count_decimal_digits(params.dump_time);
+
+	// first layer output
+	auto r = load_r();
+	auto itype = load_itype();
+	shared_darray<rr_float2> v = params.save_velocity ? load_v() : nullptr;
+	shared_darray<rr_float> rho = params.save_density ? load_rho() : nullptr;
+	shared_darray<rr_float> p = params.save_pressure ? load_p() : nullptr;
+
+	output(
+		r,
+		itype,
+		v,
+		rho,
+		p,
+		0,
+		0);
 }
 
 std::vector<std::string> SPH2DOutput::make_csv_header(
@@ -152,6 +171,7 @@ void SPH2DOutput::dump(
 	check_passed_consistency(rho, true);
 	check_passed_consistency(p, true);
 
+	std::string t = format_time_digits(time, dump_time_decimal_digits);
 	thread_pool.add_thread(
 		std::thread(&SPH2DOutput::print_dump, this,
 			r,
@@ -159,9 +179,9 @@ void SPH2DOutput::dump(
 			v,
 			rho,
 			p,
-			dump_path / fmt::format("{}.csv", time)));
+			dump_path / fmt::format("{}.csv", t)));
 
-	std::cout << fmt::format("dump: {} ({}s)", itimestep, time) << std::endl;
+	std::cout << fmt::format("dump: {} ({}s)", itimestep, t) << std::endl;
 }
 
 void SPH2DOutput::crash_dump(
@@ -181,6 +201,7 @@ void SPH2DOutput::crash_dump(
 	check_passed_consistency(rho, true);
 	check_passed_consistency(p, true);
 
+	std::string t = format_time_digits(time, dump_time_decimal_digits);
 	thread_pool.add_thread(
 		std::thread(&SPH2DOutput::print_dump, this,
 			r,
@@ -188,9 +209,9 @@ void SPH2DOutput::crash_dump(
 			v,
 			rho,
 			p,
-			experiment_path / fmt::format("crash_dump_{}.csv", time)));
+			experiment_path / fmt::format("crash_dump_{}.csv", t)));
 
-	std::cout << fmt::format("crash dump: {} ({}s)", itimestep, time) << std::endl;
+	std::cout << fmt::format("crash dump: {} ({}s)", itimestep, t) << std::endl;
 }
 
 void SPH2DOutput::output(
@@ -210,6 +231,7 @@ void SPH2DOutput::output(
 	check_passed_consistency(rho, params.save_density);
 	check_passed_consistency(p, params.save_pressure);
 
+	std::string t = format_time_digits(time, save_time_decimal_digits);
 	thread_pool.add_thread(
 		std::thread(&SPH2DOutput::print, this,
 			r,
@@ -217,9 +239,9 @@ void SPH2DOutput::output(
 			v,
 			rho,
 			p,
-			data_path / fmt::format("{}.csv", time)));
+			data_path / fmt::format("{}.csv", t)));
 
-	std::cout << fmt::format("output: {} ({}s)", itimestep, time) << std::endl;
+	std::cout << fmt::format("output: {} ({}s)", itimestep, t) << std::endl;
 }
 
 void SPH2DOutput::start_step() {
@@ -236,9 +258,11 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 	assert(load_p);
 	assert(load_rho);
 
-	bool should_save = itimestep && (time - last_save_time) > params.save_time;
-	bool should_dump = params.use_dump && itimestep && (time - last_dump_time) > params.dump_time;
-	bool should_check = params.consistency_check && itimestep % params.consistency_check_step == 0;
+	bool should_save = (time - last_save_time) > params.save_time;
+	if (params.save_every_step) should_save = true;
+
+	bool should_dump = params.use_dump && (time - last_dump_time) > params.dump_time;
+	bool should_check = params.consistency_check;
 
 	if (should_save || should_dump || should_check) {
 
@@ -284,6 +308,7 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 				params.save_pressure ? p_temp : nullptr,
 				itimestep,
 				time);
+			last_save_time = time;
 		}
 
 		if (should_dump) {
@@ -295,6 +320,7 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 				p_temp,
 				itimestep,
 				time);
+			last_dump_time = time;
 		}
 	}
 

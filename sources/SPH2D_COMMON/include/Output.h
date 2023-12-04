@@ -96,4 +96,7 @@ private:
 	func_load_arr_float2 load_v;
 	func_load_arr_float load_p;
 	func_load_arr_float load_rho;
+
+	int save_time_decimal_digits;
+	int dump_time_decimal_digits;
 };

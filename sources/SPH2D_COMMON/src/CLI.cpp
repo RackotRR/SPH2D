@@ -7,22 +7,6 @@
 #include "Input.h"
 #include "ParamsIO.h"
 
-static std::vector<std::string> findTimeLayersPath(const std::filesystem::path& directory, int save_step, int start = 0) {
-	std::vector<std::string> meta;
-	int current_step = start;
-	while (true) {
-		auto path = directory / (std::to_string(current_step) + ".csv");
-		if (std::filesystem::exists(path)) {
-			meta.emplace_back(path.filename().string());
-			current_step += save_step;
-		}
-		else {
-			break;
-		}
-	}
-	return meta;
-}
-
 bool overrideDirectory(const std::string& experiment_name) {
 	while (true) {
 		std::cout << "Would you like to write here?: " << experiment_name << std::endl;
@@ -40,25 +24,22 @@ bool overrideDirectory(const std::string& experiment_name) {
 	}
 }
 
-static void removeLaterLayers(rr_uint min_layer, 
-	const std::filesystem::path& layers_path, 
-	const std::vector<rr_uint>& layers) 
-{
-	auto iter = std::find(layers.begin(), layers.end(), min_layer);
-	if (iter != layers.end()) ++iter;
-	for (; iter != layers.end(); ++iter) {
-		auto path_to_remove = layers_path / fmt::format("{}.csv", *iter);
-		std::filesystem::remove(path_to_remove);
-		std::cout << "layer " << path_to_remove.stem() << " removed" << std::endl;
-	}
-}
-
 static std::string getDirectoryToSearch() {
 	std::cout << "Directory to search: " << std::endl;
 	std::cout << "> ";
 	std::string user_directory;
 	std::getline(std::cin, user_directory);
 	return user_directory;
+}
+
+static void printAvailableDumps(const ExperimentStatistics& experiment) {
+	std::cout << "found " << experiment.dump_layers.count << " dumps:" << std::endl;
+	auto& dump_layers = experiment.dump_layers;
+	for (int j = 0; j < dump_layers.count; ++j) {
+		auto& dump_path = dump_layers.paths[j]; 
+		auto dump_name = dump_path.stem().string();
+		std::cout << fmt::format("[{}]: {}", j, dump_name) << std::endl;
+	}
 }
 
 // loading or generating initial particle information
@@ -76,7 +57,8 @@ void cli(
 		throw std::runtime_error{ "Can't find any experiment in here: " + std::filesystem::current_path().string() };
 	} // no experiments in directory
 
-	auto experiment_indices = enumerate_experiments(experiments, ExperimentEnumerateCondition::experiment_params);
+	auto experiment_indices = enumerate_experiments(experiments, 
+		ExperimentEnumerateCondition::experiment_params);
 
 	for (;;) {
 		std::cout << "Type experiment number you want to load: " << std::endl;
@@ -95,11 +77,8 @@ void cli(
 
 			int dump_num = 0;
 
-			if (experiment.dump_layers.size() > 1) {
-				std::cout << "found " << experiment.dump_layers.size() << " dumps:" << std::endl;
-				for (int j = 0; int dump : experiment.dump_layers) {
-					std::cout << fmt::format("[{}]: {}", j++, dump) << std::endl;
-				}
+			if (experiment.dump_layers.count > 1) {
+				printAvailableDumps(experiment);
 
 				std::cout << "Write dump number to load" << std::endl;
 				std::cout << "> ";
@@ -107,7 +86,7 @@ void cli(
 				std::cin >> dump_num;
 				std::cin.get();
 
-				if (dump_num < 0 || dump_num >= experiment.dump_layers.size()) {
+				if (dump_num < 0 || dump_num >= experiment.dump_layers.count) {
 					std::cout << "Wrong number provided!" << std::endl;
 					break;
 				}
@@ -116,12 +95,12 @@ void cli(
 				std::cout << "No layers to load!" << std::endl;
 				break;
 			}
-							
-			rr_uint chosen_dump = experiment.dump_layers[dump_num];
-			removeLaterLayers(chosen_dump, experiment.dir / "data", experiment.data_layers);
-			removeLaterLayers(chosen_dump, experiment.dir / "dump", experiment.dump_layers);
 
-			fileInput(r, v, rho, p, itype, ntotal, nfluid, chosen_dump, experiment.dir);
+			std::cout << "before removing" << std::endl;
+			experiment.remove_layers_after_dump(dump_num);
+			std::cout << "after removing" << std::endl;
+			auto initial_dump_path = experiment.dump_layers.paths[dump_num];
+			fileInput(r, v, rho, p, itype, ntotal, nfluid, initial_dump_path, experiment.dir);
 			return;
 		} while (false);
 	}

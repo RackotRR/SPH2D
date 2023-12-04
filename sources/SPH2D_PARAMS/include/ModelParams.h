@@ -37,9 +37,7 @@ struct ModelParams {
     opt_float average_velocity_coef;
     rr_uint average_velocity_skf{ SKF_CUBIC };
 
-    rr_uint step_treatment{ STEPPING_TREATMENT_STEP };
-    opt_uint save_step;
-    opt_uint dump_step;
+    bool save_every_step{ false };
     opt_float save_time;
     opt_float dump_time;
     opt_uint step_time_estimate;
@@ -47,13 +45,12 @@ struct ModelParams {
     bool use_custom_time_estimate_step{ false };
 
     bool consistency_check{ true };
-    rr_uint consistency_check_step{ 1 };
     rr_uint consistency_treatment{ CONSISTENCY_STOP };
 
     rr_uint boundary_treatment;
 
     rr_uint nwm{ NWM_NO_WAVES };
-    rr_float nwm_wait{ 0 };
+    rr_float nwm_time_start{ 0 };
     opt_float nwm_wave_length;
     opt_float nwm_wave_magnitude;
 

@@ -112,9 +112,8 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
         val += findValue(rj, value, time_layer,
             time_layer.r, rho, grid, cell_starts_in_grid);
 
-        double time = params->dt * params->save_step * t;
-        output << fmt::format("({}; {})", time, val) << std::endl;
-        csv_output << fmt::format("{},{}", time, val) << std::endl;
+        output << fmt::format("({}; {})", time_layer.time, val) << std::endl;
+        csv_output << fmt::format("{},{}", time_layer.time, val) << std::endl;
         ++t;
     } // time_layer
 }

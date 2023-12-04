@@ -9,12 +9,6 @@
 #define MODEL_PARAMS_JSON "ModelParams.json"
 #define PIC_GEN_PARAMS_JSON "PicGenParams.json"
 
-bool ExperimentStatistics::can_be_loaded() const {
-    return particle_params.has_value() && 
-		model_params.has_value() &&
-		!dump_layers.empty();
-}
-
 static std::optional<ParticleParams> 
 try_load_particle_params(const std::filesystem::path& experiment_directory) {
 	try {
@@ -35,23 +29,6 @@ try_load_model_params(const std::filesystem::path& experiment_directory) {
 	}
 }
 
-static std::vector<rr_uint> find_layers(const std::filesystem::path& directory) {
-	std::vector<rr_uint> layers;
-	if (std::filesystem::exists(directory)) {
-
-		for (auto& entry : std::filesystem::directory_iterator{ directory }) {
-			if (entry.is_regular_file() && entry.path().extension() == ".csv")
-			{
-				layers.emplace_back(std::stoi(entry.path().stem().string()));
-			}
-		}
-
-	}
-
-	std::sort(layers.begin(), layers.end());
-	return layers;
-}
-
 static bool particle_params_presented(const std::filesystem::path& search_directory) {
 	auto particle_params_path = search_directory / PARTICLE_PARAMS_JSON;
 	return std::filesystem::exists(particle_params_path);
@@ -70,7 +47,23 @@ static bool any_param_file_presented(const std::filesystem::path& search_directo
 		pic_gen_params_presented(search_directory);
 }
 static bool experiment_params_presented(const std::filesystem::path& search_directory) {
-	return particle_params_presented(search_directory) && model_params_presented(search_directory);
+	return particle_params_presented(search_directory) && 
+		model_params_presented(search_directory);
+}
+
+bool ExperimentStatistics::can_be_loaded() const {
+    return particle_params.has_value() && 
+		model_params.has_value() &&
+		!dump_layers.empty();
+}
+
+void ExperimentStatistics::remove_layers_after_time(rr_float time) {
+	data_layers.remove_after_time(time);
+	dump_layers.remove_after_time(time);
+}
+void ExperimentStatistics::remove_layers_after_dump(int dump_num) {
+	data_layers.remove_after_dump(dump_num);
+	dump_layers.remove_after_dump(dump_num);
 }
 
 ExperimentStatistics ExperimentStatistics::load(const std::filesystem::path& experiment_directory) {
@@ -78,8 +71,8 @@ ExperimentStatistics ExperimentStatistics::load(const std::filesystem::path& exp
 	experiment.dir = experiment_directory;
 	experiment.model_params = try_load_model_params(experiment_directory);
 	experiment.particle_params = try_load_particle_params(experiment_directory);
-	experiment.data_layers = find_layers(experiment_directory / "data");
-	experiment.dump_layers = find_layers(experiment_directory / "dump");
+	experiment.data_layers = ExperimentLayers{ experiment_directory / "data" };
+	experiment.dump_layers = ExperimentLayers{ experiment_directory / "dump" };
 	return experiment;
 }
 
@@ -94,7 +87,7 @@ Experiments find_experiments(const std::filesystem::path& search_directory) {
 	}
 	
 	for (auto& path : sorted_path) {
-			experiments.push_back(ExperimentStatistics::load(path));
+		experiments.push_back(ExperimentStatistics::load(path));
 	}
 
 	return experiments;
@@ -106,8 +99,8 @@ std::vector<int> enumerate_experiments(const Experiments& experiments, Experimen
 	int count_enumerated = 0;
 	for (int i = 0; auto& experiment : experiments) {
 		auto name = experiment.dir.stem().string();
-		auto data_layers = experiment.data_layers.size();
-		auto dump_layers = experiment.dump_layers.size();
+		auto data_layers = experiment.data_layers.count;
+		auto dump_layers = experiment.dump_layers.count;
 
 		bool enumerate = true;
 		switch (condition) {
@@ -129,11 +122,13 @@ std::vector<int> enumerate_experiments(const Experiments& experiments, Experimen
 		}
 
 		if (enumerate) {
-			std::cout << fmt::format("[{}] {}: ({}/{}) data/dump layers", count_enumerated++, name, data_layers, dump_layers) << std::endl;
+			std::cout << fmt::format("[{}] {}: ({}/{}) data/dump layers", 
+				count_enumerated++, name, data_layers, dump_layers) << std::endl;
 			experiment_indices.push_back(i);
 		}
 		else {
-			std::cout << fmt::format("[-] {}: ({}/{}) data/dump layers", name, data_layers, dump_layers) << std::endl;
+			std::cout << fmt::format("[-] {}: ({}/{}) data/dump layers", 
+				name, data_layers, dump_layers) << std::endl;
 		}
 
 		i++;

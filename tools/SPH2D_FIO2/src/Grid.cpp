@@ -7,12 +7,16 @@ using ParamsPtr = std::shared_ptr<ExperimentParams>;
 
 Grid::Grid(LayersPathPtr available_layers_path, ParamsPtr params) :
 	params{ params },
-	grid{ std::vector<TimeLayer>(available_layers_path->size()) } 
+	grid{ std::vector<TimeLayer>(available_layers_path->size()) },
+	time_points_{ std::vector<rr_float>(available_layers_path->size()) }
 {
 #pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < grid.size(); ++i) {
 		std::cout << fmt::format("layer {} / {}...\n", i, grid.size());
 		grid[i] = TimeLayer{ available_layers_path->at(i), params->ntotal };
+
+		// expect time layer name represents time moment
+		time_points_[i] = std::stod(available_layers_path->at(i).stem().string());
 	}
 	std::cout << "grid is loaded" << std::endl << std::endl;
 }
@@ -30,13 +34,13 @@ std::vector<TimeLayer>::iterator Grid::end() {
 	return grid.end();
 }
 
-std::vector<TimeLayer>::const_iterator Grid::find(size_t layer_num) const {
-	size_t i = layer_num / params->save_step;
-
-	if (i >= grid.size()) {
+std::vector<TimeLayer>::const_iterator Grid::find(rr_float time) const {
+	auto iter = std::lower_bound(time_points_.begin(), time_points_.end(), time);
+	if (iter == time_points_.end()) {
 		return grid.end();
 	}
 	else {
+		size_t i = iter - time_points_.begin();
 		return std::next(grid.begin(), i);
 	}
 }
@@ -50,4 +54,7 @@ size_t Grid::size() const {
 }
 bool Grid::empty() const {
 	return size() == 0;
+}
+const Grid::time_points_t& Grid::time_points() const {
+	return time_points_;
 }

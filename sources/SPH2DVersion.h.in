@@ -139,5 +139,20 @@
 //       - RRSPH2D: add TsunamiGenerator script
 //       - RRSPH2D: remove SPH2DParamsGenerator copy on systems other than Windows
 //       - SPH2D_PARAMS: sort result of searching for experiments
+// 3.0.5 - SPH2D_COMMON: add data output on SPH2DOutput setup (initial state)
+//       -               fix output on every step
+//       -               remove should_check_normal function
+//       -               add TimeFormat module
+//       -               move removing layers for showing into SPH2D_PARAMS
+//       - SPH2D_PARAMS: remove save_step param
+//       -               remove dump_step param
+//       -               remove stepping_treatment param
+//       -               remove consistency_check_step param
+//       -               add save_every_step param
+//       -               rename nwm_wait -> nwm_time_start
+//       -               add ExperimentLayers module
+//       - SPH2D_FIO: Grid find methods from now on receive time instead of layer num
+//       -            add time as TimeLayer field
+//
 // TODO:
 // 3.1.0 - Change logging library

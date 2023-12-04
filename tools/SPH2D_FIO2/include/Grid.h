@@ -21,11 +21,13 @@ namespace sphfio {
 		RR::Memory::heap_darray<rr_float> p;
 
 		rr_uint ntotal = 0;
+		rr_float time = 0;
 
 		rr_float getByTag(const std::string& value, rr_uint i) const;
 	};
 
 	struct LazyGrid {
+		using time_points_t = std::vector<rr_float>;
 		LazyGrid(LayersPathPtr available_layers_path, ParamsPtr params);
 
 		class Iterator {
@@ -45,16 +47,20 @@ namespace sphfio {
 		Iterator begin() const;
 		Iterator end() const;
 
-		Iterator find(size_t layer_num) const;
+		Iterator find(rr_float time) const;
 
 		size_t size() const;
 		bool empty() const;
+		const time_points_t& time_points() const;
 	private:
 		LayersPathPtr available_layers_path;
 		ParamsPtr params;
+		std::vector<rr_float> time_points_;
 	};
 
 	struct Grid {
+		using time_points_t = std::vector<rr_float>;
+
 		Grid(LayersPathPtr available_layers_path, ParamsPtr params);
 
 		std::vector<TimeLayer>::const_iterator begin() const;
@@ -62,13 +68,15 @@ namespace sphfio {
 		std::vector<TimeLayer>::iterator begin();
 		std::vector<TimeLayer>::iterator end();
 
-		std::vector<TimeLayer>::const_iterator find(size_t layer_num) const;
+		std::vector<TimeLayer>::const_iterator find(rr_float time) const;
 
 		const TimeLayer& at(size_t layer_num) const;
 		size_t size() const;
 		bool empty() const;
+		const time_points_t& time_points() const;
 	private:
 		ParamsPtr params;
 		std::vector<TimeLayer> grid;
+		std::vector<rr_float> time_points_;
 	};
 }
