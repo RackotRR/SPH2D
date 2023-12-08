@@ -32,5 +32,8 @@
 //       - remove should_check_normal function
 //       - add TimeFormat module
 //       - move removing layers for showing into SPH2D_PARAMS
+// 1.2.2 - fix TimeFormat
+//       - use TimeFormat in TimeEstimate module
+//       - move logging time into SPH2DOutput
 // TODO:
-// 1.2.2 - add confirmation for deletion (suffix f to skip confirmation)
+// 1.2.3 - add confirmation for deletion (suffix f to skip confirmation)

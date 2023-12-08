@@ -23,7 +23,6 @@ ExperimentLayers::ExperimentLayers(const std::filesystem::path& experiment_direc
 
 	auto sorted_layers = find_layers(experiment_directory);
 	count = sorted_layers.size();
-	std::cout << experiment_directory << " - found layers: " << count << std::endl;
 
 	paths.reserve(count);
 	times.reserve(count);

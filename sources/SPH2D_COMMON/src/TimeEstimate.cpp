@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fmt/format.h>
 #include "TimeEstimate.h"
+#include "TimeFormat.h"
 
 using namespace std::chrono_literals;
 
@@ -40,7 +41,7 @@ void print_time_estimate(std::chrono::nanoseconds total_time_took, rr_float curr
 	nanoseconds time_left = duration_cast<nanoseconds>(total_time_took * time_took_coef);
 
 	std::cout << fmt::format("{} / {} (part: {}) {{ passed: {}; est: {} }}",
-		current_time,
+		format_save_time(current_time, params.save_time),
 		params.simulation_time,
 		params.ntotal,
 		get_time_in_appropriate_form(total_time_took),

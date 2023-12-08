@@ -168,8 +168,7 @@ void cl_time_integration(
         std::bind(load_array<rr_float>, rho_));
 
     while (time <= params.simulation_time) {
-        printlog()(fmt::format("time: {}/{} s", time, params.simulation_time))();
-        SPH2DOutput::instance().start_step();
+        SPH2DOutput::instance().start_step(time);
 
         printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(

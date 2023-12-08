@@ -71,8 +71,7 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
     }
 
     const auto& directories = sphfio.directories;
-    std::ofstream output{ directories.getAnalysisDirectory() / fmt::format("func_{}_at_{}_{}.txt", value, x, y) };
-    std::ofstream csv_output{ directories.getAnalysisDirectory() / fmt::format("func_{}_at_{}_{}.csv", value, x, y) };
+    std::ofstream output{ directories.getAnalysisDirectory() / fmt::format("func_{}_at_{}_{}.csv", value, x, y) };
 
     rr_float2 rj = { (rr_float)x, (rr_float)y };
     rr_uint maxn = params->maxn;
@@ -112,8 +111,7 @@ void calculate(const sphfio::SPHFIO& sphfio, const std::string& value, double x,
         val += findValue(rj, value, time_layer,
             time_layer.r, rho, grid, cell_starts_in_grid);
 
-        output << fmt::format("({}; {})", time_layer.time, val) << std::endl;
-        csv_output << fmt::format("{},{}", time_layer.time, val) << std::endl;
+        output << fmt::format("{},{}", time_layer.time, val) << std::endl;
         ++t;
     } // time_layer
 }

@@ -99,7 +99,7 @@ void HeightTestingParams::generate_default(const std::filesystem::path& experime
 		json["x"] = nullptr;
 		json["x0"] = 0;
 		json["x_k"] = 1;
-		json["y0"] = 1;
+		json["y0"] = 0;
 		json["y_k"] = 1;
 		json["t0"] = nullptr;
 		json["t_k"] = nullptr;

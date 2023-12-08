@@ -21,7 +21,7 @@ void update_repulsive_force_part(rr_uint ntotal,
 	{
 		// type > 0 --- material particle
 		// type < 0 --- virtual particle   
-		if (itype(i) < 0) {
+		if (itype(fluid_particle_idx) > 0 && itype(i) < 0) {
 
 			// rr --- distance between particles
 			rr_float2 dr = r(fluid_particle_idx) - r(i);

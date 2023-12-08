@@ -153,6 +153,21 @@
 //       -               add ExperimentLayers module
 //       - SPH2D_FIO: Grid find methods from now on receive time instead of layer num
 //       -            add time as TimeLayer field
-//
+// 3.0.6 - RRSPH2D: add anPlot script for plotting analysis results
+//       - SPH2D_COMMON: fix TimeFormat
+//       -               use TimeFormat in TimeEstimate module
+//       -               move logging time into SPH2DOutput
+//       - SPH2D_PARAMS: print SPH2D and SPH2D_PARAMS version in SPH2DParams file
+//       - SPH2D_OMP: fix ExternalForce consider non-existent particles
+//       - WaterProfile: fix naming without postfix
+//       -               fix default HeightTestingParams
+//       - FuncAtPoint: remove non-csv output
 // TODO:
-// 3.1.0 - Change logging library
+// 3.1   - RRSPH2D: add files prefix of subproject
+//       - RRSPH2D: add subprojects version info for every SPH2D release
+//       - SPH2D_FIO: conditional time layers selection
+//       - SPH2D_PARAMS: add SPH2DFIO_Params
+//       - SPH2D_COMMON: fix large experiment loading error
+//       - Change logging library
+//       - Add release tag instead of one commit for release
+//       - Add release build on github before switching to new minor or major version

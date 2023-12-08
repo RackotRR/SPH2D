@@ -96,9 +96,7 @@ void cli(
 				break;
 			}
 
-			std::cout << "before removing" << std::endl;
 			experiment.remove_layers_after_dump(dump_num);
-			std::cout << "after removing" << std::endl;
 			auto initial_dump_path = experiment.dump_layers.paths[dump_num];
 			fileInput(r, v, rho, p, itype, ntotal, nfluid, initial_dump_path, experiment.dir);
 			return;

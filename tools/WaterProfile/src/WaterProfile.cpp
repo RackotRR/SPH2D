@@ -94,7 +94,7 @@ int main() {
             auto time_testing_params = std::static_pointer_cast<TimeTestingParams>(testing_params);
             for (double x : time_testing_params->x) {
                 auto result = testing.timeProfile(x, time_testing_params->search_n);
-                auto output_path = analysis_directory / fmt::format("time_at_{}_{}.csv", x, testing_params->postfix);
+                auto output_path = analysis_directory / fmt::format("time_at_{}{}.csv", x, testing_params->postfix);
                 print_water_height_time(output_path, 
                     std::move(result), grid.time_points(),
                     time_testing_params->t0, time_testing_params->t_k,
@@ -105,7 +105,7 @@ int main() {
             auto space_testing_params = std::static_pointer_cast<SpaceTestingParams>(testing_params);
             for (double t : space_testing_params->t) {
                 auto result = testing.spaceProfile(t, space_testing_params->search_n);
-                auto output_path = analysis_directory / fmt::format("space_at_{}_{}.csv", t, testing_params->postfix);
+                auto output_path = analysis_directory / fmt::format("space_at_{}{}.csv", t, testing_params->postfix);
                 print_water_height_space(output_path, std::move(result),
                     space_testing_params->x0, space_testing_params->x_k,
                     space_testing_params->y0, space_testing_params->y_k,

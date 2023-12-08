@@ -244,7 +244,11 @@ void SPH2DOutput::output(
 	std::cout << fmt::format("output: {} ({}s)", itimestep, t) << std::endl;
 }
 
-void SPH2DOutput::start_step() {
+void SPH2DOutput::start_step(rr_float time) {
+	printlog()(fmt::format("time: {}/{} s", 
+		format_save_time(time, params.save_time), 
+		params.simulation_time))();
+
 	timer.start();
 }
 void SPH2DOutput::finish_step() {

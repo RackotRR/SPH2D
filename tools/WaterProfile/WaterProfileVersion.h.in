@@ -13,3 +13,5 @@
 //       - add postfix param for output file name
 //       - add support for several testings from one params file
 // 2.2.2 - update with arbitrary time step
+// 2.2.3 - fix naming without postfix
+//       - fix default HeightTestingParams

@@ -1,5 +1,6 @@
 #include "CommonIncl.h"
 #include "Output.h"
+#include "TimeFormat.h"
 #include "UpdateAcceleration.h"
 #include "ConsistencyCheck.h"
 #include "WaveMaker.h"
@@ -115,8 +116,7 @@ void time_integration(
 		std::bind(make_shared_darray_copy<rr_float>, std::cref(rho)));
 
 	while (time <= params.simulation_time) {
-		printlog()(fmt::format("time: {}/{} s", time, params.simulation_time))();
-		SPH2DOutput::instance().start_step();
+		SPH2DOutput::instance().start_step(time);
 
 		predict_half_step(ntotal,
 			itype,

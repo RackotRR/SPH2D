@@ -112,12 +112,12 @@ def generate_fluid_particles(fill : bool, r, v, rho, p, itype, start_i):
 
     # ground
     for x in X:
-        y0 = beach_y(x) + 4 * delta 
-        particles_in_column = max(y_fluid_max - y0, 0.0)
-        for y_i in range(int(particles_in_column)):
+        y = beach_y(x) + 4 * delta 
+        while y < y_fluid_max:
             if fill:
                 r[0, i] = x
-                r[1, i] = y0 + y_i * delta
+                r[1, i] = y
+            y += delta
             i = i + 1
 
     if fill:

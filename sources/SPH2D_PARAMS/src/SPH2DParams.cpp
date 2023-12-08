@@ -122,6 +122,13 @@ void params_make_SPH2D_json(const std::filesystem::path& experiment_directory, c
     print_not_null(nwm_freq);
     print_not_null(nwm_piston_magnitude);
 
+    json["SPH2D_VERSION_MAJOR"] = SPH2D_VERSION_MAJOR;
+    json["SPH2D_VERSION_MINOR"] = SPH2D_VERSION_MINOR;
+    json["SPH2D_VERSION_PATCH"] = SPH2D_VERSION_PATCH;
+    json["SPH2D_PARAMS_VERSION_MAJOR"] = SPH2D_PARAMS_VERSION_MAJOR;
+    json["SPH2D_PARAMS_VERSION_MINOR"] = SPH2D_PARAMS_VERSION_MINOR;
+    json["SPH2D_PARAMS_VERSION_PATCH"] = SPH2D_PARAMS_VERSION_PATCH;
+
     std::ofstream stream{ params_path };
     stream << json.dump(4) << std::endl;
 

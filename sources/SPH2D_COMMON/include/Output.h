@@ -26,7 +26,7 @@ public:
 		func_load_arr_float load_p,
 		func_load_arr_float load_rho);
 
-	void start_step();
+	void start_step(rr_float time);
 	void finish_step();
 	void update_step(rr_float time, rr_uint itimestep);
 
