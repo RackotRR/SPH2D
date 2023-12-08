@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(WaterProfile VERSION 2.1.0)
+project(WaterProfile VERSION 2.2.3)
 
 add_executable(WaterProfile
     src/WaterProfile.cpp 

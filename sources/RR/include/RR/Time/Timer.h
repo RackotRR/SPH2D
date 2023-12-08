@@ -53,8 +53,8 @@ namespace RR {
         }
 
         template<typename TimeType = _timeType>
-        long long total() const {
-            return std::chrono::duration_cast<TimeType>(_sum).count();
+        TimeType total() const {
+            return std::chrono::duration_cast<TimeType>(_sum);
         }
     private:
         std::chrono::steady_clock::time_point _start{};

@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
-#include <Params.h>
+#include <filesystem>
+#include <unordered_set>
+#include "Params.h"
 
 #include "Grid.h"
 #include "Directories.h"
@@ -23,7 +25,7 @@ namespace sphfio {
 	class SPHFIO {
 	public:
 		SPHFIO();
-		SPHFIO(const std::string& experiment_name);
+		SPHFIO(const std::filesystem::path& experiment_dir);
 
 		ParamsPtr getParams() const;
 
@@ -35,10 +37,12 @@ namespace sphfio {
 		const Directories directories;
 	private:
 		ParamsPtr loadExperimentParams();
-		static LayersPathPtr findTimeLayersPath(ParamsPtr params);
+		LayersPathPtr findTimeLayersPath();
+		std::unordered_set<std::string> findAvailableVariables(ParamsPtr params);
 	private:
 		ParamsPtr params;
 		LayersPathPtr available_layers_path;
+		std::unordered_set<std::string> available_variables;
 	};
 
 }

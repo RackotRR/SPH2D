@@ -1,37 +1,37 @@
 #pragma once
 #include <string>
+#include <filesystem>
 
 namespace sphfio {
 
 	class Directories {
 	public:
-		Directories(std::string experiment_name);
+		Directories(std::filesystem::path experiment_path);
 
-		const std::string& getExperimentName() const {
-			return experiment_name;
+		std::filesystem::path getExperimentName() const {
+			return experiment_directory.stem();
 		}
-		const std::string& getExperimentDirectory() const {
+		const std::filesystem::path& getExperimentDirectory() const {
 			return experiment_directory;
 		}
-		const std::string& getAnalysisDirectory() const {
+		const std::filesystem::path& getAnalysisDirectory() const {
 			return analysis_directory;
 		}
-		const std::string& getScreenshotsDirectory() const {
+		const std::filesystem::path& getScreenshotsDirectory() const {
 			return screenshots_directory;
 		}
-		const std::string& getVideosRawDirectory() const {
+		const std::filesystem::path& getVideosRawDirectory() const {
 			return videos_raw_directory;
 		}
-		const std::string& getVideosDirectory() const {
+		const std::filesystem::path& getVideosDirectory() const {
 			return videos_directory;
 		}
 	private:
-		std::string experiment_name;
-		std::string experiment_directory;
-		std::string analysis_directory;
-		std::string screenshots_directory;
-		std::string videos_directory;
-		std::string videos_raw_directory;
+		std::filesystem::path experiment_directory;
+		std::filesystem::path analysis_directory;
+		std::filesystem::path screenshots_directory;
+		std::filesystem::path videos_directory;
+		std::filesystem::path videos_raw_directory;
 	};
 
 }

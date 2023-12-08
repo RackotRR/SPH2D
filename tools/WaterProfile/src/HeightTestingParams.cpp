@@ -1,33 +1,57 @@
 #include "HeightTestingParams.h"
 
+static void print_vec(const std::vector<double>& vec) {
+	for (int i = 0; double val : vec) {
+		std::cout << val;
+		++i;
+		if (i < vec.size()) {
+			std::cout << ", ";
+		}
+	}
+}
+
 void SpaceTestingParams::print() {
     std::cout << "SpaceTesting params:" << std::endl;
 
-    std::cout << "t: " << t << std::endl;
+	std::cout << "t: ";
+	print_vec(t);
+	std::cout << std::endl;
+
     std::cout << "x0: " << x0 << std::endl;
     std::cout << "x_k: " << x_k << std::endl;
     std::cout << "y0: " << y0 << std::endl;
     std::cout << "y_k: " << y_k << std::endl;
 
     std::cout << "search_n: " << search_n << std::endl;
+
+	if (!postfix.empty()) {
+		std::cout << "postfix: " << postfix << std::endl;
+	}
 }
 
 void TimeTestingParams::print() {
 	std::cout << "TimeTesting params:" << std::endl;
 
-	std::cout << "x: " << x << std::endl;
+	std::cout << "x: ";
+	print_vec(x);
+	std::cout << std::endl;
+
 	std::cout << "t0: " << t0 << std::endl;
 	std::cout << "t_k: " << t_k << std::endl;
 	std::cout << "y0: " << y0 << std::endl;
 	std::cout << "y_k: " << y_k << std::endl;
 
 	std::cout << "search_n: " << search_n << std::endl;
+
+	if (!postfix.empty()) {
+		std::cout << "postfix: " << postfix << std::endl;
+	}
 }
 
 
-std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesystem::path& filePath) {
+std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesystem::path& experiment_dir) {
 	nlohmann::json json;
-	std::ifstream stream{ filePath };
+	std::ifstream stream{ experiment_dir / HeightTestingParams::filename };
 	stream >> json;
 
 	std::string mode;
@@ -60,5 +84,26 @@ std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesy
 	if (json.contains("y0")) json.at("y0").get_to(testing_params->y0);
 	if (json.contains("y_k")) json.at("y_k").get_to(testing_params->y_k);
 	if (json.contains("search_n")) json.at("search_n").get_to(testing_params->search_n);
+	if (json.contains("postfix")) json.at("postfix").get_to(testing_params->postfix);
 	return testing_params;
+}
+
+void HeightTestingParams::generate_default(const std::filesystem::path& experiment_dir) {
+	std::filesystem::path path = experiment_dir / HeightTestingParams::filename;	
+
+	if (!std::filesystem::exists(path)) {
+		std::ofstream stream{ path };
+		nlohmann::json json;
+		json["mode"] = "space";
+		json["t"] = std::vector{ 0.0 };
+		json["x"] = nullptr;
+		json["x0"] = 0;
+		json["x_k"] = 1;
+		json["y0"] = 0;
+		json["y_k"] = 1;
+		json["t0"] = nullptr;
+		json["t_k"] = nullptr;
+		json["postfix"] = "";
+		stream << json.dump(4) << std::endl;
+	}
 }

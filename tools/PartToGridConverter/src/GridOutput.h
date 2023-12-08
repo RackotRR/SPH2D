@@ -1,7 +1,7 @@
 #pragma once
 #include "PartToGridConverter.h"
 
-void printGridParams(const std::string& path,
+void printGridParams(const std::filesystem::path& path,
     sphfio::Square square,
     double delta);
 

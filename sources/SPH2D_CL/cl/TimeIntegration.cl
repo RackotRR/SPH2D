@@ -32,24 +32,30 @@ __kernel void predict_half_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-#ifndef params_summation_density
+#if params_density_treatment == DENSITY_CONTINUITY
 	rho_predict[i] = rho[i] + drho[i] * params_dt * 0.5f;
-#endif // !params_summation_density
+#endif
 
 	if (itype[i] > 0) {
 		v_predict[i] = v[i] + a[i] * params_dt * 0.5f;
 	}
 }
 
+static bool is_point_within_geometry(rr_float2 point) {
+	return point.x < params_x_maxgeom &&
+		point.x > params_x_mingeom &&
+		point.y < params_y_maxgeom &&
+		point.y > params_y_mingeom;
+}
 __kernel void whole_step(
 	const rr_uint timestep,
 
-	__global const rr_int* itype,
 	__global const rr_float* drho,
 	__global const rr_float2* a,
 
 	__global const rr_float2* av,
 
+	__global rr_int* itype,
 	__global rr_float* rho,
 	__global rr_float2* v,
 	__global rr_float2* r)
@@ -57,13 +63,12 @@ __kernel void whole_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-	rr_float v_dt = timestep == params_starttimestep ?
-		params_dt * 0.5f : params_dt;
+	rr_float v_dt = timestep == 0 ? params_dt * 0.5f : params_dt;
 	rr_float r_dt = params_dt;
 
-#ifndef params_summation_density
+#if params_density_treatment == DENSITY_CONTINUITY
 	rho[i] += drho[i] * v_dt;
-#endif // params_summation_density
+#endif
 
 	if (itype[i] > 0) {
 
@@ -73,22 +78,44 @@ __kernel void whole_step(
 		v[i] += a[i] * v_dt;
 #endif // params_average_velocity
 		
+
+#if params_consistency_treatment == CONSISTENCY_FIX
+		rr_float2 new_r = r[i] + v[i] * r_dt;
+		if (is_point_within_geometry(new_r)) {
+			r[i] = new_r;
+		}
+		else {
+			itype[i] = params_TYPE_NON_EXISTENT;
+		}
+#else
 		r[i] += v[i] * r_dt;
+#endif
+
 	}
 }
 
-__kernel void update_boundaries(
+__kernel void nwm_dynamic_boundaries(
 	__global rr_float2* v,
 	__global rr_float2* r,
 	rr_float time)
 {
-	size_t i = get_global_id(0) + params_left_wall_start;
-	if (i >= params_left_wall_end) return;
-	if (time < params_generator_time_wait) return;
+	size_t i = get_global_id(0) + params_nwm_particles_start;
+	if (i >= params_nwm_particles_end) return;
+	if (i >= params_ntotal || i < params_nfluid) return;
 
-#define generator_phase (-params_freq * params_generator_time_wait)
-	rr_float v_x = params_piston_amp * params_freq * cos(params_freq * time + generator_phase);
+#define generator_phase (-params_nwm_freq * params_nwm_time_start)
+	rr_float v_x = params_nwm_piston_magnitude * params_nwm_freq * cos(params_nwm_freq * time + generator_phase);
 
 	r[i].x = r[i].x + v_x * params_dt;
 	v[i].x = v_x;
+}
+
+__kernel void nwm_disappear_wall(
+	__global rr_int* itype)
+{
+	size_t i = get_global_id(0) + params_nwm_particles_start;
+	if (i >= params_nwm_particles_end) return;
+	if (i >= params_ntotal || i < params_nfluid) return;
+
+	itype[i] = params_TYPE_NON_EXISTENT;
 }

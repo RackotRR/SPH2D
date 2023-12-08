@@ -1,12 +1,16 @@
 #pragma once 
 #include <string>
+#include "ParamsEnumeration.h"
 #include "Types.h"
 #include "ParamsVersion.h"
 #include "SPH2DVersion.h"
 
 struct ExperimentParams {
-	rr_uint version_major{ SPH2D_PARAMS_VERSION_MAJOR };
-	rr_uint version_minor{ SPH2D_PARAMS_VERSION_MINOR };
+	rr_uint params_version_major{ SPH2D_PARAMS_VERSION_MAJOR };
+	rr_uint params_version_minor{ SPH2D_PARAMS_VERSION_MINOR };
+
+	rr_uint params_generator_version_major{};
+	rr_uint params_generator_version_minor{};
 
 	rr_uint SPH2D_version_major{ SPH2D_VERSION_MAJOR };
 	rr_uint SPH2D_version_minor{ SPH2D_VERSION_MINOR };
@@ -24,6 +28,7 @@ struct ExperimentParams {
 	rr_float y_maxgeom{};
 	rr_float y_mingeom{};
 
+	// deprecated
 	rr_uint x_fluid_particles{};
 	rr_uint y_fluid_particles{};
 	rr_float x_fluid_min{};
@@ -36,21 +41,29 @@ struct ExperimentParams {
 	rr_float x_boundary_max{};
 	rr_float y_boundary_max{};
 	rr_float beach_x{};
+	// deprecated
+
+	rr_float x_boundary_left{};
+	rr_float x_boundary_right{};
+	rr_float x_boundary_center{};
+	rr_float y_boundary_bottom{};
+	rr_float y_boundary_top{};
+	rr_float boundary_separation{};
 
 	rr_uint nfluid{};
 	rr_uint nvirt{};
 	rr_uint ntotal{};
 
-	rr_float wave_length{};
+	rr_float nwm_wave_length{};
 	rr_float depth{};
-	rr_float freq{};
-	rr_float piston_amp{};
-	rr_float wave_amp{};
-	rr_float wave_number{};
+	rr_float nwm_freq{};
+	rr_float nwm_piston_magnitude{};
+	rr_float nwm_wave_magnitude{};
+	rr_float nwm_wave_number{};
 
-	rr_uint left_wall_start{};
-	rr_uint left_wall_end{};
-	rr_float generator_time_wait{};
+	rr_uint nwm_particles_start{};
+	rr_uint nwm_particles_end{};
+	rr_float nwm_time_start{};
 
 	rr_float CFL_coef{};
 	rr_float dt{};
@@ -59,26 +72,30 @@ struct ExperimentParams {
 	// dt_correction_method = 0 : dt = const, provided by value
 	//					    = 1 : dt = const, calculated by CFL
 	//						= 2 : dt = dynamic, calculated by CFL
-	rr_uint dt_correction_method{ 1 };
+	rr_uint dt_correction_method{ DT_CORRECTION_CONST_CFL };
 
-	rr_uint local_threads{};
+	rr_uint local_threads{ 32 };
 
-	rr_float eos_csqr_k{ 1.f };
+	// eos_sound_vel_method = 0: c_art_water = sqrt(200.f * g * depth * eos_sound_vel_coef) [dam break problem]
+	//						= 1: c_art_water = eos_sound_vel
+	rr_uint eos_sound_vel_method{};
+	rr_float eos_sound_vel_coef{ 1.f };
+	rr_float eos_sound_vel{};
 
 	// SPH algorithm for particle approximation
-	// pa_sph = 1 : (p[i] + p[j])/(rho[i]*rho[j])
+	// intf_sph_approximation = 1 : (p[i] + p[j])/(rho[i]*rho[j])
 	//		    2 : p[i]/sqr(rho[i]) + p[j]/sqr(rho[j]
-	rr_uint pa_sph{ 2 };
+	rr_uint intf_sph_approximation{ INTF_SPH_APPROXIMATION_2 };
 
 	// smoothing kernel function
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)
 	//		 3 : Quintic kernel (Morris 1997)
 	//		 4 : Desbrun kernel (Desbrun 1996) 
-	rr_uint density_skf{ 1 };
-	rr_uint int_force_skf{ 4 }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
-	rr_uint artificial_viscosity_skf{ 1 };
-	rr_uint average_velocity_skf{ 1 };
+	rr_uint density_skf{ SKF_CUBIC };
+	rr_uint intf_skf{ SKF_DESBRUN }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
+	rr_uint artificial_viscosity_skf{ SKF_CUBIC };
+	rr_uint average_velocity_skf{ SKF_CUBIC };
 	rr_float cell_scale_k{ 2.f }; // cell size in hsml
 
 	// numerical waves maker
@@ -86,18 +103,19 @@ struct ExperimentParams {
 	//		 1 : relaxation zone method
 	//		 2 : dynamic boundaries method
 	//		 3 : impulse method
-	rr_uint nwm{ 2 };
-	bool waves_generator{ false };
+	//		 4 : wall disappear
+	rr_uint nwm{ NWM_NO_WAVES };
 
 	// solid boundary treatment
 	// sbt = 0 : dynamic particles
 	//       1 : repulsive particles
-	rr_uint sbt{ 1 };
+	rr_uint boundary_treatment{ SBT_REPULSIVE };
 	rr_uint boundary_layers_num = 1;
 	bool use_chess_order = true;
 
 	// const smoothing length
 	rr_float hsml{};
+	rr_float intf_hsml_coef{ 1 };
 
 	// initial distance between particles
 	rr_float delta{};
@@ -105,21 +123,22 @@ struct ExperimentParams {
 
 	/// Switches for diferent scenarios;
 
-	// true : use density summation model
-	// false : use continuity equation
-	bool summation_density{ true };
-	// true : density normalization by using CSPM
-	// false : no normalization
-	bool nor_density{ summation_density && false };
+	// 0 : density summation
+	// 1 : continuity equation
+	rr_uint density_treatment{ DENSITY_CONTINUITY };
+
+	// none - 0 : no normalization
+	// base - 1 : density normalization by using CSPM
+	rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
 	bool average_velocity{ true }; // Liu G.R. (eq 4.92)
-	rr_float average_velocity_epsilon{ 0.3f };
+	rr_float average_velocity_coef{ 0.3f };
 
 	// viscosity on?
 	bool visc{ true };
-	rr_float water_dynamic_visc = 1.e-3f;
+	rr_float visc_coef = 1.e-3f;
 
 	bool artificial_viscosity{ true };
 	rr_float artificial_shear_visc = 1.f;
@@ -131,31 +150,34 @@ struct ExperimentParams {
 		TYPE_WATER = 2,
 	};
 
-	rr_float mass = 1000 * delta * delta; // mass in 2 dim
+	rr_float rho0 = 1000;
+	rr_float mass = rho0 * delta * delta; // mass in 2 dim
+
+	// 0 - just say
+	// 1 - stop on not normal
+	// 2 - try to fix
+	rr_uint consistency_treatment{ CONSISTENCY_STOP };
+	bool consistency_check{ true };
 
 	/// control parameters for output
+	rr_float start_simulation_time{ 0.f };
 
-	bool enable_check_consistency{ true };
-	// false - just say
-	// true - stop on not normal
-	bool inf_stop{ enable_check_consistency && true };
+	rr_float save_time{};
+	bool save_every_step{ false };
+	bool save_velocity{ true };
+	bool save_pressure{ true };
+	bool save_density{ true };
 
-	rr_uint starttimestep{ 0 };
-	rr_uint maxtimestep{}; // time step to finish
-	rr_uint normal_check_step{}; // step for checking boundaries and finite values
-	rr_uint save_step{}; // save timestep (on disk)
-	rr_uint dump_step{};
-	rr_uint print_time_est_step{}; // time estimations every N steps
+	bool use_dump{ false };
+	rr_float dump_time{};
+
+	bool use_custom_time_estimate_step{ false };
+	rr_uint step_time_estimate{}; // time estimations every N steps
 
 	static constexpr rr_float pi{ 3.14159265358979323846f };
 	static constexpr rr_float g{ 9.81f };
 
 	std::string experiment_name;
-	std::string format_line;
-
-	void makeHeader(const std::string& path);
-	void makeJson(const std::string& path);
-	void load(const std::string& path);
 };
 
 inline ExperimentParams params;

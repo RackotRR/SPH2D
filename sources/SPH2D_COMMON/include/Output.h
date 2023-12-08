@@ -1,35 +1,102 @@
 #pragma once
+#include <filesystem>
+#include <chrono>
+#include <functional>
+
 #include "CommonIncl.h"
-#include <optional>
+#include <RR/Threads/ThreadPool.h>
+#include <RR/Time/Timer.h>
 
-void dump(
-	heap_darray<rr_float2>&& r,
-	heap_darray<rr_int>&& itype,
-	heap_darray<rr_float2>&& v,
-	heap_darray<rr_float>&& rho,
-	heap_darray<rr_float>&& p,
-	const rr_uint itimestep);
 
-void output(
-	heap_darray<rr_float2>&& r,
-	heap_darray<rr_int>&& itype,
-	std::optional<heap_darray<rr_float2>> v,
-	std::optional<heap_darray<rr_float>> rho,
-	std::optional<heap_darray<rr_float>> p,
-	const rr_uint itimestep);
+class SPH2DOutput {
+	using func_load_arr_float2 = std::function<shared_darray<rr_float2>()>;
+	using func_load_arr_float = std::function<shared_darray<rr_float>()>;
+	using func_load_arr_int = std::function<shared_darray<rr_int>()>;
+public:
+	static SPH2DOutput& instance() {
+		static SPH2DOutput the_instance;
+		return the_instance;
+	}
 
-void fast_output(
-	heap_darray<rr_float2>&& r,	// coordinates of all particles
-	const heap_darray<rr_int>& itype,	// material type 
-	const rr_uint ntotal,	// number of particles
-	const rr_uint itimestep); // current time step
+	void initialize(const std::filesystem::path& experiment_path);
+	void setup_output(
+		func_load_arr_float2 load_r,
+		func_load_arr_int load_itype,
+		func_load_arr_float2 load_v,
+		func_load_arr_float load_p,
+		func_load_arr_float load_rho);
 
-// call once at start
-void setupOutput();
+	void start_step(rr_float time);
+	void finish_step();
+	void update_step(rr_float time, rr_uint itimestep);
 
-// call once at start after initialization
-void printParams();
+	void output(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		rr_uint itimestep,
+		rr_float time);
+	void dump(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		rr_uint itimestep,
+		rr_float time);
+	void crash_dump(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		rr_uint itimestep,
+		rr_float time);
+private:
+	std::vector<std::string> make_csv_header(
+		bool r,
+		bool itype,
+		bool v,
+		bool rho,
+		bool p);
+	void print_dump(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		const std::filesystem::path& path);
+	void print(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		const std::filesystem::path& path);
 
-void printTimeEstimate(long long totalTime_ns, rr_uint timeStep);
+	SPH2DOutput() = default;
+	SPH2DOutput(const SPH2DOutput&) = delete;
+	SPH2DOutput& operator=(const SPH2DOutput&) = delete;
+private:
+	RR::Threads::ThreadPool thread_pool;
+	RR::Timer<std::chrono::nanoseconds, std::chrono::nanoseconds> timer;
 
-void makeParamsHeader(std::string path = "cl/clparams.h");
+	std::filesystem::path experiment_path;
+	std::filesystem::path data_path;
+	std::filesystem::path dump_path;
+	std::filesystem::path analysis_path;
+
+	rr_float last_save_time;
+	rr_float last_dump_time;
+
+	func_load_arr_float2 load_r;
+	func_load_arr_int load_itype;
+	func_load_arr_float2 load_v;
+	func_load_arr_float load_p;
+	func_load_arr_float load_rho;
+
+	int save_time_decimal_digits;
+	int dump_time_decimal_digits;
+};

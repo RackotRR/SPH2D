@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath> 
 #include <cassert>
+#include <memory>
 
 #include <Params.h>
 #include "GridUtils.h"

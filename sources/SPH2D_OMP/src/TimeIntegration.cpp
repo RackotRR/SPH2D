@@ -1,12 +1,16 @@
 #include "CommonIncl.h"
 #include "Output.h"
+#include "TimeFormat.h"
 #include "UpdateAcceleration.h"
-#include "VirtualParticles.h"
-#include "IsNormalCheck.h"
+#include "ConsistencyCheck.h"
 #include "WaveMaker.h"
 #include "TimeIntegration.h"
 
 #include "RR/Time/Timer.h"
+
+#include <functional>
+#include <iostream>
+#include <fmt/format.h>
 
 void predict_half_step(
 	const rr_uint ntotal,
@@ -21,7 +25,7 @@ void predict_half_step(
 	printlog()(__func__)();
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.summation_density == false) {
+		if (params.density_treatment == DENSITY_CONTINUITY) {
 			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
 		}
 
@@ -30,13 +34,20 @@ void predict_half_step(
 		}
 	}
 }
+
+static bool is_point_within_geometry(const rr_float2& point) {
+	return point.x < params.x_maxgeom &&
+		point.x > params.x_mingeom &&
+		point.y < params.y_maxgeom &&
+		point.y > params.y_mingeom;
+}
 void whole_step(
 	const rr_uint ntotal,
 	const rr_uint timestep,
-	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_float2>& a,	// acceleration
 	const heap_darray<rr_float2>& av,	// average velocity
+	heap_darray<rr_int>& itype, // material type 
 	heap_darray<rr_float>& rho, // density
 	heap_darray<rr_float2>& v,	// velocities
 	heap_darray<rr_float2>& r)	// coordinates of all particles
@@ -44,17 +55,28 @@ void whole_step(
 	printlog()(__func__)();
 
 	rr_float r_dt = params.dt;
-	rr_float v_dt = timestep == params.starttimestep ?
-		params.dt * 0.5f : params.dt;
+	rr_float v_dt = timestep ? params.dt : params.dt * 0.5f;
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.summation_density == false) {
+		if (params.density_treatment == DENSITY_CONTINUITY) {
 			rho(i) = rho(i) + drho(i) * v_dt;
 		}
 
 		if (itype(i) > 0) {
 			v(i) += a(i) * v_dt + av(i);
-			r(i) += v(i) * r_dt;
+
+			if (params.consistency_treatment == CONSISTENCY_FIX) {
+				rr_float2 new_r = r(i) + v(i) * r_dt;
+				if (is_point_within_geometry(new_r)) {
+					r(i) = new_r;
+				}
+				else {
+					itype(i) = params.TYPE_NON_EXISTENT;
+				}
+			}
+			else {
+				r(i) += v(i) * r_dt;
+			}
 		}
 	}
 }
@@ -73,7 +95,7 @@ void time_integration(
 	heap_darray<rr_float> rho_predict(params.maxn);
 	heap_darray<rr_float> drho(params.maxn);
 	heap_darray<rr_float>* rho_predicted;
-	if (params.summation_density) {
+	if (params.density_treatment == DENSITY_SUMMATION) {
 		rho_predicted = &rho;
 	}
 	else {
@@ -83,17 +105,18 @@ void time_integration(
 	heap_darray<rr_float2> v_predict(params.maxn);
 	heap_darray<rr_float2> a(params.maxn);
 	heap_darray<rr_float2> av(params.maxn);
-	rr_float time = 0;
+	rr_float time = params.start_simulation_time;
+	rr_uint itimestep = 0;
 
-	RR::Timer timer;
+	SPH2DOutput::instance().setup_output(
+		std::bind(make_shared_darray_copy<rr_float2>, std::cref(r)),
+		std::bind(make_shared_darray_copy<rr_int>, std::cref(itype)),
+		std::bind(make_shared_darray_copy<rr_float2>, std::cref(v)),
+		std::bind(make_shared_darray_copy<rr_float>, std::cref(p)),
+		std::bind(make_shared_darray_copy<rr_float>, std::cref(rho)));
 
-	for (rr_uint itimestep = params.starttimestep; itimestep <= params.maxtimestep; itimestep++) {
-		printlog()("timestep: ")(itimestep)(" / ")(params.maxtimestep)();
-		timer.start();
-
-		time = itimestep * params.dt;
-
-		printTimeEstimate(timer.total(), itimestep);
+	while (time <= params.simulation_time) {
+		SPH2DOutput::instance().start_step(time);
 
 		predict_half_step(ntotal,
 			itype,
@@ -101,49 +124,23 @@ void time_integration(
 			v, a, 
 			*rho_predicted, v_predict);
 
-		if (itimestep % params.save_step == 0) {
-			output(
-				r.copy(),
-				itype.copy(),
-				v_predict.copy(),
-				std::nullopt,
-				p.copy(),
-				itimestep);
-		}
-
 		// definition of variables out of the function vector:
 		update_acceleration(nfluid, ntotal, itype, r, 
 			v_predict, *rho_predicted, 
 			p, a, drho, av);
 
-		if (params.waves_generator) {
-			make_waves(r, v, a, nfluid, ntotal, time);
+		if (params.nwm && time >= params.nwm_time_start) {
+			make_waves(r, v, a, itype, nfluid, ntotal, time);
 		}
 
 		whole_step(ntotal,
 			itimestep,
-			itype,
 			drho, a, av,
-			rho, v, r);
-
-		if (params.enable_check_consistency) {
-			if (should_check_normal(itimestep)) {
-				check_finite(r, v, rho, p, itype, ntotal);
-				check_particles_are_within_boundaries(ntotal, r, itype);
-			}
-		}
-
-		if (itimestep && itimestep % params.dump_step == 0) {
-			dump(
-				r.copy(),
-				itype.copy(),
-				v_predict.copy(),
-				rho_predicted->copy(),
-				p.copy(),
-				itimestep);
-		}
+			itype, rho, v, r);
 
 		time += params.dt;
-		timer.finish();
+		itimestep++;
+		SPH2DOutput::instance().finish_step();
+		SPH2DOutput::instance().update_step(time, itimestep);
 	}
 }

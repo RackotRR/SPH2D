@@ -16,7 +16,6 @@ __kernel void artificial_viscosity(
 	rr_float2 a_temp = 0; 
 	
 #define art_visc_etq 0.1f // const to avoid singularities
-	rr_float art_sound_vel = eos_art_c;
 
 	rr_uint i;
 	for (rr_iter n = 0;
@@ -35,7 +34,7 @@ __kernel void artificial_viscosity(
 
 			// calculate PIv_ij = (-alpha muv_ij c_ij + beta muv_ij^2) / rho_ij
 			rr_float mrho = 0.5f * (rho[i] + rho[j]);
-			rr_float piv = (params_artificial_bulk_visc * muv - params_artificial_shear_visc * art_sound_vel) * muv / mrho;
+			rr_float piv = (params_artificial_bulk_visc * muv - params_artificial_shear_visc * params_eos_sound_vel) * muv / mrho;
 			rr_float2 h = -dwdr[at(n, j)] * piv;
 
 			a_temp -= h * params_mass;

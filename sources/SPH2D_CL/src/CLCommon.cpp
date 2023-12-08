@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 std::string loadCode(const std::string& filename) {
     std::ifstream stream{ filename };
@@ -19,7 +20,10 @@ cl::Program makeProgramFromSource(const std::string& source) {
         throw std::runtime_error{ "can't create program from source: " + std::to_string(err) };
     }
 
-    err = program.build("-Werror -cl-std=CL1.2 -D KERNEL_INCLUDE -I ./cl/ ");
+    auto cl_include_path = std::filesystem::current_path() / "cl";
+    std::string options = "-cl-std=CL1.2 -D KERNEL_INCLUDE -I " + cl_include_path.string();
+    
+    err = program.build(options.c_str());
     if (err != CL_SUCCESS) {
         // Print build info for all devices
         cl_int buildErr = CL_SUCCESS;

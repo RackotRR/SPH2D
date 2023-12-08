@@ -28,9 +28,9 @@ static SmoothingKernelsW_t make_smoothing_kernels_w() {
 static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
 	std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr;
 
-	smoothing_kernels_dwdr[params.int_force_skf];
+	smoothing_kernels_dwdr[params.intf_skf];
 	smoothing_kernels_dwdr[params.artificial_viscosity_skf];
-	if (params.summation_density == false) {
+	if (params.density_treatment == DENSITY_CONTINUITY) {
 		smoothing_kernels_dwdr[params.density_skf];
 	}
 	
@@ -68,6 +68,7 @@ void update_acceleration(
 
 	grid_find(ntotal,
 		r,
+		itype,
 		neighbours);
 	
 	for (auto& [skf, w] : smoothing_kernels_w) {
@@ -82,7 +83,7 @@ void update_acceleration(
 	}
 
 
-	if (params.summation_density) {
+	if (params.density_treatment == DENSITY_SUMMATION) {
 		sum_density(ntotal,
 			neighbours, smoothing_kernels_w[params.density_skf],
 			rho);
@@ -97,7 +98,7 @@ void update_acceleration(
 
 	int_force(ntotal,
 		r, v, rho,
-		neighbours, smoothing_kernels_dwdr[params.int_force_skf],
+		neighbours, smoothing_kernels_dwdr[params.intf_skf],
 		p, indvxdt);
 
 	if (params.artificial_viscosity) {

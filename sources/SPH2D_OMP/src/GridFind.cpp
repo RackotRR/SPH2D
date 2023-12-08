@@ -19,7 +19,7 @@ void make_grid(
 		rr_uint cell_idx = get_cell_idx(r(i));
 		unsorted_grid(i) = cell_idx;
 
-		if (params.enable_check_consistency) {
+		if (params.consistency_check) {
 			if (cell_idx >= params.max_cells) {
 				printlog("cell_idx: ")(cell_idx)();
 				printlog("max_cells: ")(params.max_cells)();
@@ -49,6 +49,7 @@ void make_grid(
 void find_neighbours(
 	const rr_uint ntotal,
 	const heap_darray<rr_float2>& r,
+	const heap_darray<rr_int>& itype,
 	const heap_darray<rr_uint>& grid,
 	const heap_darray<rr_uint>& cell_starts_in_grid,
 	heap_darray_md<rr_uint>& neighbours) // neighbours indices
@@ -62,47 +63,51 @@ void find_neighbours(
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; j++) { // run through all particles
 		rr_uint neighbour_id = 0;
-		rr_uint center_cell_idx = get_cell_idx(r(j));
 
-		rr_uint neighbour_cells[9];
-		get_neighbouring_cells(center_cell_idx, neighbour_cells);
-		for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
-			rr_uint cell_idx = neighbour_cells[cell_i];
-			if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
+		if (itype(j) != params.TYPE_NON_EXISTENT)
+		{
+			rr_uint center_cell_idx = get_cell_idx(r(j));
+			rr_uint neighbour_cells[9];
+			get_neighbouring_cells(center_cell_idx, neighbour_cells);
+			for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
+				rr_uint cell_idx = neighbour_cells[cell_i];
+				if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
 
-			for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
-				grid_i < cell_starts_in_grid(cell_idx + 1ull);
-				++grid_i)
-			{
-				rr_uint i = grid(grid_i); // index of particle
-				// j - current particle; i - particle near
-				if (i == j) continue; // particle isn't neighbour of itself
+				for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
+					grid_i < cell_starts_in_grid(cell_idx + 1ull);
+					++grid_i)
+				{
+					rr_uint i = grid(grid_i); // index of particle
+					// j - current particle; i - particle near
+					if (i == j) continue; // particle isn't neighbour of itself
+					if (itype(i) == params.TYPE_NON_EXISTENT) continue; // don't add non-existing particle
 
-				rr_float2 diff = r(i) - r(j);
-				rr_float dist_sqr = length_sqr(diff);
+					rr_float2 diff = r(i) - r(j);
+					rr_float dist_sqr = length_sqr(diff);
 
-				if (dist_sqr < max_dist) {
-					if (params.enable_check_consistency) {
-						if (neighbour_id == params.max_neighbours - 1) {
-							#pragma omp critical
-							{
-								printlog("neighbour_id: ")(neighbour_id)(" / ")(params.max_neighbours)();
-								printlog("j: ")(j)(" / ")(ntotal)();
-								printlog("x: ")(r(j).x)();
-								printlog("y: ")(r(j).y)();
-								printlog("cell: ")(center_cell_idx)();
-								printlog("cell_x: ")(get_cell_x(center_cell_idx))();
-								printlog("cell_y: ")(get_cell_y(center_cell_idx))();
-								err = true;
+					if (dist_sqr < max_dist) {
+						if (params.consistency_check) {
+							if (neighbour_id == params.max_neighbours - 1) {
+#pragma omp critical
+								{
+									printlog("neighbour_id: ")(neighbour_id)(" / ")(params.max_neighbours)();
+									printlog("j: ")(j)(" / ")(ntotal)();
+									printlog("x: ")(r(j).x)();
+									printlog("y: ")(r(j).y)();
+									printlog("cell: ")(center_cell_idx)();
+									printlog("cell_x: ")(get_cell_x(center_cell_idx))();
+									printlog("cell_y: ")(get_cell_y(center_cell_idx))();
+									err = true;
+								}
+								continue;
 							}
-							--neighbour_id;
 						}
+						neighbours(neighbour_id, j) = i;
+						++neighbour_id;
 					}
-					neighbours(neighbour_id, j) = i;
-					++neighbour_id;
-				}
-			} // grid_i
-		} // cell_i
+				} // grid_i
+			} // cell_i
+		} // existing particle
 
 		rr_uint n = std::min(neighbour_id, params.max_neighbours - 1);
 		neighbours(n, j) = ntotal;
@@ -117,6 +122,7 @@ void find_neighbours(
 void grid_find(
 	const rr_uint ntotal,
 	const heap_darray<rr_float2>& r,
+	const heap_darray<rr_int>& itype,
 	heap_darray_md<rr_uint>& neighbours) // neighbours indices
 {
 	printlog_debug(__func__)();
@@ -131,6 +137,7 @@ void grid_find(
 	
 	find_neighbours(ntotal,
 		r,
+		itype,
 		grid,
 		cell_starts_in_grid,
 		neighbours);

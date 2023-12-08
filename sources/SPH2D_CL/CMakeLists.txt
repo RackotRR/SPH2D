@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_CL VERSION 1.0.2)
+project(SPH2D_CL VERSION 1.2.0)
 configure_file(SPH2DCLVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DCLVersion.h")
 
 # OpenCL
@@ -36,6 +36,7 @@ target_link_libraries(SPH2D_CL PRIVATE
 
 set(GRID_UTILS_H ${CMAKE_SOURCE_DIR}/sources/SPH2D_COMMON/include/GridUtils.h)
 set(SMOOTHING_KERNEL_H ${CMAKE_SOURCE_DIR}/sources/SPH2D_COMMON/include/SmoothingKernel.h)
+set(PARAMS_ENUMERATION_H ${CMAKE_SOURCE_DIR}/sources/SPH2D_PARAMS/include/ParamsEnumeration.h)
     
 # post build copies
 add_custom_command(TARGET SPH2D_CL POST_BUILD
@@ -49,7 +50,10 @@ add_custom_command(TARGET SPH2D_CL POST_BUILD
                     copy ${GRID_UTILS_H} $<TARGET_FILE_DIR:SPH2D_CL>/cl/GridUtils.h)
 add_custom_command(TARGET SPH2D_CL POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E
-                    copy ${GRID_UTILS_H} $<TARGET_FILE_DIR:SPH2D_CL>/cl/SmoothingKernel.h)
+                    copy ${SMOOTHING_KERNEL_H} $<TARGET_FILE_DIR:SPH2D_CL>/cl/SmoothingKernel.h)
+add_custom_command(TARGET SPH2D_CL POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E
+                    copy ${PARAMS_ENUMERATION_H} $<TARGET_FILE_DIR:SPH2D_CL>/cl/ParamsEnumeration.h)
 
 
 
@@ -58,3 +62,4 @@ install(TARGETS SPH2D_CL DESTINATION SPH2D)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cl DESTINATION SPH2D)
 install(FILES ${GRID_UTILS_H} DESTINATION SPH2D/cl)
 install(FILES ${SMOOTHING_KERNEL_H} DESTINATION SPH2D/cl)
+install(FILES ${PARAMS_ENUMERATION_H} DESTINATION SPH2D/cl)

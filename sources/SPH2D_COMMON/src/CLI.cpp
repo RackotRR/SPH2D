@@ -2,24 +2,10 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include <fmt/format.h>
 
 #include "Input.h"
-
-static std::vector<std::string> findTimeLayersPath(const std::filesystem::path& directory, int save_step, int start = 0) {
-	std::vector<std::string> meta;
-	int current_step = start;
-	while (true) {
-		auto path = directory / (std::to_string(current_step) + ".csv");
-		if (std::filesystem::exists(path)) {
-			meta.emplace_back(path.filename().string());
-			current_step += save_step;
-		}
-		else {
-			break;
-		}
-	}
-	return meta;
-}
+#include "ParamsIO.h"
 
 static bool overrideDirectory(const std::string& experiment_name) {
 	while (true) {
@@ -38,18 +24,21 @@ static bool overrideDirectory(const std::string& experiment_name) {
 	}
 }
 
-static void removeLaterTimeLayers(
-	const std::filesystem::path& experiment_directory, 
-	const std::vector<std::string>& time_layers_path,
-	const std::string& chosen_dump) 
-{
-	auto iter = std::find(time_layers_path.begin(), time_layers_path.end(), chosen_dump);
-	if (iter == time_layers_path.end()) return;
+static std::string getDirectoryToSearch() {
+	std::cout << "Directory to search: " << std::endl;
+	std::cout << "> ";
+	std::string user_directory;
+	std::getline(std::cin, user_directory);
+	return user_directory;
+}
 
-	for (iter++; iter != time_layers_path.end(); ++iter) {
-		auto path_to_remove = experiment_directory / "data" / *iter;
-		std::filesystem::remove(path_to_remove);
-		std::cout << "layer " << path_to_remove.stem() << " removed" << std::endl;
+static void printAvailableDumps(const ExperimentStatistics& experiment) {
+	std::cout << "found " << experiment.dump_layers.count << " dumps:" << std::endl;
+	auto& dump_layers = experiment.dump_layers;
+	for (int j = 0; j < dump_layers.count; ++j) {
+		auto& dump_path = dump_layers.paths[j]; 
+		auto dump_name = dump_path.stem().string();
+		std::cout << fmt::format("[{}]: {}", j, dump_name) << std::endl;
 	}
 }
 
@@ -63,79 +52,54 @@ void cli(
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid) // total fluid particles
 {
-	while (true) {
-		try {
-			std::cout << "[SPH2D] Experiment name: ";
-			std::string experiment_name;
-			std::getline(std::cin, experiment_name);
+	auto experiments = find_experiments(std::filesystem::current_path());
+	if (experiments.empty()) {
+		throw std::runtime_error{ "Can't find any experiment in here: " + std::filesystem::current_path().string() };
+	} // no experiments in directory
 
-			auto experiment_directory = std::filesystem::current_path() / experiment_name;
-			if (std::filesystem::exists(experiment_directory)) {
+	auto experiment_indices = enumerate_experiments(experiments, 
+		ExperimentEnumerateCondition::experiment_params);
 
-				auto params_path = experiment_directory / "Params.json";
-				if (!std::filesystem::exists(params_path)) {
-					std::cout << "Can't find Params.json" << std::endl;
-					if (overrideDirectory(experiment_name)) {
-						params.experiment_name = experiment_name;
-						input(r, v, rho, p, itype, ntotal, nfluid);
-						return;
-					}
-					else {
-						continue;
-					}
-				} // no Params.json
+	for (;;) {
+		std::cout << "Type experiment number you want to load: " << std::endl;
+		std::cout << "> ";
+		int experiment_number;
+		std::cin >> experiment_number;
 
-				std::cout << "Found experiment" << std::endl;
-				params.load(params_path.string());
-				params.experiment_name = experiment_name;
-				auto data_path = experiment_directory / "data";
-				auto dump_path = experiment_directory / "dump";
-				auto time_layers_path = findTimeLayersPath(data_path, params.save_step);
-				auto dumps_path = findTimeLayersPath(dump_path, params.dump_step);
-				if (dumps_path.empty()) {
-					dumps_path = findTimeLayersPath(dump_path, params.dump_step, params.dump_step);
-				}
+		do {
+			if (experiment_number >= experiment_indices.size()) {
+				std::cout << "Wrong experiment number provided!" << std::endl;
+				break;
+			}
 
-				std::cout << "found " << time_layers_path.size() << " time layers" << std::endl;
-				std::cout << "found " << dumps_path.size() << " dumps:" << std::endl;
-				for (int i = 0; i < dumps_path.size(); ++i) {
-					std::cout << "[" << i + 1 << "]: " << dumps_path[i] << std::endl;
-				}
+			int i = experiment_indices[experiment_number];
+			auto& experiment = experiments[i];
 
-				std::cout << "Write dump number to load or [0] to start from Params.json" << std::endl;
-				std::cout << "Write [-1] to clear directory and start from generated Params" << std::endl;
-				int num;
-				std::cin >> num;
+			int dump_num = 0;
+
+			if (experiment.dump_layers.count > 1) {
+				printAvailableDumps(experiment);
+
+				std::cout << "Write dump number to load" << std::endl;
+				std::cout << "> ";
+
+				std::cin >> dump_num;
 				std::cin.get();
 
-				if (num == -1 && overrideDirectory(experiment_name)) {
-					input(r, v, rho, p, itype, ntotal, nfluid);
-					return;
-				} // clear and run default
-				else if (num == 0 && overrideDirectory(experiment_name)) {
-					input(r, v, rho, p, itype, ntotal, nfluid, false);
-					return;
-				} // clear and run from Params.json
-				else if (num <= dumps_path.size()) {
-					auto& chosen_dump = dumps_path[num - 1];
-					removeLaterTimeLayers(experiment_directory, time_layers_path, chosen_dump);
-
-					auto particles_data_path = std::filesystem::path(experiment_directory) / "dump" / chosen_dump;
-					fileInput(r, v, rho, p, itype, ntotal, nfluid, particles_data_path.string());
-					return;
-				} // run from dump
-				else {
+				if (dump_num < 0 || dump_num >= experiment.dump_layers.count) {
 					std::cout << "Wrong number provided!" << std::endl;
-				} // wrong number
+					break;
+				}
 			}
-			else {
-				params.experiment_name = experiment_name;
-				input(r, v, rho, p, itype, ntotal, nfluid);
-				return;
+			else if (experiment.dump_layers.empty()) {
+				std::cout << "No layers to load!" << std::endl;
+				break;
 			}
-		}
-		catch (const std::exception& ex) {
-			std::cout << "Something went wrong: " << std::endl << ex.what() << std::endl;
-		}
+
+			experiment.remove_layers_after_dump(dump_num);
+			auto initial_dump_path = experiment.dump_layers.paths[dump_num];
+			fileInput(r, v, rho, p, itype, ntotal, nfluid, initial_dump_path, experiment.dir);
+			return;
+		} while (false);
 	}
 }

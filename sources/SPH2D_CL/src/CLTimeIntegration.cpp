@@ -2,10 +2,13 @@
 #include "CLAdapter.h"
 
 #include <iostream>
+#include <utility>
+#include <fmt/format.h>
 #include "RR/Time/Timer.h"
 
+#include "TimeEstimate.h"
 #include "Output.h"
-#include "IsNormalCheck.h"
+#include "ConsistencyCheck.h"
 
 namespace {
     RRKernel predict_half_step_kernel;
@@ -22,7 +25,8 @@ namespace {
     RRKernel average_velocity_kernel;
     RRKernel update_acceleration_kernel;
     RRKernel whole_step_kernel;
-    RRKernel update_boundaries_kernel;
+    RRKernel nwm_dynamic_boundaries_kernel;
+    RRKernel nwm_disappear_wall_kernel;
     RRKernel fill_in_grid_kernel;
     RRKernel sort_kernel;
     RRKernel binary_search_kernel;
@@ -57,7 +61,8 @@ void makePrograms() {
     average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
     update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
-    update_boundaries_kernel = RRKernel(time_integration_program, "update_boundaries");
+    nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
+    nwm_disappear_wall_kernel = RRKernel(time_integration_program, "nwm_disappear_wall");
 }
 
 static auto make_smoothing_kernels_w(cl_mem_flags flags) {
@@ -67,6 +72,7 @@ static auto make_smoothing_kernels_w(cl_mem_flags flags) {
     smoothing_kernels_w[params.average_velocity_skf];
 
     for (auto& [skf, w] : smoothing_kernels_w) {
+        printlog_debug("make buffer w skf ")(skf)();
         smoothing_kernels_w[skf] = makeBuffer<rr_float>(flags, params.max_neighbours * params.maxn);
     }
 
@@ -75,17 +81,25 @@ static auto make_smoothing_kernels_w(cl_mem_flags flags) {
 static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr;
 
-    smoothing_kernels_dwdr[params.int_force_skf];
+    smoothing_kernels_dwdr[params.intf_skf];
     smoothing_kernels_dwdr[params.artificial_viscosity_skf];
-    if (params.summation_density == false) {
+    if (params.density_treatment == DENSITY_CONTINUITY) {
         smoothing_kernels_dwdr[params.density_skf];
     }
 
     for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+        printlog_debug("make buffer dwdr skf ")(skf)();
         smoothing_kernels_dwdr[skf] = makeBuffer<rr_float2>(flags, params.max_neighbours * params.maxn);
     }
 
     return smoothing_kernels_dwdr;
+}
+
+template<typename T>
+static shared_darray<T> load_array(const cl::Buffer& buffer) {
+    auto arr_ptr = std::make_shared<heap_darray<T>>(params.maxn);
+    cl::copy(buffer, arr_ptr->begin(), arr_ptr->end());
+    return arr_ptr;
 }
 
 void cl_time_integration(
@@ -93,7 +107,7 @@ void cl_time_integration(
     heap_darray<rr_float2>& v,	// velocities of all particles
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
-    const heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
+    heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
     const rr_uint ntotal, // total particle number at t = 0
     const rr_uint nfluid)  // fluid particles 
 {
@@ -109,7 +123,7 @@ void cl_time_integration(
     auto v_ = makeBufferCopyHost(v);
     auto rho_ = makeBufferCopyHost(rho);
     auto p_ = makeBufferCopyHost(p);
-    auto itype_ = makeBufferCopyHost(HOST_INPUT, itype);
+    auto itype_ = makeBufferCopyHost(CL_MEM_READ_WRITE, itype);
 
     auto rho_predict_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
     auto v_predict_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, params.maxn);
@@ -129,7 +143,6 @@ void cl_time_integration(
     auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto eta_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // external force
@@ -144,15 +157,18 @@ void cl_time_integration(
     // bitonic sort passes
     rr_uint passes = intlog2(params.maxn);
 
-    rr_float time = 0;
-    RR::Timer timer;
-    for (rr_uint itimestep = params.starttimestep; itimestep <= params.maxtimestep; itimestep++) {
-        printlog()("timestep: ")(itimestep)(" / ")(params.maxtimestep)();
-        timer.start();
+    rr_uint itimestep = 0;
+    rr_float time = params.start_simulation_time;
 
-        time = itimestep * params.dt;
+    SPH2DOutput::instance().setup_output(
+        std::bind(load_array<rr_float2>, r_),
+        std::bind(load_array<rr_int>, itype_),
+        std::bind(load_array<rr_float2>, v_),
+        std::bind(load_array<rr_float>, p_),
+        std::bind(load_array<rr_float>, rho_));
 
-        printTimeEstimate(timer.total(), itimestep);
+    while (time <= params.simulation_time) {
+        SPH2DOutput::instance().start_step(time);
 
         printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(
@@ -161,32 +177,6 @@ void cl_time_integration(
             rho_, v_,
             rho_predict_, v_predict_
         ).execute(params.maxn, params.local_threads);
-
-        bool should_check = itimestep % params.normal_check_step == 0;
-        bool should_save = itimestep % params.save_step == 0;
-        if (should_save || should_check) {
-            heap_darray<rr_float2> r_temp(params.maxn);
-            heap_darray<rr_float2> v_temp(params.maxn);
-            heap_darray<rr_float> p_temp(params.maxn);
-
-            cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_predict_, v_temp.begin(), v_temp.end());
-            cl::copy(p_, p_temp.begin(), p_temp.end());
-
-            if (params.enable_check_consistency && should_check) {
-                check_particles_are_within_boundaries(ntotal, r_temp, itype);
-            }
-
-            if (should_save) {
-                output(
-                    std::move(r_temp),
-                    itype.copy(),
-                    std::move(v_temp),
-                    std::nullopt,
-                    std::move(p_temp),
-                    itimestep);
-            }
-        }
 
         printlog_debug("fill in grid")();
         fill_in_grid_kernel(
@@ -214,22 +204,24 @@ void cl_time_integration(
 
         printlog_debug("find neighbours")();
         find_neighbours_kernel(
-            r_, grid_, cells_,
+            r_, itype_, grid_, cells_,
             neighbours_
         ).execute(params.maxn, params.local_threads);
 
         for (auto& [skf, w] : smoothing_kernels_w) {
-            calculate_kernels_w_kernel(ntotal,
+            printlog_debug("calculate_kernels_w_kernel: ")(skf)();
+            calculate_kernels_w_kernel(
                 r_, neighbours_,
                 w, skf).execute(params.maxn, params.local_threads);
         }
         for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
-            calculate_kernels_dwdr_kernel(ntotal,
+            printlog_debug("calculate_kernels_dwdr_kernel: ")(skf)();
+            calculate_kernels_dwdr_kernel(
                 r_, neighbours_,
                 dwdr, skf).execute(params.maxn, params.local_threads);
         }
 
-        if (params.summation_density) {
+        if (params.density_treatment == DENSITY_SUMMATION) {
             printlog_debug("sum density")();
             sum_density_kernel(
                 neighbours_, smoothing_kernels_w[params.density_skf],
@@ -248,20 +240,19 @@ void cl_time_integration(
 
         printlog_debug("find stress tensor")();
         find_stress_tensor_kernel(
-            v_predict_, rho_predict_, neighbours_, smoothing_kernels_dwdr[params.int_force_skf],
+            v_predict_, rho_predict_, neighbours_, smoothing_kernels_dwdr[params.intf_skf],
             txx_, txy_, tyy_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("update internal state")();
         update_internal_state_kernel(
-            rho_predict_, txx_, txy_, tyy_,
-            p_
+            rho_predict_, p_
         ).execute(params.maxn, params.local_threads);
 
         printlog_debug("find internal changes")();
         find_internal_changes_kernel(
             v_predict_, rho_predict_,
-            neighbours_, smoothing_kernels_dwdr[params.int_force_skf],
+            neighbours_, smoothing_kernels_dwdr[params.intf_skf],
             txx_, txy_, tyy_, p_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
@@ -296,40 +287,37 @@ void cl_time_integration(
             a_
         ).execute(params.maxn, params.local_threads);
 
-        if (params.waves_generator) {
+
+        if (params.nwm && time >= params.nwm_time_start) {
             printlog_debug("update boundaries")();
-            update_boundaries_kernel(
-                v_, r_, time
-            ).execute(params.maxn, params.local_threads);
+            switch (params.nwm) {
+            case 2:
+                nwm_dynamic_boundaries_kernel(
+                    v_, r_, time
+                ).execute(params.maxn, params.local_threads);
+                break;
+            case 4:
+                nwm_disappear_wall_kernel(
+                    itype_
+                ).execute(params.maxn, params.local_threads);
+                params.nwm = false;
+                cl::copy(itype_, itype.begin(), itype.end());
+                break;
+            default:
+                break;
+            }
         }
 
         printlog_debug("whole step")();
         whole_step_kernel(itimestep,
-            itype_, drho_, a_, av_,
-            rho_, v_, r_
+            drho_, a_, av_,
+            itype_, rho_, v_, r_
         ).execute(params.maxn, params.local_threads);
 
-        if (itimestep && itimestep % params.dump_step == 0) {
-            heap_darray<rr_float2> r_temp(params.maxn);
-            heap_darray<rr_float2> v_temp(params.maxn);
-            heap_darray<rr_float> p_temp(params.maxn);
-            heap_darray<rr_float> rho_temp(params.maxn);
-
-            cl::copy(r_, r_temp.begin(), r_temp.end());
-            cl::copy(v_predict_, v_temp.begin(), v_temp.end());
-            cl::copy(p_, p_temp.begin(), p_temp.end());
-            cl::copy(rho_predict_, rho_temp.begin(), rho_temp.end());
-
-            dump(
-                std::move(r_temp),
-                itype.copy(),
-                std::move(v_temp),
-                std::move(rho_temp),
-                std::move(p_temp),
-                itimestep);
-        }
-
         time += params.dt;
-        timer.finish();
+        itimestep++;
+
+        SPH2DOutput::instance().finish_step();
+        SPH2DOutput::instance().update_step(time, itimestep);
     }
 }

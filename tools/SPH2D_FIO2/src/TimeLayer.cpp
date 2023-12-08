@@ -6,18 +6,18 @@
 using namespace sphfio;
 using RR::Memory::heap_darray;
 
-static rr_uint loadLayerFromFileMM(const std::string& filename,
-	rr_uint maxn,
+static rr_uint loadLayerFromFileMM(const std::filesystem::path& path,
+	rr_uint ntotal,
 	heap_darray<rr_float2>& r,
 	heap_darray<rr_int>& itype,
 	heap_darray<rr_float2>& v,
 	heap_darray<rr_float>& p) 
 {
-	csv::CSVReader reader(filename);
+	csv::CSVReader reader{ path.string() };
 
 	rr_uint j = 0;
 	for (const auto& row : reader) {
-		if (j == maxn) {
+		if (j == ntotal) {
 			j = 0;
 			break;
 		}
@@ -43,16 +43,17 @@ static rr_uint loadLayerFromFileMM(const std::string& filename,
 	return j;
 }
 
-TimeLayer::TimeLayer(const std::string& filename, rr_uint maxn) :
-	r{ maxn },
-	itype{ maxn },
-	v{ maxn },
-	p{ maxn },
-	ntotal{ loadLayerFromFileMM(filename, maxn,
+TimeLayer::TimeLayer(const std::filesystem::path& path, rr_uint ntotal) :
+	r{ ntotal },
+	itype{ ntotal },
+	v{ ntotal },
+	p{ ntotal },
+	ntotal{ loadLayerFromFileMM(path, ntotal,
 		r,
 		itype,
 		v,
-		p) }
+		p) },
+	time{ std::stod(path.stem().string()) }
 {
 }
 

@@ -57,7 +57,7 @@ void sum_density(
 
 	// normrho(maxn) --- integration of the kernel itself
 	static heap_darray<rr_float> normrho(params.maxn);
-	if (params.nor_density) {
+	if (params.density_normalization) {
 		density_normalization(
 			ntotal,
 			neighbours,
@@ -74,7 +74,7 @@ void sum_density(
 		rho);
 
 	// calculate the normalized rho, rho = sum(rho)/sum(w)
-	if (params.nor_density) {
+	if (params.density_normalization) {
 		for (rr_uint k = 0; k < ntotal; k++) {
 			rho(k) /= normrho(k);
 		}

@@ -26,6 +26,6 @@ void average_velocity(
 			av(j) += dvx * params.mass / (rho(i) + rho(j)) * w(n, j) * 2.f;
 		}
 
-		av(j) *= params.average_velocity_epsilon;
+		av(j) *= params.average_velocity_coef;
 	}
 }

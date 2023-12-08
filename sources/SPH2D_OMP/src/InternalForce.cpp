@@ -62,7 +62,7 @@ void find_internal_changes_pij_d_rhoij(
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
-	rr_float eta = params.water_dynamic_visc;
+	rr_float eta = params.visc_coef;
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		a(j) = { 0.f };
@@ -105,7 +105,7 @@ void find_internal_changes_pidrho2i_pjdrho2j(
 	// calculate SPH sum for pressure force -p, a/rho
 	// and viscous force (eta Tab), b / rho
 	// and the internal energy change de/dt due to -p/rho vc, c
-	rr_float eta = params.water_dynamic_visc;
+	rr_float eta = params.visc_coef;
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		a(j) = { 0.f };
@@ -178,7 +178,7 @@ void int_force(
 		rho,
 		p);
 
-	if (params.pa_sph == 1) {
+	if (params.intf_sph_approximation == 1) {
 		find_internal_changes_pij_d_rhoij(ntotal,
 			v, rho,
 			neighbours, dwdr,

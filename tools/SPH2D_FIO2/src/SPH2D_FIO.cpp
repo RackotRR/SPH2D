@@ -1,6 +1,9 @@
 #include <filesystem>
+#include <fmt/format.h>
+#include <iostream>
 
 #include "SPH2D_FIO.h"
+#include "ParamsIO.h"
 
 using namespace sphfio;
 
@@ -15,38 +18,70 @@ LazyGrid SPHFIO::makeLazyGrid() const {
 	return LazyGrid{ available_layers_path, params };
 }
 
-LayersPathPtr
-SPHFIO::findTimeLayersPath(ParamsPtr params) {
-	auto available_layers_path = std::make_shared<LayersPath>();
-	int step = 0;
-	while (true) {
-		auto path = std::filesystem::current_path().append(params->experiment_name + "/data/" + std::to_string(step) + ".csv");
-		if (std::filesystem::exists(path)) {
-			available_layers_path->emplace_back(path.string());
-			step += params->save_step;
-		}
-		else {
-			break;
-		}
+static void loadTimeLayers(
+	LayersPathPtr layers_path, 
+	const ExperimentLayers& layers,
+	const std::filesystem::path& data_path) 
+{
+	layers_path->clear();
+	layers_path->reserve(layers.count);
+	for (auto& layer : layers.paths) {
+		layers_path->push_back(data_path / layer.filename());
 	}
-	return available_layers_path;
+}
+
+LayersPathPtr
+SPHFIO::findTimeLayersPath() {
+
+	auto experiment = ExperimentStatistics::load(directories.getExperimentDirectory());
+	auto available_layers_path = std::make_shared<LayersPath>();
+
+	if (!experiment.data_layers.empty()) {
+		loadTimeLayers(available_layers_path, experiment.data_layers, experiment.dir / "data");
+	}
+	else if (!experiment.dump_layers.empty()) {
+		loadTimeLayers(available_layers_path, experiment.dump_layers, experiment.dir / "dump");
+	}
+	else {
+		std::cout << "No layers loaded!" << std::endl;
+	}
+
+	return available_layers_path;	
 }
 
 
 ParamsPtr SPHFIO::loadExperimentParams() {
-	std::string path = directories.getExperimentDirectory() + "/Params.json";
-	ParamsPtr experiment_params = std::make_shared<ExperimentParams>();
-	experiment_params->load(path);
+	auto& path = directories.getExperimentDirectory();
+	ParamsPtr experiment_params = std::make_shared<ExperimentParams>(load_experiment_params(path));
 	return experiment_params;
 }
 
-SPHFIO::SPHFIO(const std::string& experiment_name) :
-	directories{ experiment_name },
+std::unordered_set<std::string> SPHFIO::findAvailableVariables(ParamsPtr params) {
+	std::unordered_set<std::string> available_variables;
+	available_variables.emplace("x");
+	available_variables.emplace("y");
+	available_variables.emplace("itype");
+	if (params->save_velocity) {
+		available_variables.emplace("vx");
+		available_variables.emplace("vy");
+	}
+	if (params->save_density) {
+		available_variables.emplace("rho");
+	}
+	if (params->save_pressure) {
+		available_variables.emplace("p");
+	}
+	return available_variables;
+}
+
+SPHFIO::SPHFIO(const std::filesystem::path& experiment_dir) :
+	directories{ experiment_dir },
 	params{ loadExperimentParams() },
-	available_layers_path{ findTimeLayersPath(params) }
+	available_layers_path{ findTimeLayersPath() },
+	available_variables{ findAvailableVariables(params) }
 {
 }
 
 bool SPHFIO::isAdditionalValuePresented(const std::string& value) const {
-	return params->format_line.find(value) != std::string::npos;
+	return available_variables.contains(value);
 }

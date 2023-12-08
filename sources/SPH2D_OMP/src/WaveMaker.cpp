@@ -1,50 +1,113 @@
 #include "CommonIncl.h"
-#include "VirtualParticles.h"
 #include "WaveMaker.h"
 
 void make_waves(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
+	heap_darray<rr_float2>& r,
+	heap_darray<rr_float2>& v,
 	heap_darray<rr_float2>& a,
+	heap_darray<rr_int>& itype,
 	const rr_uint nfluid,
 	const rr_uint ntotal,
 	const rr_float time)
 {
 	printlog_debug()(__func__)();
 
-	// NWM
-	if (params.nwm == 1) {
+	switch (params.nwm) {
+	case 1:
 		rzm_generator(r, a, nfluid, time);
-		//RZM_absorber(r, v, a, nfluid, time);
-	}
-	else if (params.nwm == 2) {
-		dynamic_boundaries(r, v, time);
-	}
-	else if (params.nwm == 3) {
+		break;
+
+	case 2:
+		dynamic_boundaries(r, v, nfluid, ntotal, time);
+		break;
+
+	case 3:
 		impulse_nwm(r, a, nfluid, ntotal, time);
+		break;
+
+	case 4:
+		disappear_wall(itype, nfluid, ntotal, time);
+		params.nwm = NWM_NO_WAVES;
+		break;
+	default:
+		break;
+	}
+}
+
+void dynamic_boundaries(
+	heap_darray<rr_float2>& r,
+	heap_darray<rr_float2>& v,
+	const rr_uint nfluid,
+	const rr_uint ntotal,
+	const rr_float time)
+{
+	printlog_debug(__func__)();
+
+	if (params.nwm_particles_start < nfluid || 
+		params.nwm_particles_end < nfluid || 
+		params.nwm_particles_end < params.nwm_particles_start) 
+	{
+		printlog_debug("Wrong disappearing wall parameters:")();
+		printlog_debug("nwm_particles_start: ")(params.nwm_particles_start)();
+		printlog_debug("nwm_particles_end: ")(params.nwm_particles_end)();
+		return;
+	}
+
+	rr_float phase = -params.nwm_freq * params.nwm_time_start;
+	rr_float v_x = params.nwm_piston_magnitude * params.nwm_freq * cos(params.nwm_freq * time + phase);
+
+	for (rr_uint i = params.nwm_particles_start; i < params.nwm_particles_end; i++) {
+		r(i).x = r(i).x + v_x * params.dt;
+		v(i).x = v_x;
+	}
+
+	printlog_trace("r.x: ")(r(params.nwm_particles_start).x)();
+	printlog_trace("v.x: ")(v_x)();
+}
+
+void disappear_wall(
+	heap_darray<rr_int>& itype,
+	const rr_uint nfluid,
+	const rr_uint ntotal,
+	const rr_float time)
+{
+	printlog_debug()(__func__)();
+
+	if (params.nwm_particles_start < nfluid || 
+		params.nwm_particles_end < nfluid || 
+		params.nwm_particles_end < params.nwm_particles_start) 
+	{
+		printlog_debug("Wrong disappearing wall parameters:")();
+		printlog_debug("nwm_particles_start: ")(params.nwm_particles_start)();
+		printlog_debug("nwm_particles_end: ")(params.nwm_particles_end)();
+		return;
+	}
+
+	for (rr_uint i = params.nwm_particles_start; i < params.nwm_particles_end; ++i) {
+		itype(i) = params.TYPE_NON_EXISTENT;
 	}
 }
 
 
 void impulse_nwm(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
+	heap_darray<rr_float2>& r,
 	heap_darray<rr_float2>& a,
 	const rr_uint nfluid,
 	const rr_uint ntotal,
 	const rr_float time)
 {
 	constexpr rr_float delta = 2.f;
-	const rr_float nwmPos = params.wave_length * 2.f;
+	const rr_float nwmPos = params.nwm_wave_length * 2.f;
 	const rr_float factor = 4.f * sqr(params.pi);
 	for (rr_uint i = 0; i < nfluid; i++) {
 		rr_float x = r(i).x;
-		rr_float diff = factor * (1.f + params.wave_amp * sin(params.freq * time) * exp(-sqr(x - nwmPos) / sqr(delta)));
+		rr_float diff = factor * (1.f + params.nwm_wave_magnitude * sin(params.nwm_freq * time) * exp(-sqr(x - nwmPos) / sqr(delta)));
 		a(i).x = diff;
 	}
 }
 
 void rzm_generator(
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
+	const heap_darray<rr_float2>& r,
 	heap_darray<rr_float2>& a,
 	const rr_uint nfluid,
 	const rr_float time)
@@ -52,18 +115,18 @@ void rzm_generator(
 	for (rr_uint i = 0; i < nfluid; i++) {
 		rr_float x = r(i).x;
 		rr_float y = r(i).y;
-		static rr_float rzmg_x0 = params.wave_length * 0.25f;
-		static rr_float rzmg_xn = params.wave_length * 0.5f;
+		static rr_float rzmg_x0 = params.nwm_wave_length * 0.25f;
+		static rr_float rzmg_xn = params.nwm_wave_length * 0.5f;
 		static rr_float rzmg_length = rzmg_xn - rzmg_x0;
 		static rr_float rzmg_center = (rzmg_x0 + rzmg_xn) * 0.5f;
 		if (x >= rzmg_x0 &&
 			x <= rzmg_xn) {
 			rr_float xc = (x - rzmg_center) / rzmg_length;
 			rr_float C = exp(-sqr(1.5f * params.pi* xc));//cos(params.pi * xc);
-			static rr_float H = params.wave_amp;
-			static rr_float O = params.freq;
+			static rr_float H = params.nwm_wave_magnitude;
+			static rr_float O = params.nwm_freq;
 			static rr_float d = params.depth;
-			static rr_float k = params.wave_number;
+			static rr_float k = params.nwm_wave_number;
 
 			rr_float dv_xt = 0.5f * H * O * O * cosh(k * y + k * d) / sinh(k * d) * sin(k * x - O * time);
 			rr_float dv_zt = -0.5f * H * O * O * sinh(k * y + k * d) / sinh(k * d) * cos(k * x - O * time);
@@ -77,8 +140,8 @@ void rzm_generator(
 }
 
 void rzm_absorber(
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
-	const heap_darray<rr_float2>& v,	// velocities of all particles
+	const heap_darray<rr_float2>& r,
+	const heap_darray<rr_float2>& v,
 	heap_darray<rr_float2>& a,
 	const rr_uint nfluid,
 	const rr_float time)
@@ -93,10 +156,10 @@ void rzm_absorber(
 			x <= rzma_xn) {
 			rr_float xc = (x - rzma_x0) / rzma_length;
 			rr_float C = sin(params.pi * 0.5f * (xc + 1));
-			static rr_float H = params.wave_amp;
-			static rr_float O = params.freq;
+			static rr_float H = params.nwm_wave_magnitude;
+			static rr_float O = params.nwm_freq;
 			static rr_float d = params.depth;
-			static rr_float k = params.wave_number;
+			static rr_float k = params.nwm_wave_number;
 			rr_float dv_xt = H * O * O * cosh(k * y + k * d) / sinh(k * d) * sin(k * x - O * time);
 			rr_float dv_zt = -H * O * O * sinh(k * y + k * d) / sinh(k * d) * cos(k * x - O * time);
 
