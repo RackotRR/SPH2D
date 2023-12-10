@@ -74,21 +74,21 @@ std::vector<std::string> SPH2DOutput::make_csv_header(
 	std::vector<std::string> header;
 
 	if (r) {
-		header.emplace_back("x");
-		header.emplace_back("y");
+		header.emplace_back(NAME_VARIABLE_X);
+		header.emplace_back(NAME_VARIABLE_Y);
 	}
 	if (itype) {
-		header.emplace_back("itype");
+		header.emplace_back(NAME_VARIABLE_ITYPE);
 	}
 	if (v) {
-		header.emplace_back("vx");
-		header.emplace_back("vy");
+		header.emplace_back(NAME_VARIABLE_VX);
+		header.emplace_back(NAME_VARIABLE_VY);
 	}
 	if (rho) {
-		header.emplace_back("rho");
+		header.emplace_back(NAME_VARIABLE_RHO);
 	}
 	if (p) {
-		header.emplace_back("p");
+		header.emplace_back(NAME_VARIABLE_P);
 	}
 
 	return header;

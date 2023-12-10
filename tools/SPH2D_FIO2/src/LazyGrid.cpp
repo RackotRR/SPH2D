@@ -35,7 +35,7 @@ LazyGrid::Iterator& LazyGrid::Iterator::operator++() {
 
 TimeLayer LazyGrid::Iterator::operator*() const {
     assert(current < lazy_grid.available_layers_path->size());
-    auto layer = TimeLayer{ lazy_grid.available_layers_path->at(current), lazy_grid.params->maxn };
+    auto layer = TimeLayer{ lazy_grid.available_layers_path->at(current), lazy_grid.params };
     std::cout << fmt::format("layer {} / {}...\n", current, lazy_grid.size());
     return layer;
 }

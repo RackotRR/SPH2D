@@ -7,34 +7,37 @@ using namespace sphfio;
 using RR::Memory::heap_darray;
 
 static rr_uint loadLayerFromFileMM(const std::filesystem::path& path,
-	rr_uint ntotal,
+	ParamsPtr params,
 	heap_darray<rr_float2>& r,
 	heap_darray<rr_int>& itype,
 	heap_darray<rr_float2>& v,
-	heap_darray<rr_float>& p) 
+	heap_darray<rr_float>& p,
+	heap_darray<rr_float>& rho) 
 {
 	csv::CSVReader reader{ path.string() };
 
 	rr_uint j = 0;
 	for (const auto& row : reader) {
-		if (j == ntotal) {
+		if (j == params->ntotal) {
 			j = 0;
 			break;
 		}
 
-		// todo: come with new solution
-		r(j).x = row["x"].get<rr_float>();
-		r(j).y = row["y"].get<rr_float>();
-		itype(j) = row["itype"].get<rr_int>();
+		r(j).x = row[NAME_VARIABLE_X].get<rr_float>();
+		r(j).y = row[NAME_VARIABLE_Y].get<rr_float>();
+		itype(j) = row[NAME_VARIABLE_ITYPE].get<rr_int>();
 
-		if (reader.index_of("vx") != csv::CSV_NOT_FOUND) {
-			v(j).x = row["vx"].get<rr_float>();
+		if (params->save_velocity) {
+			v(j).x = row[NAME_VARIABLE_VX].get<rr_float>();
+			v(j).y = row[NAME_VARIABLE_VY].get<rr_float>();
 		}
-		if (reader.index_of("vy") != csv::CSV_NOT_FOUND) {
-			v(j).y = row["vy"].get<rr_float>();
+
+		if (params->save_pressure) {
+			p(j) = row[NAME_VARIABLE_P].get<rr_float>();
 		}
-		if (reader.index_of("p") != csv::CSV_NOT_FOUND) {
-			p(j) = row["p"].get<rr_float>();
+
+		if (params->save_density) {
+			rho(j) = row[NAME_VARIABLE_RHO].get<rr_float>();
 		}
 
 		++j;
@@ -43,39 +46,38 @@ static rr_uint loadLayerFromFileMM(const std::filesystem::path& path,
 	return j;
 }
 
-TimeLayer::TimeLayer(const std::filesystem::path& path, rr_uint ntotal) :
-	r{ ntotal },
-	itype{ ntotal },
-	v{ ntotal },
-	p{ ntotal },
-	ntotal{ loadLayerFromFileMM(path, ntotal,
+TimeLayer::TimeLayer(const std::filesystem::path& path, ParamsPtr params) :
+	r{ params->ntotal },
+	itype{ params->ntotal },
+
+	v{ params->save_velocity ? params->ntotal : 0 },
+	p{ params->save_velocity ? params->ntotal : 0 },
+	rho{ params->save_velocity ? params->ntotal : 0 },
+
+	ntotal{ loadLayerFromFileMM(path, params,
 		r,
 		itype,
 		v,
-		p) },
+		p,
+		rho) },
+
 	time{ std::stod(path.stem().string()) }
 {
 }
 
 
-// todo: come with new solution
-static constexpr char X_NAME[] = "x";
-static constexpr char Y_NAME[] = "y";
-static constexpr char ITYPE_NAME[] = "itype";
-static constexpr char VX_NAME[] = "vx";
-static constexpr char VY_NAME[] = "vy";
-static constexpr char P_NAME[] = "p";
-
 static rr_float getParticleVx(const TimeLayer& particles, rr_uint i) { return particles.v(i).x; }
 static rr_float getParticleVy(const TimeLayer& particles, rr_uint i) { return particles.v(i).y; }
 static rr_float getParticleP(const TimeLayer& particles, rr_uint i) { return particles.p(i); }
+static rr_float getParticleRho(const TimeLayer& particles, rr_uint i) { return particles.rho(i); }
 using ParticleVarGetter = rr_float (*)(const TimeLayer& particles, rr_uint i);
 
 static auto& getGetterByTag(const std::string& tag) {
 	static const std::unordered_map<std::string, ParticleVarGetter> dict{
-		{VX_NAME, getParticleVx},
-		{VY_NAME, getParticleVy},
-		{P_NAME, getParticleP}
+		{NAME_VARIABLE_VX, getParticleVx},
+		{NAME_VARIABLE_VY, getParticleVy},
+		{NAME_VARIABLE_P, getParticleP},
+		{NAME_VARIABLE_RHO, getParticleRho}
 	};
 
 	return dict.at(tag);

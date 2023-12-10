@@ -58,18 +58,18 @@ ParamsPtr SPHFIO::loadExperimentParams() {
 
 std::unordered_set<std::string> SPHFIO::findAvailableVariables(ParamsPtr params) {
 	std::unordered_set<std::string> available_variables;
-	available_variables.emplace("x");
-	available_variables.emplace("y");
-	available_variables.emplace("itype");
+	available_variables.emplace(NAME_VARIABLE_X);
+	available_variables.emplace(NAME_VARIABLE_Y);
+	available_variables.emplace(NAME_VARIABLE_ITYPE);
 	if (params->save_velocity) {
-		available_variables.emplace("vx");
-		available_variables.emplace("vy");
+		available_variables.emplace(NAME_VARIABLE_VX);
+		available_variables.emplace(NAME_VARIABLE_VY);
 	}
 	if (params->save_density) {
-		available_variables.emplace("rho");
+		available_variables.emplace(NAME_VARIABLE_RHO);
 	}
 	if (params->save_pressure) {
-		available_variables.emplace("p");
+		available_variables.emplace(NAME_VARIABLE_P);
 	}
 	return available_variables;
 }

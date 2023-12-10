@@ -42,4 +42,12 @@
 #define SBT_DYNAMIC 0
 #define SBT_REPULSIVE 1
 
+#define NAME_VARIABLE_X "x"
+#define NAME_VARIABLE_Y "y"
+#define NAME_VARIABLE_ITYPE "itype"
+#define NAME_VARIABLE_VX "vx"
+#define NAME_VARIABLE_VY "vy"
+#define NAME_VARIABLE_P "p"
+#define NAME_VARIABLE_RHO "rho"
+
 #endif 

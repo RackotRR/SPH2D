@@ -162,6 +162,11 @@
 //       - WaterProfile: fix naming without postfix
 //       -               fix default HeightTestingParams
 //       - FuncAtPoint: remove non-csv output
+// 3.0.7 - RRSPH2D: change versioning politics
+//       - SPH2D_COMMON: move common variable names into SPH2D_PARAMS
+//       - SPH2D_FIO: move common variable names into SPH2D_PARAMS
+//       - SPH2D_PARAMS: add common variable names to enumeration
+//       - SPH2D_OMP: add OpenMP threads num logging
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release

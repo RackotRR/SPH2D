@@ -35,5 +35,6 @@
 // 1.2.2 - fix TimeFormat
 //       - use TimeFormat in TimeEstimate module
 //       - move logging time into SPH2DOutput
+// 1.2.3 - move common variable names from SPH2DOutput into SPH2D_PARAMS
 // TODO:
 // 1.2.3 - add confirmation for deletion (suffix f to skip confirmation)

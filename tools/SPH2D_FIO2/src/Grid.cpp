@@ -13,7 +13,7 @@ Grid::Grid(LayersPathPtr available_layers_path, ParamsPtr params) :
 #pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < grid.size(); ++i) {
 		std::cout << fmt::format("layer {} / {}...\n", i, grid.size());
-		grid[i] = TimeLayer{ available_layers_path->at(i), params->ntotal };
+		grid[i] = TimeLayer{ available_layers_path->at(i), params };
 
 		// expect time layer name represents time moment
 		time_points_[i] = std::stod(available_layers_path->at(i).stem().string());

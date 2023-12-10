@@ -13,17 +13,19 @@ namespace sphfio {
 
 	struct TimeLayer {
 		TimeLayer() = default;
-		TimeLayer(const std::filesystem::path& path, rr_uint ntotal);
+		TimeLayer(const std::filesystem::path& path, ParamsPtr params);
 
 		RR::Memory::heap_darray<rr_float2> r;
 		RR::Memory::heap_darray<rr_int> itype;
 		RR::Memory::heap_darray<rr_float2> v;
 		RR::Memory::heap_darray<rr_float> p;
+		RR::Memory::heap_darray<rr_float> rho;
 
 		rr_uint ntotal = 0;
 		rr_float time = 0;
 
 		rr_float getByTag(const std::string& value, rr_uint i) const;
+		ParamsPtr params;
 	};
 
 	struct LazyGrid {

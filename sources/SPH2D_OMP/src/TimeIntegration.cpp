@@ -12,6 +12,8 @@
 #include <iostream>
 #include <fmt/format.h>
 
+#include <omp.h>
+
 void predict_half_step(
 	const rr_uint ntotal,
 	const heap_darray<rr_int>& itype, // material type 
@@ -91,6 +93,7 @@ void time_integration(
 	const rr_uint nfluid)  // fluid particles 
 {
 	printlog()(__func__)();
+	printlog("threads: ")(omp_get_max_threads())();
 
 	heap_darray<rr_float> rho_predict(params.maxn);
 	heap_darray<rr_float> drho(params.maxn);

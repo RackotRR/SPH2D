@@ -96,8 +96,11 @@ Experiments find_experiments(const std::filesystem::path& search_directory) {
 std::vector<int> enumerate_experiments(const Experiments& experiments, ExperimentEnumerateCondition condition) {	
 	std::vector<int> experiment_indices;
 	std::cout << "Found experiments: " << std::endl;
+	
 	int count_enumerated = 0;
-	for (int i = 0; auto& experiment : experiments) {
+	int i = 0;
+
+	for (auto& experiment : experiments) {
 		auto name = experiment.dir.stem().string();
 		auto data_layers = experiment.data_layers.count;
 		auto dump_layers = experiment.dump_layers.count;

@@ -3,18 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# Generated version:
-ParamsVersion.h
-SPH2DVersion.h
-SPH2DCOMMONVersion.h
-SPH2DCLVersion.h
-SPH2DOMPVersion.h
-FuncAtPointVersion.h
-PartToGridConverterVersion.h
-SPH2DFIOVersion.h
-SPH2DPicGenVersion.h
-WaterProfileVersion.h
-
 # User-specific files
 *.rsuser
 *.suo
@@ -388,3 +376,4 @@ FodyWeavers.xsd
 /sources/SPH2D_OMP/include/SPH2DOMPVersion.h
 /sources/SPH2DVersion.h
 /tools/SPH2D_PicGen/include/SPH2DPicGenVersion.h
+/tools/SPH2D_FIO2/include/SPH2DFIOVersion.h

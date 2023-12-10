@@ -14,3 +14,5 @@
 // 2.3.2 - update additional values search without format line
 // 2.3.3 - Grid find methods from now on receive time instead of layer num
 //       - add time as TimeLayer field
+// 2.3.4 - add support for density loading
+//       - move common variable names into SPH2D_PARAMS

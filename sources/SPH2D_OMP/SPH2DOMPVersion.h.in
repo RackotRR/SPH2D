@@ -22,5 +22,6 @@
 //       - remove maxtimestep param
 // 1.2.1 - fix timestep didn't increment
 // 1.2.2 - fix ExternalForce consider non-existent particles
+// 1.2.3 - add OpenMP threads num logging
 // TODO:
 // 1.3   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
