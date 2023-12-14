@@ -36,5 +36,6 @@
 //       - use TimeFormat in TimeEstimate module
 //       - move logging time into SPH2DOutput
 // 1.2.3 - move common variable names from SPH2DOutput into SPH2D_PARAMS
+// 1.2.4 - add C++17 support
 // TODO:
-// 1.2.3 - add confirmation for deletion (suffix f to skip confirmation)
+// 1.2 - add confirmation for deletion (suffix f to skip confirmation)

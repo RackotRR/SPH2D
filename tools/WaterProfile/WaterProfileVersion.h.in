@@ -15,3 +15,4 @@
 // 2.2.2 - update with arbitrary time step
 // 2.2.3 - fix naming without postfix
 //       - fix default HeightTestingParams
+// 2.2.4 - add C++17 support

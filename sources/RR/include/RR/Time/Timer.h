@@ -33,12 +33,12 @@ namespace RR {
 
         // last measure
         template<typename TimeType = _timeType>
-        long long value() const {
+        TimeType value() const {
             if (_isCounting) {
-                return 0;
+                return TimeType{};
             }
             else {
-                return std::chrono::duration_cast<TimeType>(_end - _start).count();
+                return std::chrono::duration_cast<TimeType>(_end - _start);
             }
         }
 

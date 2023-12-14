@@ -14,6 +14,7 @@ static_assert(false, "undefined SPH2D Simulator");
 
 #include "CommonIncl.h"
 #include "Input.h"
+#include "TimeFormat.h"
 
 void simulation() {
 	rr_uint ntotal; // number of particles 
@@ -41,7 +42,7 @@ void simulation() {
 #endif
 	timer.finish();
 
-	std::cout << "total time in minutes: " << timer.value<std::chrono::minutes>() << std::endl;
+	std::cout << "total time: " << format_timer(timer.value<std::chrono::nanoseconds>()) << std::endl;
 }
 
 int main(int arc, const char* argv[]) {

@@ -18,8 +18,19 @@ struct RGB {
     Uint8 green;
     Uint8 blue;
 
+#if __cplusplus > 201703L
     bool operator==(const RGB& other) const = default;
     bool operator!=(const RGB& other) const = default;
+#else
+    bool operator==(const RGB& other) const {
+        return red == other.red &&
+            green == other.green &&
+            blue == other.blue;
+    };
+    bool operator!=(const RGB& other) const {
+        return !(*this == other);
+    }
+#endif
 };
 
 RGB fluid_particle_color = { 0, 0, 255 };

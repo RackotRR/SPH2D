@@ -1,7 +1,8 @@
 #include "HeightTestingParams.h"
 
 static void print_vec(const std::vector<double>& vec) {
-	for (int i = 0; double val : vec) {
+	int i = 0;
+	for (double val : vec) {
 		std::cout << val;
 		++i;
 		if (i < vec.size()) {

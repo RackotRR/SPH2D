@@ -167,6 +167,13 @@
 //       - SPH2D_FIO: move common variable names into SPH2D_PARAMS
 //       - SPH2D_PARAMS: add common variable names to enumeration
 //       - SPH2D_OMP: add OpenMP threads num logging
+// 3.0.8 - RRSPH2D: support for C++17, C++20, C++23
+//       - RRSPH2D: support partial tools present
+//       - SPH2D_COMMON: add C++17 support
+//       - SPH2D_FIO: add C++17 support
+//       - SPH2D_PicGen: add C++17 support
+//       - WaterProfile: add C++17 support
+//       - SPH2D: fix total simulation time not formatted
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release

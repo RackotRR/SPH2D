@@ -98,5 +98,4 @@ private:
 	func_load_arr_float load_rho;
 
 	int save_time_decimal_digits;
-	int dump_time_decimal_digits;
 };

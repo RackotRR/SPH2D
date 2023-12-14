@@ -1,11 +1,21 @@
 cmake_minimum_required(VERSION 3.15)
 
-add_subdirectory(PartToGridConverter)
-add_subdirectory(SPH2D_FIO2)
-add_subdirectory(FuncAtPoint)
-add_subdirectory(WaterProfile)
-add_subdirectory(SPH2D_Drawer)
-add_subdirectory(SPH2D_PicGen)
+# conditional adding of subdirectories
+function(custom_add_subdir dirname)
+    if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${dirname})
+        message("adding ${dirname}")
+        add_subdirectory(${dirname})
+    else()
+        message("skip ${dirname}")
+    endif()
+endfunction(custom_add_subdir dirname)
+
+custom_add_subdir(PartToGridConverter)
+custom_add_subdir(SPH2D_FIO2)
+custom_add_subdir(FuncAtPoint)
+custom_add_subdir(WaterProfile)
+custom_add_subdir(SPH2D_Drawer)
+custom_add_subdir(SPH2D_PicGen)
 
 if (WIN32)
     set(SPH2DParamsGeneratorPath ${CMAKE_SOURCE_DIR}/tools/SPH2DParamsGenerator)

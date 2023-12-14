@@ -39,13 +39,14 @@ void SPH2DOutput::setup_output(
 	func_load_arr_float load_p,
 	func_load_arr_float load_rho)
 {
+	printlog(__func__)();
+
 	this->load_r = load_r;
 	this->load_itype = load_itype;
 	this->load_v = load_v;
 	this->load_p = load_p;
 	this->load_rho = load_rho;
 	this->save_time_decimal_digits = format_count_decimal_digits(params.save_time);
-	this->dump_time_decimal_digits = format_count_decimal_digits(params.dump_time);
 
 	// first layer output
 	auto r = load_r();
@@ -171,7 +172,7 @@ void SPH2DOutput::dump(
 	check_passed_consistency(rho, true);
 	check_passed_consistency(p, true);
 
-	std::string t = format_time_digits(time, dump_time_decimal_digits);
+	std::string t = format_save_time(time, params.dump_time);
 	thread_pool.add_thread(
 		std::thread(&SPH2DOutput::print_dump, this,
 			r,
@@ -201,7 +202,7 @@ void SPH2DOutput::crash_dump(
 	check_passed_consistency(rho, true);
 	check_passed_consistency(p, true);
 
-	std::string t = format_time_digits(time, dump_time_decimal_digits);
+	std::string t = format_time_digits(time, save_time_decimal_digits);
 	thread_pool.add_thread(
 		std::thread(&SPH2DOutput::print_dump, this,
 			r,

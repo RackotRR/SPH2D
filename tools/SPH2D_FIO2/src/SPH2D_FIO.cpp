@@ -83,5 +83,9 @@ SPHFIO::SPHFIO(const std::filesystem::path& experiment_dir) :
 }
 
 bool SPHFIO::isAdditionalValuePresented(const std::string& value) const {
+#if __cplusplus > 201703L
 	return available_variables.contains(value);
+#else 
+	return available_variables.find(value) != available_variables.end();
+#endif
 }
