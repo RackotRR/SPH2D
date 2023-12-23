@@ -7,13 +7,20 @@
 #include "AverageVelocity.h"
 #include "UpdateAcceleration.h"
 #include "Kernel.h"
+#include "EOS.h"
 
 #include <unordered_map>
+#include <functional>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using SmoothingKernelsW_t = std::unordered_map<rr_uint, heap_darray_md<rr_float>>;
 using SmoothingKernelsDwDr_t = std::unordered_map<rr_uint, heap_darray_md<rr_float2>>;
 
 static SmoothingKernelsW_t make_smoothing_kernels_w() {
+	printlog_debug()(__func__)();
 	std::unordered_map<rr_uint, heap_darray_md<rr_float>> smoothing_kernels_w;
 	
 	smoothing_kernels_w[params.density_skf];
@@ -26,6 +33,7 @@ static SmoothingKernelsW_t make_smoothing_kernels_w() {
 	return smoothing_kernels_w;
 }
 static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
+	printlog_debug()(__func__)();
 	std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr;
 
 	smoothing_kernels_dwdr[params.intf_skf];
@@ -39,6 +47,39 @@ static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
 	}
 
 	return smoothing_kernels_dwdr;
+}
+
+template<typename T>
+T optimize(rr_uint ntotal, 
+	const heap_darray<T>& arr,
+	std::function<bool(T, T)> optimize_func)
+{
+	printlog_debug()(__func__)();
+	if (arr.size() == 0) return T{};
+
+#ifdef _OPENMP
+ 	auto& reference_value = arr(0);
+	heap_darray<T> thread_optimized(omp_get_num_threads(), reference_value);
+
+#pragma omp parallel for num_threads(omp_get_num_threads())
+	for (rr_iter j = 0; j < ntotal; ++j) {
+		int i = omp_get_thread_num();
+		auto& current_value = thread_optimized(i);
+		auto& other_value = arr(j);
+		thread_optimized(i) = optimize_func(current_value, other_value) ? current_value : other_value;
+	}
+
+	T value = reference_value;
+	for (rr_iter j = 0; j < thread_optimized.size(); ++j) {
+		auto& other_value = thread_optimized(j);
+		value = optimize_func(value, other_value) ? value : other_value;
+	}
+	return value;
+
+#else
+	return *std::min_element(arr.begin(), arr.end(), optimize_func);
+#endif
+
 }
 
 // determine the right hand side of a differential equation
@@ -60,6 +101,7 @@ void update_acceleration(
 	static heap_darray<rr_float2> indvxdt(params.maxn);
 	static heap_darray<rr_float2> exdvxdt(params.maxn);
 	static heap_darray<rr_float2> arvdvxdt(params.maxn);
+	static heap_darray<rr_float> arvmu(params.maxn);
 
 	static heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn);
 
@@ -105,7 +147,7 @@ void update_acceleration(
 		artificial_viscosity(ntotal,
 			r, v, rho,
 			neighbours, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
-			arvdvxdt);
+			arvdvxdt, arvmu);
 	}
 
 	external_force(ntotal,
@@ -125,6 +167,10 @@ void update_acceleration(
 	update_change_rate(nfluid,
 		indvxdt, exdvxdt, arvdvxdt,
 		a);
+
+	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+		update_dt(ntotal, a, arvmu);
+	}
 }
 
 void update_change_rate(rr_uint nfluid,
@@ -133,7 +179,29 @@ void update_change_rate(rr_uint nfluid,
 	const heap_darray<rr_float2>& arvdvxdt,
 	heap_darray<rr_float2>& a)
 {
+	printlog_debug()(__func__)();
+
 	for (rr_uint i = 0; i < nfluid; i++) {
 		a(i) = indvxdt(i) + exdvxdt(i) + arvdvxdt(i);
 	}
+}
+
+void update_dt(rr_uint ntotal,
+	const heap_darray<rr_float2>& a,
+	const heap_darray<rr_float>& arvmu)
+{
+	printlog_debug()(__func__)();
+
+	rr_float2 max_a = optimize<rr_float2>(ntotal, a, 
+		[](rr_float2 a1, rr_float2 a2) {
+	  		return length(a1) > length(a2);
+	  	});
+	rr_float min_dt_a = sqrt(params.hsml / length(max_a));
+
+	rr_float c0 = c_art_water();
+	rr_float max_mu = optimize<rr_float>(ntotal, arvmu, std::greater<rr_float>{});
+	rr_float min_dt_mu = params.hsml / (c0 + max_mu);
+
+	params.dt = params.CFL_coef * std::min(min_dt_a, min_dt_mu);
+    printlog("params_dt: ")(params.dt)();
 }

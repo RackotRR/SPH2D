@@ -25,5 +25,9 @@
 // 1.2.0 - new output manager (SPH2DOutput)
 //       - remove starttimestep param
 //       - remove maxtimestep param
+// 1.3.0 - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+//       - fixed artificial viscosity
+//       - more verbose error logs on invalid kernel args
 // TODO:
-// 1.3   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+// 1.3   - passing arguments through vectors of buffers
+// 1.3   - use mapping instead of copying for dynamic dt correction

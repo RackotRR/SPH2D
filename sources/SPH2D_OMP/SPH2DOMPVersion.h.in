@@ -23,5 +23,8 @@
 // 1.2.1 - fix timestep didn't increment
 // 1.2.2 - fix ExternalForce consider non-existent particles
 // 1.2.3 - add OpenMP threads num logging
-// TODO:
-// 1.3   - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+// 1.3.0 - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+//       - support systems without OpenMP: SPH2D_OMP will work as non-parallel program
+//       - fixed artificial viscosity
+//       - add threads num control via params.local_threads
+//       - move EOS module from SPH2D_OMP into SPH2D_COMMON

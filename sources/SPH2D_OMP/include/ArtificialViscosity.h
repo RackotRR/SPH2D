@@ -9,4 +9,5 @@ void artificial_viscosity(
 	const heap_darray<rr_float>& rho,// density 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel derivative
-	heap_darray<rr_float2>& a); // out, acceleration with respect to x, y, z
+	heap_darray<rr_float2>& a, // out, acceleration with respect to x, y, z
+	heap_darray<rr_float>& art_visc_mu); // out, mu = max(hsml v_ij * r_ij / (r_ij^2 + hsml^2 etq^2))

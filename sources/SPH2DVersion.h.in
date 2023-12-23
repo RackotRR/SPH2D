@@ -174,6 +174,13 @@
 //       - SPH2D_PicGen: add C++17 support
 //       - WaterProfile: add C++17 support
 //       - SPH2D: fix total simulation time not formatted
+// 3.0.9 - SPH2D: add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
+//       - SPH2D: fixed artificial viscosity
+//       - SPH2D: move EOS module from SPH2D_OMP into SPH2D_COMMON
+//       - SPH2D_OMP: support systems without OpenMP: SPH2D_OMP will work as non-parallel program
+//       - SPH2D_OMP: add threads num control via params.local_threads
+//       - SPH2D_CL: more verbose error logs on invalid kernel args
+//       - RRSPH2D: update anPlot script with command line arguments
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release

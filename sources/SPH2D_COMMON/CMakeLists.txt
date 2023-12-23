@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_COMMON VERSION 1.2.4)
+project(SPH2D_COMMON VERSION 1.2.5)
 configure_file(SPH2DCOMMONVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DCOMMONVersion.h")
 
 add_library(SPH2D_COMMON STATIC
@@ -8,7 +8,8 @@ add_library(SPH2D_COMMON STATIC
     "src/Output.cpp"
     "src/CLI.cpp"
     "src/TimeEstimate.cpp"
-    "src/TimeFormat.cpp")
+    "src/TimeFormat.cpp"
+    "src/EOS.cpp")
 target_include_directories(SPH2D_COMMON PUBLIC include)
 
 find_package(Threads REQUIRED)

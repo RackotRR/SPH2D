@@ -9,6 +9,7 @@
 #include "TimeEstimate.h"
 #include "Output.h"
 #include "ConsistencyCheck.h"
+#include "EOS.h"
 
 namespace {
     RRKernel predict_half_step_kernel;
@@ -30,6 +31,10 @@ namespace {
     RRKernel fill_in_grid_kernel;
     RRKernel sort_kernel;
     RRKernel binary_search_kernel;
+    RRKernel dt_correction_optimize;
+
+    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
+    constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 }
 
 void makePrograms() {
@@ -63,6 +68,10 @@ void makePrograms() {
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
     nwm_disappear_wall_kernel = RRKernel(time_integration_program, "nwm_disappear_wall");
+
+    if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+        dt_correction_optimize = RRKernel(time_integration_program, "dt_correction_optimize");
+    }
 }
 
 static auto make_smoothing_kernels_w(cl_mem_flags flags) {
@@ -102,6 +111,124 @@ static shared_darray<T> load_array(const cl::Buffer& buffer) {
     return arr_ptr;
 }
 
+static void cl_internal_force(
+    cl::Buffer& v_predict_,
+    cl::Buffer& rho_predict_,
+    cl::Buffer& neighbours_,
+    cl::Buffer& dwdr_,
+    cl::Buffer& p_,
+    cl::Buffer& indvxdt_)
+{
+    static auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
+    static auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
+    static auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
+
+    printlog_debug("find stress tensor")();
+    find_stress_tensor_kernel(
+        v_predict_, rho_predict_, neighbours_, dwdr_,
+        txx_, txy_, tyy_
+    ).execute(params.maxn, params.local_threads);
+
+    printlog_debug("update internal state")();
+    update_internal_state_kernel(
+        rho_predict_, p_
+    ).execute(params.maxn, params.local_threads);
+
+    printlog_debug("find internal changes")();
+    find_internal_changes_kernel(
+        v_predict_, rho_predict_,
+        neighbours_, dwdr_,
+        txx_, txy_, tyy_, p_,
+        indvxdt_
+    ).execute(params.maxn, params.local_threads);
+}
+
+static void cl_artificial_viscosity(
+    cl::Buffer& r_,
+    cl::Buffer& v_predict_,
+    cl::Buffer& rho_predict_,
+    cl::Buffer& neighbours_,
+    cl::Buffer& dwdr_,
+    cl::Buffer& arvdvxdt_,
+    cl::Buffer& arvmu_) 
+{
+    printlog_debug("artificial viscosity")();
+
+    if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+        artificial_viscosity_kernel(
+            r_, v_predict_, rho_predict_,
+            neighbours_, dwdr_,
+            arvdvxdt_, arvmu_
+        ).execute(params.maxn, params.local_threads);
+    }
+    else {
+        artificial_viscosity_kernel(
+            r_, v_predict_, rho_predict_,
+            neighbours_, dwdr_,
+            arvdvxdt_
+        ).execute(params.maxn, params.local_threads);
+    }
+}
+static void cl_update_acceleration(
+    cl::Buffer& indvxdt_,
+    cl::Buffer& exdvxdt_,
+    cl::Buffer& arvdvxdt_,
+    cl::Buffer& a_,
+    cl::Buffer& amagnitudes_)
+{
+    if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+        printlog_debug("update acceleration (dynamic dt)")();
+        update_acceleration_kernel(
+            indvxdt_, exdvxdt_, arvdvxdt_,
+            a_, amagnitudes_
+        ).execute(params.maxn, params.local_threads);
+    }
+    else {
+        printlog_debug("update acceleration")();
+        update_acceleration_kernel(
+            indvxdt_, exdvxdt_, arvdvxdt_,
+            a_
+        ).execute(params.maxn, params.local_threads);
+    }
+}
+static void cl_update_dt(
+    cl::Buffer& arvmu_,
+    cl::Buffer& amagnitudes_)
+{
+    if (params.dt_correction_method != DT_CORRECTION_DYNAMIC) return;
+
+    static auto arvmu_optimized_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.local_threads);
+    static auto amagnitudes_optimized_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.local_threads);
+
+    printlog_debug("update dt")();
+    dt_correction_optimize(
+        arvmu_, amagnitudes_,
+        arvmu_optimized_, amagnitudes_optimized_
+    ).execute(params.local_threads, 1);
+
+    static auto arvmu_optimized = heap_darray<rr_float>(params.local_threads);
+    static auto amagnitudes_optimized = heap_darray<rr_float>(params.local_threads);    
+    cl::copy(arvmu_optimized_, arvmu_optimized.begin(), arvmu_optimized.end());
+    cl::copy(amagnitudes_optimized_, amagnitudes_optimized.begin(), amagnitudes_optimized.end());
+
+    auto arvmu_iter = std::max_element(arvmu_optimized.begin(), arvmu_optimized.end());
+    auto amagnitudes_iter = std::max_element(amagnitudes_optimized.begin(), amagnitudes_optimized.end());
+
+    assert(arvmu_iter != arvmu_optimized.end());
+    assert(amagnitudes_iter != amagnitudes_optimized.end());
+
+    rr_float max_a = *amagnitudes_iter;
+    rr_float max_mu = *arvmu_iter;
+
+	rr_float min_dt_a = sqrt(params.hsml / length(max_a));
+
+	rr_float c0 = c_art_water();
+	rr_float min_dt_mu = params.hsml / (c0 + max_mu);
+
+	params.dt = params.CFL_coef * std::min(min_dt_a, min_dt_mu);
+    printlog("params_dt: ")(params.dt)();
+}
+
 void cl_time_integration(
     heap_darray<rr_float2>& r,	// coordinates of all particles
     heap_darray<rr_float2>& v,	// velocities of all particles
@@ -114,9 +241,6 @@ void cl_time_integration(
     printlog(__func__);
 
     makePrograms();
-
-    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
-    constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 
     // common
     auto r_ = makeBufferCopyHost(r);
@@ -140,16 +264,21 @@ void cl_time_integration(
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr = make_smoothing_kernels_dwdr(CL_MEM_READ_WRITE);
 
     // internal force
-    auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // external force
     auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // artificial viscosity
-    auto ardvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    auto arvdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+
+    // dynamic dt correction
+    cl::Buffer arvmu_; // artificial viscosity mu
+    cl::Buffer amagnitudes_; // acceleration magnitudes
+    if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+        arvmu_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
+        amagnitudes_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
+    } 
 
     // average velocity
     auto av_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -172,6 +301,7 @@ void cl_time_integration(
 
         printlog_debug("predict_half_step_kernel")();
         predict_half_step_kernel(
+            params.dt,
             itype_,
             drho_, a_,
             rho_, v_,
@@ -238,24 +368,10 @@ void cl_time_integration(
             ).execute(params.maxn, params.local_threads);
         }
 
-        printlog_debug("find stress tensor")();
-        find_stress_tensor_kernel(
-            v_predict_, rho_predict_, neighbours_, smoothing_kernels_dwdr[params.intf_skf],
-            txx_, txy_, tyy_
-        ).execute(params.maxn, params.local_threads);
-
-        printlog_debug("update internal state")();
-        update_internal_state_kernel(
-            rho_predict_, p_
-        ).execute(params.maxn, params.local_threads);
-
-        printlog_debug("find internal changes")();
-        find_internal_changes_kernel(
-            v_predict_, rho_predict_,
-            neighbours_, smoothing_kernels_dwdr[params.intf_skf],
-            txx_, txy_, tyy_, p_,
-            indvxdt_
-        ).execute(params.maxn, params.local_threads);
+        cl_internal_force(
+            v_predict_, rho_predict_, neighbours_, 
+            smoothing_kernels_dwdr[params.intf_skf],
+            p_, indvxdt_);
 
         printlog_debug("external force")();
         external_force_kernel(
@@ -264,12 +380,10 @@ void cl_time_integration(
         ).execute(params.maxn, params.local_threads);
 
         if (params.artificial_viscosity) {
-            printlog_debug("artificial viscosity")();
-            artificial_viscosity_kernel(
+            cl_artificial_viscosity(
                 r_, v_predict_, rho_predict_,
                 neighbours_, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
-                ardvxdt_
-            ).execute(params.maxn, params.local_threads);
+                arvdvxdt_, arvmu_);
         }
 
         if (params.average_velocity) {
@@ -281,19 +395,18 @@ void cl_time_integration(
             ).execute(params.maxn, params.local_threads);
         }
 
-        printlog_debug("update acceleration")();
-        update_acceleration_kernel(
-            indvxdt_, exdvxdt_, ardvxdt_,
-            a_
-        ).execute(params.maxn, params.local_threads);
+        cl_update_acceleration(
+            indvxdt_, exdvxdt_, arvdvxdt_,
+            a_, amagnitudes_);
 
+        cl_update_dt(arvmu_, amagnitudes_);
 
         if (params.nwm && time >= params.nwm_time_start) {
             printlog_debug("update boundaries")();
             switch (params.nwm) {
             case 2:
                 nwm_dynamic_boundaries_kernel(
-                    v_, r_, time
+                    v_, r_, time, params.dt
                 ).execute(params.maxn, params.local_threads);
                 break;
             case 4:
@@ -309,7 +422,8 @@ void cl_time_integration(
         }
 
         printlog_debug("whole step")();
-        whole_step_kernel(itimestep,
+        whole_step_kernel(
+            params.dt, itimestep,
             drho_, a_, av_,
             itype_, rho_, v_, r_
         ).execute(params.maxn, params.local_threads);

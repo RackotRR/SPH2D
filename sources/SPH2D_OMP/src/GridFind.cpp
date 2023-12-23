@@ -36,7 +36,6 @@ void make_grid(
 		cells_start_in_grid(i) += cells_start_in_grid(i - 1ull);
 	}
 
-#pragma omp parallel for
 	for (rr_iter i = ntotal; i > 0; --i) {
 		rr_uint j = i - 1;
 

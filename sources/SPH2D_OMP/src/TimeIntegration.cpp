@@ -12,7 +12,9 @@
 #include <iostream>
 #include <fmt/format.h>
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 void predict_half_step(
 	const rr_uint ntotal,
@@ -93,7 +95,13 @@ void time_integration(
 	const rr_uint nfluid)  // fluid particles 
 {
 	printlog()(__func__)();
-	printlog("threads: ")(omp_get_max_threads())();
+
+#ifdef _OPENMP
+	omp_set_num_threads(params.local_threads);
+	printlog("threads: ")(params.local_threads)();
+#else
+	printlog("threads: ")(1)();
+#endif
 
 	heap_darray<rr_float> rho_predict(params.maxn);
 	heap_darray<rr_float> drho(params.maxn);

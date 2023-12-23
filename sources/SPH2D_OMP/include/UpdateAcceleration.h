@@ -20,3 +20,10 @@ void update_change_rate(rr_uint nfluid,
 	const heap_darray<rr_float2>& exdvxdt,
 	const heap_darray<rr_float2>& arvdvxdt,
 	heap_darray<rr_float2>& a);
+
+// dt = CFL * min(dt_a, dt_mu)
+// dt_a = min_j(sqrt(hsml/|a_j|))
+// dt_mu = min_j(hsml/(c0+max_i(arvmu_i)))
+void update_dt(rr_uint ntotal,
+	const heap_darray<rr_float2>& a,
+	const heap_darray<rr_float>& arvmu);

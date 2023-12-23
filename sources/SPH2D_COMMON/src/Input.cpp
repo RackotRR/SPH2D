@@ -85,7 +85,7 @@ void postFillInModelParams(ModelParams& model_params)
 		model_params.dt = params.dt = params.CFL_coef * params.hsml / (params.eos_sound_vel * (1 + 1.2 * params.artificial_shear_visc));
 	}
 	else if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
-		throw std::runtime_error{ "not implemented: DT_CORRECTION_DYNAMIC" };
+		model_params.dt = 0;
 	}
 
 	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {

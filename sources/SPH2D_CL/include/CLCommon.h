@@ -20,7 +20,8 @@ public:
             global,
             local);
         if (err != CL_SUCCESS) {
-            throw std::runtime_error{ "enqueueNDRangeKernel error: " + std::to_string(err) };
+            auto name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
+            throw std::runtime_error{ "enqueueNDRangeKernel " + name + " error: " + std::to_string(err) };
         }
     }
 private:

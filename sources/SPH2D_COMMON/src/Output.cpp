@@ -257,6 +257,8 @@ void SPH2DOutput::finish_step() {
 }
 
 void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
+	printlog_debug()(__func__)();
+	
 	assert(load_r);
 	assert(load_itype);
 	assert(load_v);
