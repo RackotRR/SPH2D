@@ -4,6 +4,13 @@
 #define ti_dynamic_dt_correction
 #endif
 
+#if params_density_treatment == DENSITY_CONTINUITY
+#define density_is_using_continuity
+#elif params_density_treatment == DENSITY_CONTINUITY_DELTA
+#define density_is_using_continuity
+#endif
+
+
 __kernel void update_acceleration(
 	__global const rr_float2* indvxdt // int force
 	, __global const rr_float2* exdvxdt // ext force
@@ -75,7 +82,7 @@ __kernel void predict_half_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-#if params_density_treatment == DENSITY_CONTINUITY
+#ifdef density_is_using_continuity
 	rho_predict[i] = rho[i] + drho[i] * dt * 0.5f;
 #endif
 
@@ -110,7 +117,7 @@ __kernel void whole_step(
 	rr_float v_dt = timestep == 0 ? dt * 0.5f : dt;
 	rr_float r_dt = dt;
 
-#if params_density_treatment == DENSITY_CONTINUITY
+#ifdef density_is_using_continuity
 	rho[i] += drho[i] * v_dt;
 #endif
 

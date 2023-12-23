@@ -1,6 +1,8 @@
 #ifdef SPH2D_OMP
+#include "SPH2DOMPVersion.h"
 #include "TimeIntegration.h" 
 #elif defined SPH2D_CL
+#include "SPH2DCLVersion.h"
 #include "CLCommon.h"
 #include "CLAdapter.h"
 #else
@@ -16,6 +18,34 @@ static_assert(false, "undefined SPH2D Simulator");
 #include "Input.h"
 #include "TimeFormat.h"
 
+#ifdef SPH2D_OMP
+rr_uint SPH2D_GetSpecificVersionMajor() {
+	return SPH2D_OMP_VERSION_MAJOR;
+}
+rr_uint SPH2D_GetSpecificVersionMinor() {
+	return SPH2D_OMP_VERSION_MINOR;
+}
+rr_uint SPH2D_GetSpecificVersionPatch() {
+	return SPH2D_OMP_VERSION_PATCH;
+}
+std::string SPH2D_GetSpecificVersionName() {
+	return "SPH2D_OMP";
+}
+#else
+rr_uint SPH2D_GetSpecificVersionMajor() {
+	return SPH2D_CL_VERSION_MAJOR;
+}
+rr_uint SPH2D_GetSpecificVersionMinor() {
+	return SPH2D_CL_VERSION_MINOR;
+}
+rr_uint SPH2D_GetSpecificVersionPatch() {
+	return SPH2D_CL_VERSION_PATCH;
+}
+std::string SPH2D_GetSpecificVersionName() {
+	return "SPH2D_CL";
+}
+#endif
+
 void simulation() {
 	rr_uint ntotal; // number of particles 
 	rr_uint nfluid; 
@@ -30,8 +60,6 @@ void simulation() {
 #ifdef SPH2D_CL
 	logCLInfo();
 #endif
-
-	printlog("Experiment: ")(params.experiment_name)();
 
 	RR::Timer timer;
 	timer.start();

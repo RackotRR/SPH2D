@@ -29,6 +29,14 @@ void check_optional_params(const ModelParams& model_params) {
         throw_invalid_enum(eos_sound_vel_method);
         break;
     }
+
+    switch (model_params.density_treatment) {
+    case DENSITY_CONTINUITY_DELTA:
+        need_param(density_delta_sph_coef);
+        break;    
+    default:
+        break;
+    }
     
     if (model_params.artificial_viscosity) {
         need_param(artificial_shear_visc);
@@ -102,6 +110,7 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(density_treatment);
     move_param(density_normalization);
     move_param(density_skf);
+    move_param(density_delta_sph_coef);
 
     move_param(eos_sound_vel_method);
     move_param(eos_sound_vel);
@@ -192,6 +201,7 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_default(density_treatment);
     load_default(density_normalization);
     load_default(density_skf);
+    load_optional(density_delta_sph_coef);
 
     load(eos_sound_vel_method);
     load_optional(eos_sound_vel);
@@ -268,6 +278,7 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_param(density_treatment);
     print_param(density_normalization);
     print_param(density_skf);
+    print_not_null(density_delta_sph_coef);
 
     print_param(eos_sound_vel_method);
     print_not_null(eos_sound_vel);

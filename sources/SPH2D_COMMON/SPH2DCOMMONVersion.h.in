@@ -38,5 +38,7 @@
 // 1.2.3 - move common variable names from SPH2DOutput into SPH2D_PARAMS
 // 1.2.4 - add C++17 support
 // 1.2.5 - move EOS module from SPH2D_OMP into SPH2D_COMMON
+// 1.2.6 - add specific SPH2D solver name and version logging
 // TODO:
-// 1.2 - add confirmation for deletion (suffix f to skip confirmation)
+// 1.2 - add confirmation for deletion (suffix 'f' to skip confirmation)
+//     - add experiment copy at dump (suffix 'c' to copy dump and params into another directory)

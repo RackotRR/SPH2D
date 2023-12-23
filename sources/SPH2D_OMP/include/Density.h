@@ -1,6 +1,8 @@
 #pragma once
 #include "CommonIncl.h"
 
+bool density_is_using_continuity();
+
 void sum_density(
 	const rr_uint ntotal,	// number of particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
@@ -9,6 +11,7 @@ void sum_density(
 
 void con_density(
 	const rr_uint ntotal,	// number of particles 
+	const heap_darray<rr_float2>& r,// coordinates of all particles 
 	const heap_darray<rr_float2>& v,// velocity of all particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel

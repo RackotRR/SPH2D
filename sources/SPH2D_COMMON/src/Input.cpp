@@ -88,12 +88,6 @@ void postFillInModelParams(ModelParams& model_params)
 		model_params.dt = 0;
 	}
 
-	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
-		if (params.use_custom_time_estimate_step) {
-			model_params.step_time_estimate = params.step_time_estimate = 1;
-		}
-	}
-
 	switch (params.nwm) {
 	case NWM_METHOD_DYNAMIC: 
 		{
@@ -129,6 +123,23 @@ SPH2DParams make_SPH2DParams() {
 	set_param_not_null(nwm_freq);
 	set_param_not_null(nwm_piston_magnitude);
 
+	sph2DParams.params_version_major = SPH2D_PARAMS_VERSION_MAJOR;
+	sph2DParams.params_version_minor = SPH2D_PARAMS_VERSION_MINOR;
+	sph2DParams.params_version_patch = SPH2D_PARAMS_VERSION_PATCH;
+
+	sph2DParams.SPH2D_common_version_major = SPH2D_COMMON_VERSION_MAJOR;
+	sph2DParams.SPH2D_common_version_minor = SPH2D_COMMON_VERSION_MINOR;
+	sph2DParams.SPH2D_common_version_patch = SPH2D_COMMON_VERSION_PATCH;
+
+	sph2DParams.SPH2D_version_major = SPH2D_VERSION_MAJOR;
+	sph2DParams.SPH2D_version_minor = SPH2D_VERSION_MINOR;
+	sph2DParams.SPH2D_version_patch = SPH2D_VERSION_PATCH;
+
+	sph2DParams.SPH2D_specific_version_major = SPH2D_GetSpecificVersionMajor();
+	sph2DParams.SPH2D_specific_version_minor = SPH2D_GetSpecificVersionMinor();
+	sph2DParams.SPH2D_specific_version_patch = SPH2D_GetSpecificVersionPatch();
+	sph2DParams.SPH2D_specific_version_name = SPH2D_GetSpecificVersionName();
+
 #undef set_param
 #undef set_param_not_null
 	return sph2DParams;
@@ -152,11 +163,16 @@ void fileInput(
 	apply_particle_params(params, particle_params);
 	apply_model_params(params, model_params);
 	
-	printlog("Experiment name: ")(experiment_directory.stem().string())();
+	printlog()("Experiment name: ")(experiment_directory.stem().string())();
 	printlog(fmt::format("SPH2D v{}.{}.{}", 
 		SPH2D_VERSION_MAJOR, 
 		SPH2D_VERSION_MINOR, 
 		SPH2D_VERSION_PATCH))();
+	printlog(fmt::format("Use {} v{}.{}.{}",
+		SPH2D_GetSpecificVersionName(),
+		SPH2D_GetSpecificVersionMajor(),
+		SPH2D_GetSpecificVersionMinor(),
+		SPH2D_GetSpecificVersionPatch()))();
 	printlog(fmt::format("Params v{}.{}.{}", 
 		SPH2D_PARAMS_VERSION_MAJOR, 
 		SPH2D_PARAMS_VERSION_MINOR, 

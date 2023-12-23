@@ -99,6 +99,8 @@
 //          - add ExperimentLayers module
 //    3.0.6 - print SPH2D and SPH2D_PARAMS version in SPH2DParams file
 //    3.0.7 - add common variable names to enumeration
+//    3.0.8 - add versions logging into SPH2DParams.json
+//          - add density_delta_sph_coef model param
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 

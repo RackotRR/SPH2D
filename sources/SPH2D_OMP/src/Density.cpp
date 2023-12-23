@@ -1,6 +1,20 @@
 #include "CommonIncl.h" 
 #include "Kernel.h"
 #include "GridUtils.h"
+#include "EOS.h"
+
+bool density_is_using_continuity() {
+	switch (params.density_treatment) {
+	case DENSITY_SUMMATION:
+		return false;
+	case DENSITY_CONTINUITY:
+	case DENSITY_CONTINUITY_DELTA:
+		return true;
+	default:
+		assert(false && "density_is_using_continuity default");
+		return true;
+	}
+}
 
 static void density_normalization(
 	const rr_uint ntotal,	// number of particles 
@@ -81,9 +95,40 @@ void sum_density(
 	}
 }
 
+static void con_delta_density(
+	const rr_uint ntotal,	// number of particles 
+	const heap_darray<rr_float2>& r,// coordinates of all particles 
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel
+	const heap_darray<rr_float>& rho,	// density  
+	heap_darray<rr_float>& drhodt) // out, density change rate of each particle
+{
+	printlog_debug(__func__)();
+	const rr_float delta_sph = params.density_delta_sph_coef;
+
+#pragma omp parallel for
+	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+		rr_uint i;
+		rr_float delta_rho = 0;
+
+		for (rr_iter n = 0;
+		i = neighbours(n, j), i != ntotal; // particle near
+		++n)
+		{
+			rr_float2 r_ab = r(j) - r(i);
+			rr_float r_factor = -dot(r_ab, dwdr(n, j)) / length_sqr(r_ab);
+			rr_float rho_factor = (rho(i) - rho(j)) / rho(i);
+			delta_rho += rho_factor * r_factor;
+		}
+
+		drhodt(j) += 2 * delta_sph * params.hsml * c_art_water() * delta_rho * params.mass;
+	}
+}
+
 // calculate the density with SPH continuity approach
 void con_density(
 	const rr_uint ntotal,	// number of particles 
+	const heap_darray<rr_float2>& r,// coordinates of all particles 
 	const heap_darray<rr_float2>& v,// velocity of all particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel
@@ -105,5 +150,14 @@ void con_density(
 			rr_float vcc = dot(dvx, dwdr(n, j));
 			drhodt(j) += params.mass * vcc;
 		}
+	}
+
+	if (params.density_skf == DENSITY_CONTINUITY_DELTA) {
+		con_delta_density(ntotal,
+		r,
+		neighbours,
+		dwdr,
+		rho,
+		drhodt);
 	}
 }

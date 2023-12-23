@@ -16,6 +16,7 @@ struct ModelParams {
     rr_uint density_treatment{ DENSITY_CONTINUITY };
     rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };
     rr_uint density_skf{ SKF_CUBIC };
+    opt_float density_delta_sph_coef;
 
     rr_uint eos_sound_vel_method;
     opt_float eos_sound_vel;

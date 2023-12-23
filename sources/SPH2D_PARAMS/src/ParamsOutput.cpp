@@ -71,6 +71,7 @@ namespace ParamsGeneration {
 			set(intf_sph_approximation);
 			set(intf_hsml_coef);
 			set(density_skf);
+			set(density_delta_sph_coef);
 			set(intf_skf);
 			set(average_velocity_skf);
 			set(artificial_viscosity_skf);

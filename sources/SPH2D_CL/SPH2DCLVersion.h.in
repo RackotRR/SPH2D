@@ -28,6 +28,10 @@
 // 1.3.0 - add dynamic dt correction method (DT_CORRECTION_DYNAMIC)
 //       - fixed artificial viscosity
 //       - more verbose error logs on invalid kernel args
+// 1.3.1 - add delta SPH density method
+//       - fix saving density without any update
+//       - remove unnecessary memory allocation
+//       - remove unnecessary skf calculations
 // TODO:
 // 1.3   - passing arguments through vectors of buffers
 // 1.3   - use mapping instead of copying for dynamic dt correction

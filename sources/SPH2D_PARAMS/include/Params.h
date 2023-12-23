@@ -131,6 +131,9 @@ struct ExperimentParams {
 	// base - 1 : density normalization by using CSPM
 	rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };
 
+	// delta sph coef (is used with DENSITY_CONTINUITY_DELTA)
+	rr_float density_delta_sph_coef{ 0.1 };
+
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
 	bool average_velocity{ true }; // Liu G.R. (eq 4.92)

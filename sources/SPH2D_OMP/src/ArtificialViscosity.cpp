@@ -25,8 +25,6 @@ void artificial_viscosity(
 #pragma omp parallel for
 	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
 		a(j) = { 0.f };
-		rr_float max_muj = 0;
-
 		rr_uint i;
 		for (rr_iter n = 0;
 			i = neighbours(n, j), i != ntotal; // particle near
@@ -41,7 +39,10 @@ void artificial_viscosity(
 			if (vr < 0) {				
 				// calculate muv_ij = hsml v_ij * r_ij / (r_ij^2 + hsml^2 etq^2)
 				rr_float muv = params.hsml * vr / (rr + sqr(params.hsml * etq));
-				max_muj = std::max(max_muj, fabs(muv));
+
+				if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
+					art_visc_mu(j) = std::max(art_visc_mu(j), fabs(muv));
+				}
 
 				// calculate PIv_ij = (-alpha muv_ij c_ij + beta muv_ij^2) / rho_ij
 				rr_float rho_ij = 0.5f * (rho(i) + rho(j));
@@ -51,7 +52,5 @@ void artificial_viscosity(
 				a(j) -= h * params.mass;
 			}
 		}
-
-		art_visc_mu(j) = max_muj;
 	}
 }

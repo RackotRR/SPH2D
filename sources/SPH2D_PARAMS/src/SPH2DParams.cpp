@@ -87,6 +87,20 @@ SPH2DParams load_SPH2DParams(const std::filesystem::path& experiment_directory) 
     load_optional(nwm_freq);
     load_optional(nwm_piston_magnitude);
 
+    load_default(params_version_major);
+    load_default(params_version_minor);
+    load_default(params_version_patch);
+    load_default(SPH2D_common_version_major);
+    load_default(SPH2D_common_version_minor);
+    load_default(SPH2D_common_version_patch);
+    load_default(SPH2D_version_major);
+    load_default(SPH2D_version_minor);
+    load_default(SPH2D_version_patch);
+    load_default(SPH2D_specific_version_major);
+    load_default(SPH2D_specific_version_minor);
+    load_default(SPH2D_specific_version_patch);
+    load_default(SPH2D_specific_version_name);
+
     return sph2D_params;
 }
 
@@ -122,12 +136,19 @@ void params_make_SPH2D_json(const std::filesystem::path& experiment_directory, c
     print_not_null(nwm_freq);
     print_not_null(nwm_piston_magnitude);
 
-    json["SPH2D_VERSION_MAJOR"] = SPH2D_VERSION_MAJOR;
-    json["SPH2D_VERSION_MINOR"] = SPH2D_VERSION_MINOR;
-    json["SPH2D_VERSION_PATCH"] = SPH2D_VERSION_PATCH;
-    json["SPH2D_PARAMS_VERSION_MAJOR"] = SPH2D_PARAMS_VERSION_MAJOR;
-    json["SPH2D_PARAMS_VERSION_MINOR"] = SPH2D_PARAMS_VERSION_MINOR;
-    json["SPH2D_PARAMS_VERSION_PATCH"] = SPH2D_PARAMS_VERSION_PATCH;
+    print_param(params_version_major);
+    print_param(params_version_minor);
+    print_param(params_version_patch);
+    print_param(SPH2D_common_version_major);
+    print_param(SPH2D_common_version_minor);
+    print_param(SPH2D_common_version_patch);
+    print_param(SPH2D_version_major);
+    print_param(SPH2D_version_minor);
+    print_param(SPH2D_version_patch);
+    print_param(SPH2D_specific_version_major);
+    print_param(SPH2D_specific_version_minor);
+    print_param(SPH2D_specific_version_patch);
+    print_param(SPH2D_specific_version_name);
 
     std::ofstream stream{ params_path };
     stream << json.dump(4) << std::endl;

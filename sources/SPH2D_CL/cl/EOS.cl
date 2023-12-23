@@ -9,7 +9,7 @@
 #endif
 
 // artificial EOS, Form (Monaghan, 1994)
-rr_float p_art_water(const rr_float rho) {
+inline rr_float p_art_water(const rr_float rho) {
 #define eos_gamma 7
 #define eos_mg_B (eos_art_c_sqr * params_rho0 / eos_gamma)
 

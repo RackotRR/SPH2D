@@ -1,5 +1,6 @@
 #include "common.h"
 #include "SmoothingKernel.cl"
+#include "EOS.cl"
 
 __kernel void sum_density(
     __global const rr_uint* neighbours,
@@ -10,9 +11,7 @@ __kernel void sum_density(
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
     
-    rr_float wjj;
-    rr_float2 dwdrjj;
-    cubic_kernel(0.f, 0.f, &wjj, &dwdrjj);
+    rr_float wjj = smoothing_kernel_w(0.f, params_density_skf);
     rr_float rho_temp = params_mass * wjj;
 
     rr_uint i;
@@ -26,7 +25,33 @@ __kernel void sum_density(
     rho[j] = rho_temp;
 }
 
+inline void con_delta_density(
+    rr_uint j,
+    __global const rr_float2* r,
+    __global const rr_uint* neighbours,
+    __global const rr_float2* dwdr,
+    __global const rr_float* rho,
+
+    __global rr_float* drho)
+{
+    rr_float delta_rho = 0;
+
+    rr_uint i;
+    for (rr_iter n = 0;
+        i = neighbours[at(n, j)], i != params_ntotal; // particle near
+        ++n) 
+    {
+        rr_float2 r_ab = r[j] - r[i];
+        rr_float r_factor = dot(r_ab, dwdr[at(n, j)]) / length_sqr(r_ab);
+        rr_float rho_factor = (rho[i] - rho[j]) / rho[i];
+        delta_rho += rho_factor * r_factor;
+    }
+
+    drho[j] += 2 * params_density_delta_sph_coef * params_hsml * eos_art_c * delta_rho * params_mass;
+}
+
 __kernel void con_density(
+    __global const rr_float2* r,
     __global const rr_float2* v,
     __global const rr_uint* neighbours,
     __global const rr_float2* dwdr,
@@ -50,4 +75,13 @@ __kernel void con_density(
     }
 
     drho[j] = drho_temp;
+
+#if params_density_skf == DENSITY_CONTINUITY_DELTA
+    con_delta_density(j,
+    r,
+    neighbours,
+    dwdr,
+    rho,
+    drho);
+#endif
 }

@@ -12,6 +12,11 @@
 using namespace RR::Memory;
 using namespace RR::Logger;
 
+rr_uint SPH2D_GetSpecificVersionMajor();
+rr_uint SPH2D_GetSpecificVersionMinor();
+rr_uint SPH2D_GetSpecificVersionPatch();
+std::string SPH2D_GetSpecificVersionName();
+
 // simple math utils
 constexpr rr_float sqr(rr_float value) {
 	return value * value;

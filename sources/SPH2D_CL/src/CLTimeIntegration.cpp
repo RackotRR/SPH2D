@@ -74,11 +74,29 @@ void makePrograms() {
     }
 }
 
+static bool density_is_using_continuity() {
+	switch (params.density_treatment) {
+	case DENSITY_SUMMATION:
+		return false;
+	case DENSITY_CONTINUITY:
+	case DENSITY_CONTINUITY_DELTA:
+		return true;
+	default:
+		assert(false && "density_is_using_continuity default");
+		return true;
+	}
+}
+
 static auto make_smoothing_kernels_w(cl_mem_flags flags) {
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_w;
 
-    smoothing_kernels_w[params.density_skf];
-    smoothing_kernels_w[params.average_velocity_skf];
+    if (!density_is_using_continuity()) {
+        smoothing_kernels_w[params.density_skf];
+    }
+
+    if (params.average_velocity) {
+        smoothing_kernels_w[params.average_velocity_skf];
+    }
 
     for (auto& [skf, w] : smoothing_kernels_w) {
         printlog_debug("make buffer w skf ")(skf)();
@@ -91,9 +109,13 @@ static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr;
 
     smoothing_kernels_dwdr[params.intf_skf];
-    smoothing_kernels_dwdr[params.artificial_viscosity_skf];
-    if (params.density_treatment == DENSITY_CONTINUITY) {
+
+    if (density_is_using_continuity()) {
         smoothing_kernels_dwdr[params.density_skf];
+    }
+
+    if (params.artificial_viscosity) {
+        smoothing_kernels_dwdr[params.artificial_viscosity_skf];
     }
 
     for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
@@ -109,6 +131,68 @@ static shared_darray<T> load_array(const cl::Buffer& buffer) {
     auto arr_ptr = std::make_shared<heap_darray<T>>(params.maxn);
     cl::copy(buffer, arr_ptr->begin(), arr_ptr->end());
     return arr_ptr;
+}
+
+static void cl_grid_find(
+    cl::Buffer& r_,
+    cl::Buffer& itype_,
+    cl::Buffer& neighbours_)
+{
+    // bitonic sort passes
+    static rr_uint passes = intlog2(params.maxn);
+    static auto grid_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.maxn);
+    static auto cells_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_cells);
+
+    printlog_debug("fill in grid")();
+    fill_in_grid_kernel(
+        grid_
+    ).execute(params.maxn, params.local_threads);
+
+    printlog_debug("sort grid")();
+    for (rr_uint pass = 0; pass < passes; ++pass) {
+        rr_uint max_step_size = 1ull << pass;
+        for (rr_uint step_size = max_step_size; step_size != 0; step_size >>= 1) {
+            sort_kernel(
+                r_,
+                grid_,
+                pass,
+                step_size,
+                max_step_size
+            ).execute(params.maxn, params.local_threads);
+        }
+    }
+
+    printlog_debug("search in grid")();
+    binary_search_kernel(
+        r_, grid_, cells_
+    ).execute(params.max_cells, params.local_threads);
+
+    printlog_debug("find neighbours")();
+    find_neighbours_kernel(
+        r_, itype_, grid_, cells_,
+        neighbours_
+    ).execute(params.maxn, params.local_threads);
+}
+
+static void cl_calculate_kernels(
+    cl::Buffer& r_,
+    cl::Buffer& itype_,
+    cl::Buffer& neighbours_,
+    std::unordered_map<rr_uint, cl::Buffer>& smoothing_kernels_w,
+    std::unordered_map<rr_uint, cl::Buffer>& smoothing_kernels_dwdr)
+{
+    for (auto& [skf, w] : smoothing_kernels_w) {
+        printlog_debug("calculate_kernels_w_kernel: ")(skf)();
+        calculate_kernels_w_kernel(
+            r_, neighbours_,
+            w, skf).execute(params.maxn, params.local_threads);
+    }
+    for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+        printlog_debug("calculate_kernels_dwdr_kernel: ")(skf)();
+        calculate_kernels_dwdr_kernel(
+            r_, neighbours_,
+            dwdr, skf).execute(params.maxn, params.local_threads);
+    }
 }
 
 static void cl_internal_force(
@@ -169,6 +253,7 @@ static void cl_artificial_viscosity(
         ).execute(params.maxn, params.local_threads);
     }
 }
+
 static void cl_update_acceleration(
     cl::Buffer& indvxdt_,
     cl::Buffer& exdvxdt_,
@@ -191,6 +276,7 @@ static void cl_update_acceleration(
         ).execute(params.maxn, params.local_threads);
     }
 }
+
 static void cl_update_dt(
     cl::Buffer& arvmu_,
     cl::Buffer& amagnitudes_)
@@ -229,6 +315,34 @@ static void cl_update_dt(
     printlog("params_dt: ")(params.dt)();
 }
 
+static void cl_update_nwm(
+    rr_float time,
+    cl::Buffer& r_,
+    cl::Buffer& v_,
+    cl::Buffer& itype_,
+    heap_darray<rr_int>& itype)
+{
+    if (params.nwm && time >= params.nwm_time_start) {
+        printlog_debug("update boundaries: ")(params.nwm)();
+        switch (params.nwm) {
+        case 2:
+            nwm_dynamic_boundaries_kernel(
+                v_, r_, time, params.dt
+            ).execute(params.maxn, params.local_threads);
+            break;
+        case 4:
+            nwm_disappear_wall_kernel(
+                itype_
+            ).execute(params.maxn, params.local_threads);
+            params.nwm = false;
+            cl::copy(itype_, itype.begin(), itype.end());
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 void cl_time_integration(
     heap_darray<rr_float2>& r,	// coordinates of all particles
     heap_darray<rr_float2>& v,	// velocities of all particles
@@ -247,21 +361,28 @@ void cl_time_integration(
     auto v_ = makeBufferCopyHost(v);
     auto rho_ = makeBufferCopyHost(rho);
     auto p_ = makeBufferCopyHost(p);
-    auto itype_ = makeBufferCopyHost(CL_MEM_READ_WRITE, itype);
+    auto itype_ = makeBufferCopyHost(itype);
 
-    auto rho_predict_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
+    cl::Buffer rho_predict_;
+    cl::Buffer drho_;
+    // do not allocate memory for these on summation treatment
+    if (density_is_using_continuity()) {
+        rho_predict_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
+        drho_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
+    }    
+    // on summation always use rho_
+    auto conditional_rho = [&]() -> cl::Buffer& {
+        return density_is_using_continuity() ? rho_predict_ : rho_;
+    };
+
     auto v_predict_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, params.maxn);
-
-    auto drho_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     auto a_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // grid find
-    auto grid_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.maxn);
-    auto cells_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_cells);
     auto neighbours_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_neighbours * params.maxn);
 
-    std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_w = make_smoothing_kernels_w(CL_MEM_READ_WRITE);
-    std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr = make_smoothing_kernels_dwdr(CL_MEM_READ_WRITE);
+    auto smoothing_kernels_w = make_smoothing_kernels_w(CL_MEM_READ_WRITE);
+    auto smoothing_kernels_dwdr = make_smoothing_kernels_dwdr(CL_MEM_READ_WRITE);
 
     // internal force
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -270,7 +391,16 @@ void cl_time_integration(
     auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
 
     // artificial viscosity
-    auto arvdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    cl::Buffer arvdvxdt_;
+    if (params.artificial_viscosity) {
+        arvdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    } 
+
+    // average velocity
+    cl::Buffer av_;
+    if (params.average_velocity) {
+        av_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    }
 
     // dynamic dt correction
     cl::Buffer arvmu_; // artificial viscosity mu
@@ -279,12 +409,6 @@ void cl_time_integration(
         arvmu_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
         amagnitudes_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
     } 
-
-    // average velocity
-    auto av_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
-
-    // bitonic sort passes
-    rr_uint passes = intlog2(params.maxn);
 
     rr_uint itimestep = 0;
     rr_float time = params.start_simulation_time;
@@ -300,76 +424,53 @@ void cl_time_integration(
         SPH2DOutput::instance().start_step(time);
 
         printlog_debug("predict_half_step_kernel")();
-        predict_half_step_kernel(
-            params.dt,
-            itype_,
-            drho_, a_,
-            rho_, v_,
-            rho_predict_, v_predict_
-        ).execute(params.maxn, params.local_threads);
-
-        printlog_debug("fill in grid")();
-        fill_in_grid_kernel(
-            grid_
-        ).execute(params.maxn, params.local_threads);
-
-        printlog_debug("sort grid")();
-        for (rr_uint pass = 0; pass < passes; ++pass) {
-            rr_uint max_step_size = 1ull << pass;
-            for (rr_uint step_size = max_step_size; step_size != 0; step_size >>= 1) {
-                sort_kernel(
-                    r_,
-                    grid_,
-                    pass,
-                    step_size,
-                    max_step_size
-                ).execute(params.maxn, params.local_threads);
-            }
-        }
-
-        printlog_debug("search in grid")();
-        binary_search_kernel(
-            r_, grid_, cells_
-        ).execute(params.max_cells, params.local_threads);
-
-        printlog_debug("find neighbours")();
-        find_neighbours_kernel(
-            r_, itype_, grid_, cells_,
-            neighbours_
-        ).execute(params.maxn, params.local_threads);
-
-        for (auto& [skf, w] : smoothing_kernels_w) {
-            printlog_debug("calculate_kernels_w_kernel: ")(skf)();
-            calculate_kernels_w_kernel(
-                r_, neighbours_,
-                w, skf).execute(params.maxn, params.local_threads);
-        }
-        for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
-            printlog_debug("calculate_kernels_dwdr_kernel: ")(skf)();
-            calculate_kernels_dwdr_kernel(
-                r_, neighbours_,
-                dwdr, skf).execute(params.maxn, params.local_threads);
-        }
-
-        if (params.density_treatment == DENSITY_SUMMATION) {
-            printlog_debug("sum density")();
-            sum_density_kernel(
-                neighbours_, smoothing_kernels_w[params.density_skf],
-                rho_predict_
+        if (density_is_using_continuity()) {
+            predict_half_step_kernel(
+                params.dt,
+                itype_,
+                drho_, a_,
+                rho_, v_,
+                rho_predict_, v_predict_
             ).execute(params.maxn, params.local_threads);
         }
         else {
+            predict_half_step_kernel(
+                params.dt,
+                itype_,
+                nullptr, a_,
+                nullptr, v_,
+                nullptr, v_predict_
+            ).execute(params.maxn, params.local_threads);
+        }
+
+        cl_grid_find(
+            r_, itype_, 
+            neighbours_);
+
+        cl_calculate_kernels(
+            r_, itype_, neighbours_, 
+            smoothing_kernels_w, smoothing_kernels_dwdr);
+
+        if (density_is_using_continuity()) {
             printlog_debug("con density")();
             con_density_kernel(
+                r_,
                 v_predict_,
                 neighbours_, smoothing_kernels_dwdr[params.density_skf],
                 rho_predict_,
                 drho_
             ).execute(params.maxn, params.local_threads);
         }
+        else {
+            printlog_debug("sum density")();
+            sum_density_kernel(
+                neighbours_, smoothing_kernels_w[params.density_skf],
+                rho_
+            ).execute(params.maxn, params.local_threads);
+        }
 
         cl_internal_force(
-            v_predict_, rho_predict_, neighbours_, 
+            v_predict_, conditional_rho(), neighbours_, 
             smoothing_kernels_dwdr[params.intf_skf],
             p_, indvxdt_);
 
@@ -381,7 +482,7 @@ void cl_time_integration(
 
         if (params.artificial_viscosity) {
             cl_artificial_viscosity(
-                r_, v_predict_, rho_predict_,
+                r_, v_predict_, conditional_rho(),
                 neighbours_, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
                 arvdvxdt_, arvmu_);
         }
@@ -389,7 +490,8 @@ void cl_time_integration(
         if (params.average_velocity) {
             printlog_debug("average velocity")();
             average_velocity_kernel(
-                r_, v_predict_, rho_predict_,
+                r_, v_predict_, 
+                conditional_rho(),
                 neighbours_, smoothing_kernels_w[params.average_velocity_skf],
                 av_
             ).execute(params.maxn, params.local_threads);
@@ -401,37 +503,30 @@ void cl_time_integration(
 
         cl_update_dt(arvmu_, amagnitudes_);
 
-        if (params.nwm && time >= params.nwm_time_start) {
-            printlog_debug("update boundaries")();
-            switch (params.nwm) {
-            case 2:
-                nwm_dynamic_boundaries_kernel(
-                    v_, r_, time, params.dt
-                ).execute(params.maxn, params.local_threads);
-                break;
-            case 4:
-                nwm_disappear_wall_kernel(
-                    itype_
-                ).execute(params.maxn, params.local_threads);
-                params.nwm = false;
-                cl::copy(itype_, itype.begin(), itype.end());
-                break;
-            default:
-                break;
-            }
-        }
+        cl_update_nwm(time,
+            r_, v_, 
+            itype_, itype);
 
         printlog_debug("whole step")();
-        whole_step_kernel(
-            params.dt, itimestep,
-            drho_, a_, av_,
-            itype_, rho_, v_, r_
-        ).execute(params.maxn, params.local_threads);
+        if (density_is_using_continuity()) {
+            whole_step_kernel(
+                params.dt, itimestep,
+                drho_, a_, av_,
+                itype_, rho_, v_, r_
+            ).execute(params.maxn, params.local_threads);
+        }
+        else {
+            whole_step_kernel(
+                params.dt, itimestep,
+                nullptr, a_, av_,
+                itype_, nullptr, v_, r_
+            ).execute(params.maxn, params.local_threads);
+        }
 
         time += params.dt;
         itimestep++;
 
-        SPH2DOutput::instance().finish_step();
         SPH2DOutput::instance().update_step(time, itimestep);
+        SPH2DOutput::instance().finish_step();
     }
 }

@@ -4,6 +4,7 @@
 #include "UpdateAcceleration.h"
 #include "ConsistencyCheck.h"
 #include "WaveMaker.h"
+#include "Density.h"
 #include "TimeIntegration.h"
 
 #include "RR/Time/Timer.h"
@@ -29,7 +30,7 @@ void predict_half_step(
 	printlog()(__func__)();
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.density_treatment == DENSITY_CONTINUITY) {
+		if (density_is_using_continuity()) {
 			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
 		}
 
@@ -62,7 +63,7 @@ void whole_step(
 	rr_float v_dt = timestep ? params.dt : params.dt * 0.5f;
 
 	for (rr_uint i = 0; i < ntotal; i++) {
-		if (params.density_treatment == DENSITY_CONTINUITY) {
+		if (density_is_using_continuity()) {
 			rho(i) = rho(i) + drho(i) * v_dt;
 		}
 
@@ -103,19 +104,19 @@ void time_integration(
 	printlog("threads: ")(1)();
 #endif
 
-	heap_darray<rr_float> rho_predict(params.maxn);
-	heap_darray<rr_float> drho(params.maxn);
-	heap_darray<rr_float>* rho_predicted;
-	if (params.density_treatment == DENSITY_SUMMATION) {
-		rho_predicted = &rho;
-	}
-	else {
-		rho_predicted = &rho_predict;
-	}
+	omp_set_num_threads(params.local_threads);
+
+	heap_darray<rr_float> rho_predict{ density_is_using_continuity() ? params.maxn : 0 };
+	heap_darray<rr_float> drho{ density_is_using_continuity() ? params.maxn : 0 };
+
+	auto conditional_rho = [&]() -> heap_darray<rr_float>& {
+		return density_is_using_continuity() ? rho_predict : rho;
+	};
 
 	heap_darray<rr_float2> v_predict(params.maxn);
 	heap_darray<rr_float2> a(params.maxn);
-	heap_darray<rr_float2> av(params.maxn);
+	heap_darray<rr_float2> av(params.average_velocity ? params.maxn : 0);
+
 	rr_float time = params.start_simulation_time;
 	rr_uint itimestep = 0;
 
@@ -133,11 +134,11 @@ void time_integration(
 			itype,
 			rho, drho, 
 			v, a, 
-			*rho_predicted, v_predict);
+			rho_predict, v_predict);
 
 		// definition of variables out of the function vector:
 		update_acceleration(nfluid, ntotal, itype, r, 
-			v_predict, *rho_predicted, 
+			v_predict, conditional_rho(), 
 			p, a, drho, av);
 
 		if (params.nwm && time >= params.nwm_time_start) {
@@ -151,7 +152,7 @@ void time_integration(
 
 		time += params.dt;
 		itimestep++;
-		SPH2DOutput::instance().finish_step();
 		SPH2DOutput::instance().update_step(time, itimestep);
+		SPH2DOutput::instance().finish_step();
 	}
 }

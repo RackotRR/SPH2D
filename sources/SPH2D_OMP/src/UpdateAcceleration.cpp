@@ -23,8 +23,13 @@ static SmoothingKernelsW_t make_smoothing_kernels_w() {
 	printlog_debug()(__func__)();
 	std::unordered_map<rr_uint, heap_darray_md<rr_float>> smoothing_kernels_w;
 	
-	smoothing_kernels_w[params.density_skf];
-	smoothing_kernels_w[params.average_velocity_skf];
+	if (!density_is_using_continuity()) {
+		smoothing_kernels_w[params.density_skf];
+	}
+
+	if (params.average_velocity) {
+		smoothing_kernels_w[params.average_velocity_skf];
+	}
 
 	for (auto& [skf, w] : smoothing_kernels_w) {
 		smoothing_kernels_w[skf] = heap_darray_md<rr_float>(params.max_neighbours, params.maxn);
@@ -37,8 +42,12 @@ static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
 	std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr;
 
 	smoothing_kernels_dwdr[params.intf_skf];
-	smoothing_kernels_dwdr[params.artificial_viscosity_skf];
-	if (params.density_treatment == DENSITY_CONTINUITY) {
+
+	if (params.artificial_viscosity) {
+		smoothing_kernels_dwdr[params.artificial_viscosity_skf];
+	}
+
+	if (density_is_using_continuity()) {
 		smoothing_kernels_dwdr[params.density_skf];
 	}
 	
@@ -100,13 +109,18 @@ void update_acceleration(
 
 	static heap_darray<rr_float2> indvxdt(params.maxn);
 	static heap_darray<rr_float2> exdvxdt(params.maxn);
-	static heap_darray<rr_float2> arvdvxdt(params.maxn);
-	static heap_darray<rr_float> arvmu(params.maxn);
+	static heap_darray<rr_float2> arvdvxdt(params.artificial_viscosity ? params.maxn : 0);
+
+	static heap_darray<rr_float> arvmu{
+		params.artificial_viscosity && 
+		params.dt_correction_method == DT_CORRECTION_DYNAMIC 
+		? params.maxn : 0
+	};
 
 	static heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn);
 
-	static std::unordered_map<rr_uint, heap_darray_md<rr_float>> smoothing_kernels_w = make_smoothing_kernels_w();
-	static std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr = make_smoothing_kernels_dwdr();
+	static auto smoothing_kernels_w = make_smoothing_kernels_w();
+	static auto smoothing_kernels_dwdr = make_smoothing_kernels_dwdr();
 
 	grid_find(ntotal,
 		r,
@@ -132,7 +146,7 @@ void update_acceleration(
 	}
 	else {
 		con_density(ntotal,
-			v,
+			r, v,
 			neighbours, smoothing_kernels_dwdr[params.density_skf],
 			rho,
 			drho);

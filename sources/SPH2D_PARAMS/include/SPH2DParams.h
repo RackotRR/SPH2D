@@ -23,6 +23,23 @@ struct SPH2DParams {
     opt_float nwm_wave_number;
     opt_float nwm_freq;
     opt_float nwm_piston_magnitude;
+
+    rr_uint params_version_major{};
+    rr_uint params_version_minor{};
+    rr_uint params_version_patch{};
+
+    rr_uint SPH2D_common_version_major{};
+    rr_uint SPH2D_common_version_minor{};
+    rr_uint SPH2D_common_version_patch{};
+
+    rr_uint SPH2D_version_major{};
+    rr_uint SPH2D_version_minor{};
+    rr_uint SPH2D_version_patch{};
+
+    rr_uint SPH2D_specific_version_major{};
+    rr_uint SPH2D_specific_version_minor{};
+    rr_uint SPH2D_specific_version_patch{};
+    std::string SPH2D_specific_version_name{};
 };
 /*
 #include <filesystem>

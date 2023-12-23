@@ -181,6 +181,15 @@
 //       - SPH2D_OMP: add threads num control via params.local_threads
 //       - SPH2D_CL: more verbose error logs on invalid kernel args
 //       - RRSPH2D: update anPlot script with command line arguments
+// 3.0.10 - SPH2D: add delta SPH density method
+//        - SPH2D: remove unnecessary memory allocation
+//        - SPH2D: remove unnecessary skf calculations
+//        - SPH2D: fix time estimation accuracy
+//        - SPH2D_CL: fix saving density without any update
+//        - SPH2D_OMP: fix density summation method
+//        - SPH2D_COMMON: add specific SPH2D solver name and version logging
+//        - SPH2D_PARAMS: add versions logging into SPH2DParams.json
+//        - SPH2D_PARAMS: add density_delta_sph_coef model param
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release
