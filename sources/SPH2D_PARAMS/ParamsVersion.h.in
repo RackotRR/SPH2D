@@ -101,6 +101,12 @@
 //    3.0.7 - add common variable names to enumeration
 //    3.0.8 - add versions logging into SPH2DParams.json
 //          - add density_delta_sph_coef model param
+//    3.0.9 - replace qunitic kernel with wendland kernel function
+//          - add artificial_pressure model param
+//          - add artificial_pressure_skf model param
+//          - add artificial_pressure_index model param
+//          - add artificial_pressure_coef model param
+//          - make save_time param mandatory
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 

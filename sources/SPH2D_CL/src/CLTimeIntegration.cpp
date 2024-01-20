@@ -6,7 +6,7 @@
 #include <fmt/format.h>
 #include "RR/Time/Timer.h"
 
-#include "TimeEstimate.h"
+#include "TimeFormat.h"
 #include "Output.h"
 #include "ConsistencyCheck.h"
 #include "EOS.h"
@@ -60,7 +60,14 @@ void makePrograms() {
     con_density_kernel = RRKernel(density_program, "con_density");
     find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
     update_internal_state_kernel = RRKernel(internal_force_program, "update_internal_state");
-    find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
+
+    if (params.intf_sph_approximation == INTF_SPH_APPROXIMATION_1) {
+        find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pij_d_rhoij");
+    }
+    else {
+        find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
+    }
+
     external_force_kernel = RRKernel(external_force_program, "external_force");
     artificial_viscosity_kernel = RRKernel(artificial_viscosity_program, "artificial_viscosity");
     average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
@@ -88,24 +95,32 @@ static bool density_is_using_continuity() {
 }
 
 static auto make_smoothing_kernels_w(cl_mem_flags flags) {
+	printlog_debug(__func__)(":");
+
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_w;
 
     if (!density_is_using_continuity()) {
         smoothing_kernels_w[params.density_skf];
     }
 
+	if (params.artificial_pressure) {
+		smoothing_kernels_w[params.artificial_pressure_skf];
+	}
+
     if (params.average_velocity) {
         smoothing_kernels_w[params.average_velocity_skf];
     }
 
     for (auto& [skf, w] : smoothing_kernels_w) {
-        printlog_debug("make buffer w skf ")(skf)();
+		printlog_debug(" ")(skf);
         smoothing_kernels_w[skf] = makeBuffer<rr_float>(flags, params.max_neighbours * params.maxn);
     }
 
+	printlog_debug();
     return smoothing_kernels_w;
 }
 static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
+	printlog_debug(__func__)(":");
     std::unordered_map<rr_uint, cl::Buffer> smoothing_kernels_dwdr;
 
     smoothing_kernels_dwdr[params.intf_skf];
@@ -119,10 +134,11 @@ static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
     }
 
     for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
-        printlog_debug("make buffer dwdr skf ")(skf)();
+		printlog_debug(" ")(skf);
         smoothing_kernels_dwdr[skf] = makeBuffer<rr_float2>(flags, params.max_neighbours * params.maxn);
     }
 
+	printlog_debug();
     return smoothing_kernels_dwdr;
 }
 
@@ -199,7 +215,8 @@ static void cl_internal_force(
     cl::Buffer& v_predict_,
     cl::Buffer& rho_predict_,
     cl::Buffer& neighbours_,
-    cl::Buffer& dwdr_,
+    cl::Buffer& artificial_pressure_w_,
+    cl::Buffer& intf_dwdr_,
     cl::Buffer& p_,
     cl::Buffer& indvxdt_)
 {
@@ -209,7 +226,7 @@ static void cl_internal_force(
 
     printlog_debug("find stress tensor")();
     find_stress_tensor_kernel(
-        v_predict_, rho_predict_, neighbours_, dwdr_,
+        v_predict_, rho_predict_, neighbours_, intf_dwdr_,
         txx_, txy_, tyy_
     ).execute(params.maxn, params.local_threads);
 
@@ -219,12 +236,22 @@ static void cl_internal_force(
     ).execute(params.maxn, params.local_threads);
 
     printlog_debug("find internal changes")();
-    find_internal_changes_kernel(
-        v_predict_, rho_predict_,
-        neighbours_, dwdr_,
-        txx_, txy_, tyy_, p_,
-        indvxdt_
-    ).execute(params.maxn, params.local_threads);
+    if (params.artificial_pressure) {
+        find_internal_changes_kernel(
+            v_predict_, rho_predict_,
+            neighbours_, artificial_pressure_w_, intf_dwdr_,
+            txx_, txy_, tyy_, p_,
+            indvxdt_
+        ).execute(params.maxn, params.local_threads);
+    }
+    else {
+        find_internal_changes_kernel(
+            v_predict_, rho_predict_,
+            neighbours_, intf_dwdr_,
+            txx_, txy_, tyy_, p_,
+            indvxdt_
+        ).execute(params.maxn, params.local_threads);
+    }
 }
 
 static void cl_artificial_viscosity(
@@ -282,6 +309,8 @@ static void cl_update_dt(
     cl::Buffer& amagnitudes_)
 {
     if (params.dt_correction_method != DT_CORRECTION_DYNAMIC) return;
+	static rr_float c0 = c_art_water();
+	static rr_float never_ending_dt = (params.hsml / c0) * 1.E-6;
 
     static auto arvmu_optimized_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.local_threads);
     static auto amagnitudes_optimized_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.local_threads);
@@ -308,11 +337,14 @@ static void cl_update_dt(
 
 	rr_float min_dt_a = sqrt(params.hsml / length(max_a));
 
-	rr_float c0 = c_art_water();
 	rr_float min_dt_mu = params.hsml / (c0 + max_mu);
 
 	params.dt = params.CFL_coef * std::min(min_dt_a, min_dt_mu);
-    printlog("params_dt: ")(params.dt)();
+    printlog("params_dt: ")(format_save_time(params.dt, never_ending_dt))();
+
+	if (params.dt <= never_ending_dt) {
+		std::runtime_error{ "never ending simulation" };
+	}
 }
 
 static void cl_update_nwm(
@@ -386,6 +418,11 @@ void cl_time_integration(
 
     // internal force
     auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+
+    // artificial pressure
+    cl::Buffer artificial_viscosity_dummy; // temp solution
+    cl::Buffer* p_arficial_pressure_w_ = params.artificial_pressure ? 
+        &smoothing_kernels_w[params.artificial_pressure_skf] : &artificial_viscosity_dummy;
 
     // external force
     auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
@@ -471,6 +508,7 @@ void cl_time_integration(
 
         cl_internal_force(
             v_predict_, conditional_rho(), neighbours_, 
+            *p_arficial_pressure_w_,
             smoothing_kernels_dwdr[params.intf_skf],
             p_, indvxdt_);
 
@@ -490,7 +528,7 @@ void cl_time_integration(
         if (params.average_velocity) {
             printlog_debug("average velocity")();
             average_velocity_kernel(
-                r_, v_predict_, 
+                r_, itype_, v_predict_, 
                 conditional_rho(),
                 neighbours_, smoothing_kernels_w[params.average_velocity_skf],
                 av_

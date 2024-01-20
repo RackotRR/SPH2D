@@ -3,64 +3,23 @@
 
 
 inline void cubic_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
-    rr_float q = get_kernel_q(dist);
-
-    if (q <= 1) {
-        *w = cubic_kernel_q1(q);
-        *dwdr = cubic_kernel_q1_grad(q, diff);
-    }
-    else if (q <= 2) {
-        *w = cubic_kernel_q2(q);
-        *dwdr = cubic_kernel_q2_grad(q, dist, diff);
-    }
-    else {
-        *w = 0.f;
-        *dwdr = 0.f;
-    }
+    *w = cubic_kernel_w(dist);
+    *dwdr = cubic_kernel_dwdr(dist, diff);
 }
 
 inline void gauss_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
-    rr_float q = get_kernel_q(dist);
-    if (q <= 3) {
-        *w = gauss_kernel_q3(q);
-        *dwdr = gauss_kernel_q3_grad(*w, diff);
-    }
-    else {
-        *w = 0;
-        *dwdr = 0.f;
-    }
+    *w = gauss_kernel_w(dist);
+    *dwdr = gauss_kernel_dwdr(dist, diff);
 }
 
-inline void quintic_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
-    rr_float q = get_kernel_q(dist);
-    if (q <= 1) {
-        *w = quintic_kernel_q1(q);
-        *dwdr = quintic_kernel_q1_grad(q, dist, diff);
-    }
-    else if (q <= 2) {
-        *w = quintic_kernel_q2(q);
-        *dwdr = quintic_kernel_q2_grad(q, dist, diff);
-    }
-    else if (q <= 3) {
-        *w = quintic_kernel_q3(q);
-        *dwdr = quintic_kernel_q3_grad(q, dist, diff);
-    }
-    else {
-        *w = 0.f;
-        *dwdr = 0.f;
-    }
+inline void wendland_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
+    *w = wendland_kernel_w(dist);
+    *dwdr = wendland_kernel_dwdr(dist, diff);
 }
 
 inline void desbrun_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
-    rr_float q = get_kernel_q(dist);
-    if (q <= 2) {
-        *w = desbrun_kernel_q2(q);
-        *dwdr = desbrun_kernel_q2_grad(q, dist, diff);
-    }
-    else {
-        *w = 0.f;
-        *dwdr = 0.f;
-    }
+    *w = desbrun_kernel_w(dist);
+    *dwdr = desbrun_kernel_dwdr(dist, diff);
 }
 
 inline void smoothing_kernel_specific(
@@ -73,7 +32,7 @@ inline void smoothing_kernel_specific(
     switch (skf) {
     case 1: cubic_kernel(dist, diff, w, dwdr); break;
     case 2: gauss_kernel(dist, diff, w, dwdr); break;
-    case 3: quintic_kernel(dist, diff, w, dwdr); break;
+    case 3: wendland_kernel(dist, diff, w, dwdr); break;
     case 4: desbrun_kernel(dist, diff, w, dwdr); break;
     default: cubic_kernel(dist, diff, w, dwdr); break;
     }
@@ -84,7 +43,7 @@ inline rr_float smoothing_kernel_w(rr_float dist, rr_uint skf) {
     switch (skf) {
     case 1: return cubic_kernel_w(dist);
     case 2: return gauss_kernel_w(dist);
-    case 3: return quintic_kernel_w(dist);
+    case 3: return wendland_kernel_w(dist);
     case 4: return desbrun_kernel_w(dist);
     default: return cubic_kernel_w(dist);
     }
@@ -94,7 +53,7 @@ inline rr_float2 smoothing_kernel_dwdr(rr_float dist, rr_float2 diff, rr_uint sk
     switch (skf) {
     case 1: return cubic_kernel_dwdr(dist, diff);
     case 2: return gauss_kernel_dwdr(dist, diff);
-    case 3: return quintic_kernel_dwdr(dist, diff);
+    case 3: return wendland_kernel_dwdr(dist, diff);
     case 4: return desbrun_kernel_dwdr(dist, diff);
     default: return cubic_kernel_dwdr(dist, diff);
     }

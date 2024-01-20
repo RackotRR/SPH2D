@@ -87,59 +87,36 @@ inline rr_float2 gauss_kernel_dwdr(rr_float dist, rr_float2 diff) {
 
 
 //
-// quintic kernel
+// wendland kernel
 //
 #ifdef KERNEL_INCLUDE
-#define quintic_factor() (7.f / (478.f * params_pi * sqr(params_hsml)))
+#define wendland_factor() (7.f / (4.f * params_pi * sqr(params_hsml)))
 #else
-inline rr_float quintic_factor() {
-	static rr_float factor = 7.f / (478.f * params_pi * sqr(params_hsml));
+inline rr_float wendland_factor() {
+	static rr_float factor = 7.f / (4.f * params_pi * sqr(params_hsml));
 	return factor;
 }
 #endif
-inline rr_float quintic_kernel_q1(rr_float q) {
-	return quintic_factor() * (powun(3.f - q, 5) - 6.f * powun(2 - q, 5) + 15.f * powun(1.f - q, 5));
+inline rr_float wendland_kernel_q2(rr_float q) {
+	return wendland_factor() * powun(1.f - 0.5f * q, 4) * (2.f * q + 1.f);
 }
-inline rr_float2 quintic_kernel_q1_grad(rr_float q, rr_float dist, rr_float2 diff) {
-	return diff / sqr(params_hsml) * quintic_factor() * ((-120.f + 120.f * q - 50.f * q * q));
+inline rr_float2 wendland_kernel_q2_grad(rr_float q, rr_float dist, rr_float2 diff) {
+	rr_float2 f = diff / params_hsml / dist * wendland_factor() * 2;
+	return f * (powun(1.f - 0.5f * q, 4) - (2.f * q + 1.f) * powun(1.f - 0.5 * q, 3));
 }
-inline rr_float quintic_kernel_q2(rr_float q) {
-	return quintic_factor() * (powun(3.f - q, 5) - 6.f * powun(2.f - q, 5));
-}
-inline rr_float2 quintic_kernel_q2_grad(rr_float q, rr_float dist, rr_float2 diff) {
-	return diff / params_hsml / dist * quintic_factor() * (-5.f * powun(3.f - q, 4) + 30.f * powun(2.f - q, 4));
-}
-inline rr_float quintic_kernel_q3(rr_float q) {
-	return quintic_factor() * powun(3.f - q, 5);
-}
-inline rr_float2 quintic_kernel_q3_grad(rr_float q, rr_float dist, rr_float2 diff) {
-	return diff / params_hsml / dist * quintic_factor() * (-5.f * powun(3.f - q, 4));
-}
-inline rr_float quintic_kernel_w(rr_float dist) {
+inline rr_float wendland_kernel_w(rr_float dist) {
 	rr_float q = get_kernel_q(dist);
-	if (q <= 1) {
-		return quintic_kernel_q1(q);
-	}
-	else if (q <= 2) {
-		return quintic_kernel_q2(q);
-	}
-	else if (q <= 3) {
-		return quintic_kernel_q3(q);
+	if (q <= 2) {
+		return wendland_kernel_q2(q);
 	}
 	else {
 		return 0.f;
 	}
 }
-inline rr_float2 quintic_kernel_dwdr(rr_float dist, rr_float2 diff) {
+inline rr_float2 wendland_kernel_dwdr(rr_float dist, rr_float2 diff) {
 	rr_float q = get_kernel_q(dist);
-	if (q <= 1) {
-		return quintic_kernel_q1_grad(q, dist, diff);
-	}
-	else if (q <= 2) {
-		return quintic_kernel_q2_grad(q, dist, diff);
-	}
-	else if (q <= 3) {
-		return quintic_kernel_q3_grad(q, dist, diff);
+	if (q <= 2) {
+		return wendland_kernel_q2_grad(q, dist, diff);
 	}
 	else {
 		return 0.f;

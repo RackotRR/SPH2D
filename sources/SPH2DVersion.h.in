@@ -190,9 +190,22 @@
 //        - SPH2D_COMMON: add specific SPH2D solver name and version logging
 //        - SPH2D_PARAMS: add versions logging into SPH2DParams.json
 //        - SPH2D_PARAMS: add density_delta_sph_coef model param
+// 3.0.11 - SPH2D: replace qunitic kernel with wendland kernel function
+//        - SPH2D: fix EOS, allow negative pressure
+//        - SPH2D: fix average velocity impact from boundaries
+//        - SPH2D: fix never ending simulations (dt -> 0)
+//        - SPH2D: add artificial pressure support
+//        - SPH2D_CL: add pij_d_rhoij sph approximation support
+//        - SPH2D_COMMON: update resolving cell_scale_k
+//        - SPH2D_PARAMS: add artificial_pressure model param
+//        - SPH2D_PARAMS: add artificial_pressure_skf model param
+//        - SPH2D_PARAMS: add artificial_pressure_index model param
+//        - SPH2D_PARAMS: add artificial_pressure_coef model param
+//        - SPH2D_PARAMS: make save_time param mandatory
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release
+//       - SPH2D: shared_darray based calculations
 //       - SPH2D_FIO: conditional time layers selection
 //       - SPH2D_PARAMS: add SPH2DFIO_Params
 //       - SPH2D_COMMON: fix large experiment loading error

@@ -68,7 +68,11 @@ void whole_step(
 		}
 
 		if (itype(i) > 0) {
-			v(i) += a(i) * v_dt + av(i);
+			v(i) += a(i) * v_dt;
+
+			if (params.average_velocity) {
+				v(i) += av(i);
+			}
 
 			if (params.consistency_treatment == CONSISTENCY_FIX) {
 				rr_float2 new_r = r(i) + v(i) * r_dt;

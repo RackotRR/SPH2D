@@ -70,6 +70,10 @@ namespace ParamsGeneration {
 			set(eos_sound_vel);
 			set(intf_sph_approximation);
 			set(intf_hsml_coef);
+			set(artificial_pressure);
+			set(artificial_pressure_skf);
+			set(artificial_pressure_coef);
+			set(artificial_pressure_index);
 			set(density_skf);
 			set(density_delta_sph_coef);
 			set(intf_skf);

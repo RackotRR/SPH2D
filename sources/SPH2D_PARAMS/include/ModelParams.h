@@ -26,6 +26,11 @@ struct ModelParams {
     rr_uint intf_sph_approximation{ INTF_SPH_APPROXIMATION_2 };
     rr_uint intf_skf{ SKF_CUBIC };
 
+    bool artificial_pressure{ false };
+    opt_uint artificial_pressure_skf{ SKF_CUBIC };
+    opt_float artificial_pressure_index{ 4.f };
+    opt_float artificial_pressure_coef{ 0.2f };
+
     bool visc{ true };
     rr_float visc_coef{ 0.001f };
 
@@ -39,7 +44,7 @@ struct ModelParams {
     rr_uint average_velocity_skf{ SKF_CUBIC };
 
     bool save_every_step{ false };
-    opt_float save_time;
+    rr_float save_time;
     opt_float dump_time;
     opt_uint step_time_estimate;
     bool use_dump{ false };

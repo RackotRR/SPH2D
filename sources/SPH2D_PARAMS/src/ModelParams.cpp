@@ -47,9 +47,6 @@ void check_optional_params(const ModelParams& model_params) {
         need_param(average_velocity_coef);
     }
 
-    if (!model_params.save_every_step) {
-        need_param(save_time);
-    }
     if (model_params.use_dump) {
         need_param(dump_time);
     }
@@ -119,6 +116,11 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(intf_hsml_coef);
     move_param(intf_sph_approximation);
     move_param(intf_skf);
+
+    move_param(artificial_pressure);
+    move_param(artificial_pressure_skf);
+    move_param(artificial_pressure_index);
+    move_param(artificial_pressure_coef);
 
     move_param(visc);
     move_param(visc_coef);
@@ -210,6 +212,11 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_default(intf_hsml_coef);
     load_default(intf_sph_approximation);
     load_default(intf_skf);
+    
+    load_default(artificial_pressure);
+    load_optional(artificial_pressure_skf);
+    load_optional(artificial_pressure_index);
+    load_optional(artificial_pressure_coef);
 
     load_default(visc);
     load_default(visc_coef);
@@ -224,7 +231,7 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_default(average_velocity_skf);
 
     load_default(save_every_step);
-    load_optional(save_time);
+    load(save_time);
     load_optional(dump_time);
     load_optional(step_time_estimate);
     load_default(use_dump);
@@ -288,6 +295,11 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_param(intf_sph_approximation);
     print_param(intf_skf);
 
+    print_param(artificial_pressure);
+    print_not_null(artificial_pressure_skf);
+    print_not_null(artificial_pressure_index);
+    print_not_null(artificial_pressure_coef);
+
     print_param(visc);
     print_param(visc_coef);
 
@@ -301,7 +313,7 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_param(average_velocity_skf);
 
     print_param(save_every_step);
-    print_not_null(save_time);
+    print_param(save_time);
     print_not_null(dump_time);
     print_not_null(step_time_estimate);
     print_param(use_dump);

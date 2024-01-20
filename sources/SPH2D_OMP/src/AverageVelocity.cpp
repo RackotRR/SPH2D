@@ -5,6 +5,7 @@
 void average_velocity(
 	const rr_uint nfluid, // number of particles
 	const heap_darray<rr_float2>& r,	// coordinates of all particles
+	const heap_darray<rr_int>& itype,	// types of all particles
 	const heap_darray<rr_float2>& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,	// density 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
@@ -14,7 +15,7 @@ void average_velocity(
 	printlog_debug(__func__)();
 
 #pragma omp parallel for
-	for (rr_iter j = 0; j < nfluid; ++j) { // current particle
+	for (rr_iter j = 0; j < params.nfluid; ++j) { // current particle
 		av(j) = { 0.f };
 
 		rr_uint i;
@@ -22,10 +23,13 @@ void average_velocity(
 			i = neighbours(n, j), i != params.ntotal; // particle near
 			++n)
 		{
-			rr_float2 dvx = v(i) - v(j);
-			av(j) += dvx * params.mass / (rho(i) + rho(j)) * w(n, j) * 2.f;
+			if (itype(i) > 0) {
+				rr_float2 dvx = v(i) - v(j);
+				rr_float rho_ij = (rho(i) + rho(j)) * 0.5;
+				av(j) += dvx / rho_ij * w(n, j);
+			}
 		}
 
-		av(j) *= params.average_velocity_coef;
+		av(j) *= params.average_velocity_coef * params.mass;
 	}
 }

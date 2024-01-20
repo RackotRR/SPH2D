@@ -17,28 +17,6 @@
 
 constexpr rr_uint GRID_INVALID_CELL = UINT_MAX;
 
-inline rr_uint get_cell_scale_k(rr_uint skf) {
-    switch (params.density_skf) {
-    case 1: return 2;
-    case 2: return 3;
-    case 3: return 2;
-    case 4: return 2;
-    default: return 2;
-    }
-}
-
-inline rr_float get_cell_scale_k(
-    rr_uint density_skf,
-    rr_uint intf_skf,
-    rr_uint art_visc_skf,
-    rr_uint av_vel_skf)
-{
-    return std::max(
-        std::max(get_cell_scale_k(density_skf), get_cell_scale_k(intf_skf)),
-        std::max(get_cell_scale_k(art_visc_skf), get_cell_scale_k(av_vel_skf))
-    );
-}
-
 inline rr_float grid_cell_size() {
     return params.cell_scale_k * params.hsml;
 }

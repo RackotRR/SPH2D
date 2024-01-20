@@ -34,18 +34,10 @@ static rr_float B() {
 
 // artificial equation of state for the artificial compressibility
 rr_float p_art_water(const rr_float rho) {
-    rr_float p;
     // artificial EOS, Form (Monaghan, 1994)
-    if (rho > rho0()) {
-        p = B() * (powun(rho / rho0(), gamma_eos) - 1.f);
-    }
-    else {
-        p = 0.f;
-    }
-
-    return p;
+    return B() * (powun(rho / rho0(), gamma_eos) - 1.f);
 }
 
-rr_float rho_from_p_art_water(const rr_float p) {
-    return rho0() * pow(p / B() + 1.f, 1.f / gamma_eos);
+rr_float rho_from_p_art_water(rr_float p) {
+    return rho0() * pow(fabs(p) / B() + 1.f, 1.f / gamma_eos);
 }

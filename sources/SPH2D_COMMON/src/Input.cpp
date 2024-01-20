@@ -13,6 +13,34 @@
 #include "ParamsIO.h"
 #include "SPH2DCOMMONVersion.h"
 
+static rr_uint get_cell_scale_k(rr_uint skf) {
+    switch (skf) {
+    case SKF_CUBIC: return 2;
+    case SKF_GAUSS: return 3;
+    case SKF_WENDLAND: return 2;
+    case SKF_DESBRUN: return 2;
+    default: 
+		throw std::runtime_error{fmt::format("get_cell_scale_k: unknown skf {}", skf)};
+    }
+}
+
+static rr_float get_cell_scale_k(std::vector<rr_uint> skf) {
+	assert(!skf.empty());
+
+	std::vector<rr_uint> cell_scale_k;
+	std::transform(skf.begin(), skf.end(), 
+		std::back_inserter(cell_scale_k), 
+		[](rr_uint skf_type){
+			return get_cell_scale_k(skf_type);
+		});
+
+	auto[min, max] = std::minmax_element(cell_scale_k.begin(), cell_scale_k.end());
+	if (*min != *max) { // cell_scale_k must be equal for all skf
+		throw std::runtime_error{ "selected incompatible skf" };
+	}
+	return *max;
+}
+
 rr_uint countCells(
 	rr_float hsml,
 	rr_float x_mingeom,
@@ -64,16 +92,13 @@ void fillInSPH2DParams() {
 
 	params.mass = params.rho0 * params.delta * params.delta;
 
-	if (params.artificial_viscosity_skf == SKF_GAUSS ||
-		params.average_velocity_skf == SKF_GAUSS ||
-		params.density_skf == SKF_GAUSS ||
-		params.intf_skf == SKF_GAUSS)
-	{
-		params.cell_scale_k = 3;
-	}
-	else {
-		params.cell_scale_k = 2;
-	}
+	params.cell_scale_k = get_cell_scale_k({
+		params.artificial_pressure_skf,
+		params.artificial_viscosity_skf,
+		params.average_velocity_skf,
+		params.intf_skf,
+		params.density_skf
+	});
 }
 void postFillInModelParams(ModelParams& model_params)
 {

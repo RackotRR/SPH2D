@@ -32,6 +32,12 @@
 //       - fix saving density without any update
 //       - remove unnecessary memory allocation
 //       - remove unnecessary skf calculations
+// 1.3.2 - replace qunitic kernel with wendland kernel function
+//       - fix EOS, allow negative pressure
+//       - fix average_velocity impact from boundaries
+//       - fix never ending simulations (dt -> 0)
+//       - add artificial pressure support
+//       - add pij_d_rhoij sph approximation support
 // TODO:
 // 1.3   - passing arguments through vectors of buffers
 // 1.3   - use mapping instead of copying for dynamic dt correction

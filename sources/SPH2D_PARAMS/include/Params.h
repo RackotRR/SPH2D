@@ -87,6 +87,13 @@ struct ExperimentParams {
 	//		    2 : p[i]/sqr(rho[i]) + p[j]/sqr(rho[j]
 	rr_uint intf_sph_approximation{ INTF_SPH_APPROXIMATION_2 };
 
+	// artificial pressure term (Monaghan 2000)
+	// dvdt = -sum(sph_approximation + artificial_pressure)dwdr
+    bool artificial_pressure{ false };
+	rr_uint artificial_pressure_skf{ SKF_CUBIC };
+    rr_float artificial_pressure_index{ 4.f };
+    rr_float artificial_pressure_coef{ 0.2f };
+
 	// smoothing kernel function
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
 	//		 2 : Gauss kernel (Gingold, Monaghan 1981)

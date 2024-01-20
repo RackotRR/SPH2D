@@ -8,6 +8,7 @@
 #include "UpdateAcceleration.h"
 #include "Kernel.h"
 #include "EOS.h"
+#include "TimeFormat.h"
 
 #include <unordered_map>
 #include <functional>
@@ -20,11 +21,15 @@ using SmoothingKernelsW_t = std::unordered_map<rr_uint, heap_darray_md<rr_float>
 using SmoothingKernelsDwDr_t = std::unordered_map<rr_uint, heap_darray_md<rr_float2>>;
 
 static SmoothingKernelsW_t make_smoothing_kernels_w() {
-	printlog_debug()(__func__)();
-	std::unordered_map<rr_uint, heap_darray_md<rr_float>> smoothing_kernels_w;
+	printlog_debug(__func__)(":");
+	SmoothingKernelsW_t smoothing_kernels_w;
 	
 	if (!density_is_using_continuity()) {
 		smoothing_kernels_w[params.density_skf];
+	}
+
+	if (params.artificial_pressure) {
+		smoothing_kernels_w[params.artificial_pressure_skf];
 	}
 
 	if (params.average_velocity) {
@@ -32,14 +37,16 @@ static SmoothingKernelsW_t make_smoothing_kernels_w() {
 	}
 
 	for (auto& [skf, w] : smoothing_kernels_w) {
+		printlog_debug(" ")(skf);
 		smoothing_kernels_w[skf] = heap_darray_md<rr_float>(params.max_neighbours, params.maxn);
 	}
 
+	printlog_debug();
 	return smoothing_kernels_w;
 }
 static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
-	printlog_debug()(__func__)();
-	std::unordered_map<rr_uint, heap_darray_md<rr_float2>> smoothing_kernels_dwdr;
+	printlog_debug(__func__)(":");
+	SmoothingKernelsDwDr_t smoothing_kernels_dwdr;
 
 	smoothing_kernels_dwdr[params.intf_skf];
 
@@ -52,9 +59,11 @@ static SmoothingKernelsDwDr_t make_smoothing_kernels_dwdr() {
 	}
 	
 	for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
+		printlog_debug(" ")(skf);
 		smoothing_kernels_dwdr[skf] = heap_darray_md<rr_float2>(params.max_neighbours, params.maxn);
 	}
 
+	printlog_debug();
 	return smoothing_kernels_dwdr;
 }
 
@@ -119,8 +128,8 @@ void update_acceleration(
 
 	static heap_darray_md<rr_uint> neighbours(params.max_neighbours, params.maxn);
 
-	static auto smoothing_kernels_w = make_smoothing_kernels_w();
-	static auto smoothing_kernels_dwdr = make_smoothing_kernels_dwdr();
+	static SmoothingKernelsW_t smoothing_kernels_w = make_smoothing_kernels_w();
+	static SmoothingKernelsDwDr_t smoothing_kernels_dwdr = make_smoothing_kernels_dwdr();
 
 	grid_find(ntotal,
 		r,
@@ -152,10 +161,23 @@ void update_acceleration(
 			drho);
 	}
 
-	int_force(ntotal,
-		r, v, rho,
-		neighbours, smoothing_kernels_dwdr[params.intf_skf],
-		p, indvxdt);
+	if (params.artificial_pressure) {
+		int_force(ntotal,
+			r, v, rho,
+			neighbours, 
+			smoothing_kernels_w[params.artificial_pressure_skf],
+			smoothing_kernels_dwdr[params.intf_skf],
+			p, indvxdt);
+	}
+	else {
+		heap_darray_md<rr_float> dummy_w;
+		int_force(ntotal,
+			r, v, rho,
+			neighbours, 
+			dummy_w,
+			smoothing_kernels_dwdr[params.intf_skf],
+			p, indvxdt);
+	}
 
 	if (params.artificial_viscosity) {
 		artificial_viscosity(ntotal,
@@ -172,7 +194,7 @@ void update_acceleration(
 	// calculating average velocity of each particle for avoiding penetration
 	if (params.average_velocity) {
 		average_velocity(nfluid,
-			r, v, rho, 
+			r, itype, v, rho, 
 			neighbours, smoothing_kernels_w[params.average_velocity_skf],
 			av);
 	}
@@ -195,8 +217,15 @@ void update_change_rate(rr_uint nfluid,
 {
 	printlog_debug()(__func__)();
 
-	for (rr_uint i = 0; i < nfluid; i++) {
-		a(i) = indvxdt(i) + exdvxdt(i) + arvdvxdt(i);
+	if (params.artificial_viscosity) {
+		for (rr_uint i = 0; i < nfluid; i++) {
+			a(i) = indvxdt(i) + exdvxdt(i) + arvdvxdt(i);
+		}
+	}
+	else {
+		for (rr_uint i = 0; i < nfluid; i++) {
+			a(i) = indvxdt(i) + exdvxdt(i);
+		}
 	}
 }
 
@@ -205,6 +234,8 @@ void update_dt(rr_uint ntotal,
 	const heap_darray<rr_float>& arvmu)
 {
 	printlog_debug()(__func__)();
+	static rr_float c0 = c_art_water();
+	static rr_float never_ending_dt = (params.hsml / c0) * 1.E-6;
 
 	rr_float2 max_a = optimize<rr_float2>(ntotal, a, 
 		[](rr_float2 a1, rr_float2 a2) {
@@ -212,10 +243,16 @@ void update_dt(rr_uint ntotal,
 	  	});
 	rr_float min_dt_a = sqrt(params.hsml / length(max_a));
 
-	rr_float c0 = c_art_water();
-	rr_float max_mu = optimize<rr_float>(ntotal, arvmu, std::greater<rr_float>{});
+	rr_float max_mu = 0;
+	if (params.artificial_viscosity) {
+		max_mu = optimize<rr_float>(ntotal, arvmu, std::greater<rr_float>{});
+	}
 	rr_float min_dt_mu = params.hsml / (c0 + max_mu);
 
 	params.dt = params.CFL_coef * std::min(min_dt_a, min_dt_mu);
-    printlog("params_dt: ")(params.dt)();
+    printlog("params_dt: ")(format_save_time(params.dt, never_ending_dt))();
+
+	if (params.dt <= never_ending_dt) {
+		throw std::runtime_error{ "never ending simulation" };
+	}
 }

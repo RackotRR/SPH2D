@@ -21,7 +21,7 @@
 
 #define SKF_CUBIC 1
 #define SKF_GAUSS 2
-#define SKF_QUINTIC 3
+#define SKF_WENDLAND 3
 #define SKF_DESBRUN 4
 
 // particle approximation with:

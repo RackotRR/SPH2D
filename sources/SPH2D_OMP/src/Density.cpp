@@ -107,12 +107,12 @@ static void con_delta_density(
 	const rr_float delta_sph = params.density_delta_sph_coef;
 
 #pragma omp parallel for
-	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+	for (rr_iter j = 0; j < params.nfluid; ++j) { // current particle
 		rr_uint i;
 		rr_float delta_rho = 0;
 
 		for (rr_iter n = 0;
-		i = neighbours(n, j), i != ntotal; // particle near
+		i = neighbours(n, j), i != params.ntotal; // particle near
 		++n)
 		{
 			rr_float2 r_ab = r(j) - r(i);
@@ -138,12 +138,12 @@ void con_density(
 	printlog_debug(__func__)();
 
 #pragma omp parallel for
-	for (rr_iter j = 0; j < ntotal; ++j) { // current particle
+	for (rr_iter j = 0; j < params.nfluid; ++j) { // current particle
 		drhodt(j) = 0.f;
 
 		rr_uint i;
 		for (rr_iter n = 0;
-			i = neighbours(n, j), i != ntotal; // particle near
+			i = neighbours(n, j), i != params.ntotal; // particle near
 			++n)
 		{
 			rr_float2 dvx = v(i) - v(j);

@@ -47,6 +47,6 @@ void cubic_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& 
 
 void gauss_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr);
 
-void quintic_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr);
+void wendland_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr);
 
 void desbrun_kernel(rr_float dist, const rr_float2& diff, rr_float& w, rr_float2& dwdr);

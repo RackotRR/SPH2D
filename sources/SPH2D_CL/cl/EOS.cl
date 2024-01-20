@@ -12,13 +12,5 @@
 inline rr_float p_art_water(const rr_float rho) {
 #define eos_gamma 7
 #define eos_mg_B (eos_art_c_sqr * params_rho0 / eos_gamma)
-
-    rr_float p;
-    if (rho > params_rho0) {
-        p = (powun(rho / params_rho0, eos_gamma) - 1.f) * eos_mg_B;
-    }
-    else {
-        p = 0.f;
-    }
-    return p;
+    return (powun(rho / params_rho0, eos_gamma) - 1.f) * eos_mg_B;
 }
