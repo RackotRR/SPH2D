@@ -1,38 +1,85 @@
-# SPH2D
+# RRSPH2D
 Implementation for 2D SPH simulation of water
 
 ![video_vx_0](https://user-images.githubusercontent.com/60754292/225715442-05b63d00-a091-4c36-adef-35da8d234468.gif)
 
-Two-dimensional water simulation with smoothed particle hydrodynamics (SPH) method. This code is based on fortran code from ["Liu G.R., Liu M.B. - Smoothed Particle Hydrodynamics A Meshfree Particle Method 2003" book](https://www.worldscientific.com/worldscibooks/10.1142/5340).
+Two-dimensional water simulation with weakly compressible smoothed particle hydrodynamics (WCSPH) method. This code is based on fortran code from ["Liu G.R., Liu M.B. - Smoothed Particle Hydrodynamics A Meshfree Particle Method 2003" book](https://www.worldscientific.com/worldscibooks/10.1142/5340).
 
 ### General
 Here are two versions of the program: based on **OpenMP** (SPH2D_OMP) and based on **OpenCL** (SPH2D_CL). 
-Generally they are the same except NNPS (nearest neighbour particle search) modules:
+Generally they use the same algorithms except nearest neighbour particle search (NNPS) modules:
 - SPH2D_OMP uses counting sort here;
-- SPH2D_OCL uses bitonic sort (so here the maximum number of particles should be a power of 2) and binary search.
+- SPH2D_CL uses bitonic sort (so here the maximum number of particles should be a power of 2) and binary search.
 Though SPH is meshfree method, NNPS here uses mesh in order to accelerate pairs searching (method's described in [my report](https://github.com/RackotRR/SPH2D/files/10994545/_._2021_._._._.pdf)).
 
 Here are implemented dynamic boundaries based on Lennard-Jones potential. In several experiments I used them to simulate piston movement and generate waves by its means. Here is [my other report](https://github.com/RackotRR/SPH2D/files/10994558/_._2022_._._._._._._.pdf) on this topic.
 
-All the input generated in `Input.cpp` and `Params.h` files. Also you can manually fill in Params.json file to run experiment without recompilation. SPH2D_OCL will efficiently load it in runtime, create `clparams.h` header and compile its programs.
+All the input is divided into particles data and model params. Particle data is generated with Python scripts or with PicGen tool. Model params can be filled in manually (based on default-generated params) or by the means of SPH2DParamsGenerator tools (Windows only). 
+
+SPH2D_CL can efficiently load it in runtime, create `clparams.h` header and compile its programs with a lot of compile-time substitutions. 
+
+### Install and run
+
+Configure, build and install project with cmake:
+
+```
+git clone https://github.com/RackotRR/SPH2D.git
+git submodule update --init
+cd SPH2D
+cmake -S . -B {binary_path} -DCMAKE_INSTALL_PREFIX={install_path}
+cmake --build {binary_path}
+cmake --install {binary_path}
+cd {install_path}/SPH2D
+```
+
+You have to install your project in order to use SPH2D_CL!
+You can meet problems with SDL2 based projects on Windows. If so, specify path for its cache variables (see SPH2D_Drawer/cmake or SPH2D_PicGen/cmake) or update your PATH system variable.
+
+If succeed, run particles generation script:
+
+```
+python ./Scripts/{script_name}
+> Enter experiment name:
+{experiment_name}
+```
+
+Then you have to copy Model params in order to be able to run an experiment:
+
+```
+Windows: copy default_experiment_params\ModelParams.json .\{experiment_name}\
+Linux: cp default_experiment_params/ModelParams.json ./{experiment_name}/
+```
+
+Now you can start experiment with SPH2D_CL or SPH2D_OMP:
+```
+./SPH2D_CL
+> Found experiments:
+> [0] {experiment_name}: (0/1) data/dump layers
+> Type experiment number you want to load:
+0
+```
 
 ### Using
 You can use this project however you want. I hope it just can be helpful or just interesting to see.
 
-Project requires C++20. Tested compilation by g++ and msvc.
+It's recommended to compile the project with C++20 or later (you can use C++17, but some features can be disabled). GCC and msvc compilers supported. You can build and run it on Windows or Linux (macOS isn't tested).
 Here are two main executables: SPH2D_OMP and SPH2D_CL. Installation of SPH2D_CL also copies its OpenCL code to destination folder.
-There were experiments for several millions particles powered by SPH2D_CL.
+There were experiments for several million particles powered by SPH2D_CL.
+If you don't have OpenCL package, it won't be compiled and installed, so you'll have only SPH2D_OMP. You can also use SPH2D_OMP without OpenMP in single-threaded way.
 
 There are also several tools: 
 - FuncAtPoint: finds specified function value at point and plots it;
 - WaterProfile: takes AnalysisParams.json file and plots water profile by space or by time with specified transformations;
-- [SPH2D_Drawer](https://github.com/RackotRR/SPH2D_Drawer): my visualizetion tool with heatmap and output customization by commands.
+- PartToGridConverter: converts particle data format into grid format by smoothing;
+- [SPH2D_Drawer](https://github.com/RackotRR/SPH2D_Drawer): my visualization tool with heatmap and output customization by commands (requires SDL2 package installed);
+- SPH2D_PicGen: tool for experiment generation from pixel image (requires SDL2 package installed);
+- [SPH2DParamsGenerator](https://github.com/RackotRR/SPH2DParamsGenerator): my Model params editor (Windows only).
 
 ### Output
 - If something goes wrong, there's log. It contains all experiment params, device info and experiment flow.
-- Experiments take a lot of time, so program provides time estimate every `Params::step_time_estimate` steps based on previous iterations.
-- Every `params.save_step` steps program dumps all particles state into a file (in separate thread) with format string, so you can read it later.
-- To find out all the parameters used to perform experiment program also dumps generated `clparams.h` file, copy of that is used in calculations by SPH2D_OCL.
+- Experiments take a lot of time, so program provides time estimate based on previous iterations.
+- Every `params.save_time` program saves selected particles state into csv file (in separate thread) so you can read it later.
+- Every `params.dump_time` program dumps all particles state into csv file (in separate thread) so you can start from this state later.
 
 Here are some examples of water simulations:
 ![video_vy_0](https://user-images.githubusercontent.com/60754292/225718496-eba40340-dff1-415e-94d0-2c0ef6b56693.gif)

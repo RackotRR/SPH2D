@@ -107,6 +107,8 @@
 //          - add artificial_pressure_index model param
 //          - add artificial_pressure_coef model param
 //          - make save_time param mandatory
+//   3.0.10 - add default experiment params publication
+//          - add LoadingParams for conditional data layers loading
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 

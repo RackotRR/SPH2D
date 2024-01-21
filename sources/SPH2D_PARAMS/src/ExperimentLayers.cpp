@@ -5,8 +5,10 @@
 
 #include "ExperimentLayers.h"
 
-static auto find_layers(const std::filesystem::path& directory) {
-	std::map<rr_float, std::filesystem::path> sorted_layers;
+using layers_dictionary_t = std::map<rr_float, std::filesystem::path>;
+
+static layers_dictionary_t find_layers(const std::filesystem::path& directory) {
+	layers_dictionary_t sorted_layers;
 
 	for (auto& entry : std::filesystem::directory_iterator{ directory }) {
 		if (entry.is_regular_file() && entry.path().extension() == ".csv") {
@@ -18,10 +20,48 @@ static auto find_layers(const std::filesystem::path& directory) {
 	return sorted_layers;
 }
 
-ExperimentLayers::ExperimentLayers(const std::filesystem::path& experiment_directory) {
-	if (!std::filesystem::exists(experiment_directory)) return;
+static void apply_loading_params(layers_dictionary_t& layers, LoadingParams loading_params) {
+	if (loading_params.is_default()) return;
 
-	auto sorted_layers = find_layers(experiment_directory);
+	if (loading_params.from.has_value()) {
+		auto iter = layers.lower_bound(loading_params.from.value());
+		if (iter != layers.end()) {
+			layers.erase(layers.begin(), iter);
+		}
+	}
+
+	if (loading_params.to.has_value()) {
+		auto iter = layers.upper_bound(loading_params.to.value());
+		if (iter != layers.end()) {
+			layers.erase(iter, layers.end());
+		}
+	}
+
+	if (loading_params.every_layers > 1) {
+		int i = 0;
+		for (auto iter = layers.begin(); iter != layers.end(); ) {
+			if (i % loading_params.every_layers == 0) {
+				// save
+				++iter;
+			}
+			else {
+				// remove
+				auto remove_iter = iter;
+				++iter;
+				layers.erase(remove_iter);
+			}
+			++i;
+		}
+	}
+}
+
+ExperimentLayers::ExperimentLayers(const std::filesystem::path& loading_directory, LoadingParams loading_params)
+	: loading_params{ loading_params } 
+{
+	if (!std::filesystem::exists(loading_directory)) return;
+
+	layers_dictionary_t sorted_layers = find_layers(loading_directory);
+	apply_loading_params(sorted_layers, loading_params);
 	count = sorted_layers.size();
 
 	paths.reserve(count);

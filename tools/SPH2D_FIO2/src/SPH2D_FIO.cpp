@@ -40,6 +40,7 @@ SPHFIO::findTimeLayersPath() {
 		loadTimeLayers(available_layers_path, experiment.data_layers, experiment.dir / "data");
 	}
 	else if (!experiment.dump_layers.empty()) {
+		std::cout << "No data layers. Start from dump" << std::endl;
 		loadTimeLayers(available_layers_path, experiment.dump_layers, experiment.dir / "dump");
 	}
 	else {

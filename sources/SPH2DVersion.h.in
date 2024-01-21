@@ -202,12 +202,14 @@
 //        - SPH2D_PARAMS: add artificial_pressure_index model param
 //        - SPH2D_PARAMS: add artificial_pressure_coef model param
 //        - SPH2D_PARAMS: make save_time param mandatory
+// 3.0.12 - RRSPH2D: update README
+//        - SPH2D_PARAMS: add default experiment params publication
+//        - SPH2D_PARAMS: add LoadingParams for conditional data layers loading
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release
 //       - SPH2D: shared_darray based calculations
-//       - SPH2D_FIO: conditional time layers selection
-//       - SPH2D_PARAMS: add SPH2DFIO_Params
+//       - SPH2D_FIO: add CLI settings
 //       - SPH2D_COMMON: fix large experiment loading error
 //       - Change logging library
 //       - Add release tag instead of one commit for release

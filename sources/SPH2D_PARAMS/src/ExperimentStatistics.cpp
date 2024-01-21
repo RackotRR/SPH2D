@@ -67,11 +67,13 @@ void ExperimentStatistics::remove_layers_after_dump(int dump_num) {
 }
 
 ExperimentStatistics ExperimentStatistics::load(const std::filesystem::path& experiment_directory) {
+	LoadingParams loading_params = LoadingParams::load(experiment_directory);
+
 	ExperimentStatistics experiment;
 	experiment.dir = experiment_directory;
 	experiment.model_params = try_load_model_params(experiment_directory);
 	experiment.particle_params = try_load_particle_params(experiment_directory);
-	experiment.data_layers = ExperimentLayers{ experiment_directory / "data" };
+	experiment.data_layers = ExperimentLayers{ experiment_directory / "data", loading_params };
 	experiment.dump_layers = ExperimentLayers{ experiment_directory / "dump" };
 	return experiment;
 }
@@ -125,8 +127,13 @@ std::vector<int> enumerate_experiments(const Experiments& experiments, Experimen
 		}
 
 		if (enumerate) {
+			// print '*' if used custom loading params for data
+			bool custom_loading_params_present = !experiment.data_layers.loading_params.is_default();
+			std::string data_layers_str = fmt::format("{}{}", 
+				data_layers, custom_loading_params_present ? "*" : "");
+
 			std::cout << fmt::format("[{}] {}: ({}/{}) data/dump layers", 
-				count_enumerated++, name, data_layers, dump_layers) << std::endl;
+				count_enumerated++, name, data_layers_str, dump_layers) << std::endl;
 			experiment_indices.push_back(i);
 		}
 		else {

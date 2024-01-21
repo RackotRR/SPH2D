@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_PARAMS VERSION 3.0.9)
+project(SPH2D_PARAMS VERSION 3.0.10)
 configure_file(ParamsVersion.h.in "${PROJECT_SOURCE_DIR}/include/ParamsVersion.h")
 file(COPY "${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h" DESTINATION "${PROJECT_SOURCE_DIR}/include/")
 
@@ -12,7 +12,8 @@ add_library(SPH2D_PARAMS STATIC
     "src/ExperimentLayers.cpp"
     "src/PicGenParamsLoad.cpp"
     "src/Version.h" 
-    "src/SPH2DParams.cpp")
+    "src/SPH2DParams.cpp"
+    "src/LoadingParams.cpp")
 
 target_include_directories(SPH2D_PARAMS PUBLIC include)
 target_link_libraries(SPH2D_PARAMS PRIVATE
@@ -21,3 +22,4 @@ target_link_libraries(SPH2D_PARAMS PRIVATE
     RR)
 
 install(DIRECTORY docs DESTINATION SPH2D)
+install(FILES test/ModelParams.json DESTINATION SPH2D/default_experiment_params/)
