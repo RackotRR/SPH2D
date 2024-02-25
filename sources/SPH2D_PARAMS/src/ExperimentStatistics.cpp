@@ -61,10 +61,6 @@ void ExperimentStatistics::remove_layers_after_time(rr_float time) {
 	data_layers.remove_after_time(time);
 	dump_layers.remove_after_time(time);
 }
-void ExperimentStatistics::remove_layers_after_dump(int dump_num) {
-	data_layers.remove_after_dump(dump_num);
-	dump_layers.remove_after_dump(dump_num);
-}
 
 ExperimentStatistics ExperimentStatistics::load(const std::filesystem::path& experiment_directory) {
 	LoadingParams loading_params = LoadingParams::load(experiment_directory);
@@ -104,8 +100,8 @@ std::vector<int> enumerate_experiments(const Experiments& experiments, Experimen
 
 	for (auto& experiment : experiments) {
 		auto name = experiment.dir.stem().string();
-		auto data_layers = experiment.data_layers.count;
-		auto dump_layers = experiment.dump_layers.count;
+		auto data_layers = experiment.data_layers.size();
+		auto dump_layers = experiment.dump_layers.size();
 
 		bool enumerate = true;
 		switch (condition) {
@@ -128,7 +124,7 @@ std::vector<int> enumerate_experiments(const Experiments& experiments, Experimen
 
 		if (enumerate) {
 			// print '*' if used custom loading params for data
-			bool custom_loading_params_present = !experiment.data_layers.loading_params.is_default();
+			bool custom_loading_params_present = !experiment.data_layers.is_default_loaded();
 			std::string data_layers_str = fmt::format("{}{}", 
 				data_layers, custom_loading_params_present ? "*" : "");
 

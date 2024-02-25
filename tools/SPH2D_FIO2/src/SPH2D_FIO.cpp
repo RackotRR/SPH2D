@@ -24,9 +24,9 @@ static void loadTimeLayers(
 	const std::filesystem::path& data_path) 
 {
 	layers_path->clear();
-	layers_path->reserve(layers.count);
-	for (auto& layer : layers.paths) {
-		layers_path->push_back(data_path / layer.filename());
+	layers_path->reserve(layers.size());
+	for (auto& layer : layers) {
+		layers_path->push_back(data_path / layer.path.filename());
 	}
 }
 

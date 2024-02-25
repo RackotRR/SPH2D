@@ -109,6 +109,12 @@
 //          - make save_time param mandatory
 //   3.0.10 - add default experiment params publication
 //          - add LoadingParams for conditional data layers loading
+//   3.0.11 - rename default experiment params directory in project source
+//          - fix no LoadingParams publication
+//          - add ExperimentLayer abstraction
+//          - add ExperimentLayer unit tests
+//          - add ExperimentLayers unit tests
+//          - fix strange time layers deletion on experiment start
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 

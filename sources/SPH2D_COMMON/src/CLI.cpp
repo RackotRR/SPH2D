@@ -7,23 +7,6 @@
 #include "Input.h"
 #include "ParamsIO.h"
 
-static bool overrideDirectory(const std::string& experiment_name) {
-	while (true) {
-		std::cout << "Would you like to write here?: " << experiment_name << std::endl;
-		std::cout << "[y/n]" << std::endl;
-		std::string answer;
-		std::cin >> answer;
-		if (answer == "y" || answer == "yes") {
-			std::filesystem::remove_all(std::filesystem::current_path() / experiment_name / "data");
-			std::filesystem::remove_all(std::filesystem::current_path() / experiment_name / "dump");
-			return true;
-		}
-		else if (answer == "n" || answer == "no") {
-			return false;
-		}
-	}
-}
-
 static std::string getDirectoryToSearch() {
 	std::cout << "Directory to search: " << std::endl;
 	std::cout << "> ";
@@ -33,12 +16,15 @@ static std::string getDirectoryToSearch() {
 }
 
 static void printAvailableDumps(const ExperimentStatistics& experiment) {
-	std::cout << "found " << experiment.dump_layers.count << " dumps:" << std::endl;
+	int j = 0;
 	auto& dump_layers = experiment.dump_layers;
-	for (int j = 0; j < dump_layers.count; ++j) {
-		auto& dump_path = dump_layers.paths[j]; 
+
+	std::cout << "found " << experiment.dump_layers.size() << " dumps:" << std::endl;
+	for (auto& dump : dump_layers) {
+		auto& dump_path = dump.path;
 		auto dump_name = dump_path.stem().string();
 		std::cout << fmt::format("[{}]: {}", j, dump_name) << std::endl;
+		++j;
 	}
 }
 
@@ -77,7 +63,7 @@ void cli(
 
 			int dump_num = 0;
 
-			if (experiment.dump_layers.count > 1) {
+			if (experiment.dump_layers.size() > 1) {
 				printAvailableDumps(experiment);
 
 				std::cout << "Write dump number to load" << std::endl;
@@ -86,7 +72,7 @@ void cli(
 				std::cin >> dump_num;
 				std::cin.get();
 
-				if (dump_num < 0 || dump_num >= experiment.dump_layers.count) {
+				if (dump_num < 0 || dump_num >= experiment.dump_layers.size()) {
 					std::cout << "Wrong number provided!" << std::endl;
 					break;
 				}
@@ -96,9 +82,9 @@ void cli(
 				break;
 			}
 
-			experiment.remove_layers_after_dump(dump_num);
-			auto initial_dump_path = experiment.dump_layers.paths[dump_num];
-			fileInput(r, v, rho, p, itype, ntotal, nfluid, initial_dump_path, experiment.dir);
+			auto selected_dump = std::next(experiment.dump_layers.begin(), dump_num);
+			experiment.remove_layers_after_time(selected_dump->get_time());
+			fileInput(r, v, rho, p, itype, ntotal, nfluid, selected_dump->path, experiment.dir);
 			return;
 		} while (false);
 	}

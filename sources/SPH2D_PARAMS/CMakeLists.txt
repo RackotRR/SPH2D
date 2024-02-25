@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_PARAMS VERSION 3.0.10)
+project(SPH2D_PARAMS VERSION 3.0.11)
 configure_file(ParamsVersion.h.in "${PROJECT_SOURCE_DIR}/include/ParamsVersion.h")
 file(COPY "${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h" DESTINATION "${PROJECT_SOURCE_DIR}/include/")
 
@@ -20,6 +20,18 @@ target_link_libraries(SPH2D_PARAMS PRIVATE
     nlohmann::json
     fmt::fmt
     RR)
-
+    
 install(DIRECTORY docs DESTINATION SPH2D)
-install(FILES test/ModelParams.json DESTINATION SPH2D/default_experiment_params/)
+install(FILES default/ModelParams.json DESTINATION SPH2D/default_experiment_params/)
+install(FILES default/LoadingParams.json DESTINATION SPH2D/default_experiment_params/)
+
+
+add_executable(testSPH2DParams 
+    "tests/testExperimentLayer.cpp"
+    "tests/testExperimentLayers.cpp"
+)
+target_link_libraries(testSPH2DParams PRIVATE SPH2D_PARAMS)
+target_link_libraries(testSPH2DParams PRIVATE GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(testSPH2DParams)

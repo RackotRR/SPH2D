@@ -71,7 +71,6 @@ int main() {
 
     auto grid = sphfio->makeGrid();
     auto params = sphfio->getParams();
-    HeightTesting testing{ grid, params };
 
     for (;;) {
         std::cout << "Press [enter] to load testing params and compute (dir/HeightTestingParams.json)" << std::endl;
@@ -88,6 +87,8 @@ int main() {
             std::cout << e.what() << std::endl;
             continue;
         }
+
+        HeightTesting testing{ grid, params, testing_params->particles_type };
 
         auto& mode = testing_params->mode;
         if (mode == "time") {

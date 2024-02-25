@@ -13,10 +13,12 @@ class HeightTesting {
 
     const Grid& grid;
     const ParamsPtr params;
+    std::optional<int> particles_type;
 public:
-    HeightTesting(const Grid& grid, ParamsPtr params) :
+    HeightTesting(const Grid& grid, ParamsPtr params, std::optional<int> particles_type) :
         grid{ grid },
-        params{ params }
+        params{ params },
+        particles_type{ particles_type }
     {
     }
 
@@ -34,7 +36,8 @@ public:
             int thread = omp_get_thread_num();
 #pragma omp for
             for (int i = 0; i < layer.ntotal; ++i) {
-                if (layer.itype(i) == params->TYPE_WATER) {
+                // don't check particle type if optional is not set
+                if (!particles_type || layer.itype(i) == particles_type.value()) {
                     double current_x = layer.r(i).x;
                     double current_y = layer.r(i).y;
 

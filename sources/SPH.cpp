@@ -70,7 +70,9 @@ void simulation() {
 #endif
 	timer.finish();
 
-	std::cout << "total time: " << format_timer(timer.value<std::chrono::nanoseconds>()) << std::endl;
+	auto total_time = format_timer(timer.value<std::chrono::nanoseconds>());
+	std::cout << "total time: " << total_time << std::endl;
+	printlog("total time passed: ")(total_time)();
 }
 
 int main(int arc, const char* argv[]) {

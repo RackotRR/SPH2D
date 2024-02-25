@@ -17,3 +17,4 @@
 // 2.3.4 - add support for density loading
 //       - move common variable names into SPH2D_PARAMS
 // 2.3.5 - add C++17 support
+// 2.3.6 - fix can't be compiled with rr_float as float

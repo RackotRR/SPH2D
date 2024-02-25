@@ -205,6 +205,16 @@
 // 3.0.12 - RRSPH2D: update README
 //        - SPH2D_PARAMS: add default experiment params publication
 //        - SPH2D_PARAMS: add LoadingParams for conditional data layers loading
+// 3.0.13 - RRSPH2D: replace Catch2 testing toolset with GoogleTest
+//        - WaterProfile: add particles_type filter
+//        - SPH2D_PARAMS: rename default experiment params directory in project source
+//        - SPH2D_PARAMS: add ExperimentLayer abstraction
+//        - SPH2D_PARAMS: add ExperimentLayer unit tests
+//        - SPH2D_PARAMS: add ExperimentLayers unit tests
+//        - SPH2D_PARAMS: fix strange time layers deletion on experiment start
+//        - SPH2D_PARAMS: fix no LoadingParams publication
+//        - SPH2D_FIO: fix can't be compiled with rr_float as float
+//        - SPH2D: add logging of total time simulation took
 // TODO:
 // 3.1   - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release

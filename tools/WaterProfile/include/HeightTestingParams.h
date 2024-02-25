@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <optional>
 #include <memory>
 #include <nlohmann/json.hpp>
 
@@ -15,12 +16,15 @@ struct HeightTestingParams {
 	double y0 = 0;
 	double y_k = 1;
 	double search_n = 3;
+	std::optional<int> particles_type;
 
 	static std::shared_ptr<HeightTestingParams> load(const std::filesystem::path& experiment_dir);
 	static void generate_default(const std::filesystem::path& experiment_dir);
 	static constexpr const char* filename = "HeightTestingParams.json";
 
 	virtual void print() = 0;
+protected:
+	void print_common();
 };
 
 struct SpaceTestingParams : HeightTestingParams {

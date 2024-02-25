@@ -11,6 +11,21 @@ static void print_vec(const std::vector<double>& vec) {
 	}
 }
 
+void HeightTestingParams::print_common() {
+	std::cout << "y0: " << y0 << std::endl;
+	std::cout << "y_k: " << y_k << std::endl;
+
+	std::cout << "search_n: " << search_n << std::endl;
+
+	if (particles_type.has_value()) {
+		std::cout << "particles_type: " << particles_type.value() << std::endl;
+	}
+
+	if (!postfix.empty()) {
+		std::cout << "postfix: " << postfix << std::endl;
+	}
+}
+
 void SpaceTestingParams::print() {
     std::cout << "SpaceTesting params:" << std::endl;
 
@@ -20,14 +35,8 @@ void SpaceTestingParams::print() {
 
     std::cout << "x0: " << x0 << std::endl;
     std::cout << "x_k: " << x_k << std::endl;
-    std::cout << "y0: " << y0 << std::endl;
-    std::cout << "y_k: " << y_k << std::endl;
 
-    std::cout << "search_n: " << search_n << std::endl;
-
-	if (!postfix.empty()) {
-		std::cout << "postfix: " << postfix << std::endl;
-	}
+	print_common();
 }
 
 void TimeTestingParams::print() {
@@ -39,14 +48,8 @@ void TimeTestingParams::print() {
 
 	std::cout << "t0: " << t0 << std::endl;
 	std::cout << "t_k: " << t_k << std::endl;
-	std::cout << "y0: " << y0 << std::endl;
-	std::cout << "y_k: " << y_k << std::endl;
 
-	std::cout << "search_n: " << search_n << std::endl;
-
-	if (!postfix.empty()) {
-		std::cout << "postfix: " << postfix << std::endl;
-	}
+	print_common();
 }
 
 
@@ -86,6 +89,7 @@ std::shared_ptr<HeightTestingParams> HeightTestingParams::load(const std::filesy
 	if (json.contains("y_k")) json.at("y_k").get_to(testing_params->y_k);
 	if (json.contains("search_n")) json.at("search_n").get_to(testing_params->search_n);
 	if (json.contains("postfix")) json.at("postfix").get_to(testing_params->postfix);
+	if (json.contains("particles_type") && json.at("particles_type").is_number()) testing_params->particles_type = json.at("particles_type").get<int>();
 	return testing_params;
 }
 
@@ -95,15 +99,20 @@ void HeightTestingParams::generate_default(const std::filesystem::path& experime
 	if (!std::filesystem::exists(path)) {
 		std::ofstream stream{ path };
 		nlohmann::json json;
+
+		SpaceTestingParams default_space_testing;
+
 		json["mode"] = "space";
 		json["t"] = std::vector{ 0.0 };
 		json["x"] = nullptr;
-		json["x0"] = 0;
-		json["x_k"] = 1;
-		json["y0"] = 0;
-		json["y_k"] = 1;
+		json["x0"] = default_space_testing.x0;
+		json["x_k"] = default_space_testing.x_k;
+		json["y0"] = default_space_testing.y0;
+		json["y_k"] = default_space_testing.y_k;
 		json["t0"] = nullptr;
 		json["t_k"] = nullptr;
+		json["search_n"] = default_space_testing.search_n;
+		json["particles_type"] = nullptr;
 		json["postfix"] = "";
 		stream << json.dump(4) << std::endl;
 	}

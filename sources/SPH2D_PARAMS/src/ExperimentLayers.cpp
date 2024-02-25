@@ -1,40 +1,47 @@
 #include <filesystem>
-#include <map>
+#include <set>
 #include <algorithm>
 #include <iostream>
 
+#include <fmt/format.h>
+
 #include "ExperimentLayers.h"
 
-using layers_dictionary_t = std::map<rr_float, std::filesystem::path>;
+ExperimentLayers::layers_t
+ExperimentLayers::find_in_directory(const std::filesystem::path& directory) {
+	ExperimentLayers::layers_t sorted_layers;
 
-static layers_dictionary_t find_layers(const std::filesystem::path& directory) {
-	layers_dictionary_t sorted_layers;
-
-	for (auto& entry : std::filesystem::directory_iterator{ directory }) {
-		if (entry.is_regular_file() && entry.path().extension() == ".csv") {
-			rr_float time = std::stod(entry.path().stem().string());
-			sorted_layers.emplace(time, entry.path());
+	try {
+		for (auto& entry : std::filesystem::directory_iterator{ directory }) {
+			sorted_layers.emplace(entry.path());
 		}
+	}
+	catch (const ExperimentLayer::InvalidFilenameError& error) {
+		throw ExperimentLayers::ListingError{ fmt::format("Unexpected file present in {}. That caused the next error: \n{}",
+		directory.string(), error.what()) };
 	}
 
 	return sorted_layers;
 }
 
-static void apply_loading_params(layers_dictionary_t& layers, LoadingParams loading_params) {
+void ExperimentLayers::apply_loading_params(
+	ExperimentLayers::layers_t& layers,
+	LoadingParams loading_params) 
+{
 	if (loading_params.is_default()) return;
 
 	if (loading_params.from.has_value()) {
-		auto iter = layers.lower_bound(loading_params.from.value());
-		if (iter != layers.end()) {
-			layers.erase(layers.begin(), iter);
-		}
+		std::erase_if(layers,
+			[time = loading_params.from.value()](const ExperimentLayer& layer) {
+				return layer < time;
+			});
 	}
 
 	if (loading_params.to.has_value()) {
-		auto iter = layers.upper_bound(loading_params.to.value());
-		if (iter != layers.end()) {
-			layers.erase(iter, layers.end());
-		}
+		std::erase_if(layers,
+			[time = loading_params.to.value()](const ExperimentLayer& layer) {
+				return layer > time;
+			});
 	}
 
 	if (loading_params.every_layers > 1) {
@@ -45,13 +52,16 @@ static void apply_loading_params(layers_dictionary_t& layers, LoadingParams load
 				++iter;
 			}
 			else {
-				// remove
+				// remove from loading
 				auto remove_iter = iter;
 				++iter;
 				layers.erase(remove_iter);
 			}
 			++i;
 		}
+	}
+	else if (loading_params.every_layers == 0) {
+		throw LoadingParamsError{ fmt::format("Invalid loading params: every_layers == 0" ) };
 	}
 }
 
@@ -60,40 +70,65 @@ ExperimentLayers::ExperimentLayers(const std::filesystem::path& loading_director
 {
 	if (!std::filesystem::exists(loading_directory)) return;
 
-	layers_dictionary_t sorted_layers = find_layers(loading_directory);
-	apply_loading_params(sorted_layers, loading_params);
-	count = sorted_layers.size();
-
-	paths.reserve(count);
-	times.reserve(count);
-
-	for (auto& [time, path] : sorted_layers) {
-		paths.push_back(path);
-		times.push_back(time);
-	}
+	layers = find_in_directory(loading_directory);
+	apply_loading_params(layers, loading_params);
 }
 
 void ExperimentLayers::remove_after_time(rr_float time) {
-	auto iter = std::lower_bound(times.begin(), times.end(), time);
-	if (iter == times.end()) return;
+	auto iter = std::find_if(begin(), end(),
+		[time](const ExperimentLayer& layer) {
+			return layer > time;
+		});
+	if (iter == end()) return;
 
-	size_t idx = std::distance(times.begin(), iter);
-    remove_after_dump(idx);
+	size_t dump_num = std::distance(begin(), iter);
+	remove_from_dump(dump_num);
 }
 
-void ExperimentLayers::remove_after_dump(int dump_num) {
+void ExperimentLayers::remove_from_dump(size_t dump_num) {
+	if (!is_default_loaded()) {
+		throw RemoveError{ "Can't remove time layers with non-default loading params" };
+	}
 	if (empty()) return;
+	if (dump_num >= size()) return;
 
-	int remove_from = dump_num + 1;
-	for (size_t i = remove_from; i < count; ++i) {
-		std::filesystem::remove(paths[i]);
-		std::cout << "layer " << paths[i].stem() << " removed" << std::endl;
+	size_t counter = 0;
+	std::vector<iterator> to_remove;
+	for (auto layer = begin(); layer != end();) {
+		if (counter >= dump_num) {
+			to_remove.push_back(layer);
+			std::filesystem::remove(layer->path);
+			std::cout << "layer " << layer->path.stem() << " removed" << std::endl;
+		}
+		++counter;
+		++layer;
 	}
 
-	times.erase(std::next(times.begin(), remove_from), times.end());
-	paths.erase(std::next(paths.begin(), remove_from), paths.end());
+	for (auto& layer : to_remove) {
+		layers.erase(layer);
+	}
 }
 
+size_t ExperimentLayers::size() const {
+	return layers.size();
+}
 bool ExperimentLayers::empty() const {
-    return count == 0;
+    return layers.empty();
+}
+bool ExperimentLayers::is_default_loaded() const {
+	return loading_params.is_default();
+}
+
+const ExperimentLayer& ExperimentLayers::at(size_t i) const {
+	if (i > size()) {
+		throw std::out_of_range{ "Out of experiment layers range access at index " + std::to_string(i) };
+	}
+
+	return *std::next(begin(), i);
+}
+ExperimentLayers::iterator ExperimentLayers::begin() const {
+	return layers.begin();
+}
+ExperimentLayers::iterator ExperimentLayers::end() const {
+	return layers.end();
 }

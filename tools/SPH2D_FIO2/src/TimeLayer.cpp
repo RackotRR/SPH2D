@@ -61,7 +61,7 @@ TimeLayer::TimeLayer(const std::filesystem::path& path, ParamsPtr params) :
 		p,
 		rho) },
 
-	time{ std::stod(path.stem().string()) }
+	time{ static_cast<rr_float>(std::stod(path.stem().string())) }
 {
 }
 
