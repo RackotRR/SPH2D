@@ -48,6 +48,9 @@ void SPH2DOutput::setup_output(
 	this->load_rho = load_rho;
 	this->save_time_decimal_digits = format_count_decimal_digits(params.save_time);
 
+	this->last_save_time = params.start_simulation_time;
+	this->last_dump_time = params.start_simulation_time;
+
 	// first layer output
 	auto r = load_r();
 	auto itype = load_itype();
@@ -62,7 +65,7 @@ void SPH2DOutput::setup_output(
 		rho,
 		p,
 		0,
-		0);
+		params.start_simulation_time);
 }
 
 std::vector<std::string> SPH2DOutput::make_csv_header(
@@ -257,7 +260,7 @@ void SPH2DOutput::finish_step() {
 }
 
 void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
-	printlog_debug()(__func__)();
+	printlog_debug()(fmt::format("{} at {} ({}s)", __func__, itimestep, time))();
 	
 	assert(load_r);
 	assert(load_itype);

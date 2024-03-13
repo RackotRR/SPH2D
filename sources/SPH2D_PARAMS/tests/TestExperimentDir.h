@@ -16,6 +16,22 @@ public:
     {
         std::filesystem::create_directory(path);
     }
+
+    TestExperimentDir(const TestExperimentDir&) = delete;
+    auto operator=(const TestExperimentDir&) = delete;
+
+    TestExperimentDir(TestExperimentDir&& other) noexcept : 
+        path{ std::exchange(other.path, "") },
+        data_paths{ std::exchange(other.data_paths, {}) },
+        dump_paths{ std::exchange(other.dump_paths, {}) }
+    {
+    }
+    auto operator=(TestExperimentDir&& other) noexcept {
+        std::swap(path, other.path);
+        std::swap(data_paths, other.data_paths);
+        std::swap(dump_paths, other.dump_paths);
+    }
+
     ~TestExperimentDir() {
         std::filesystem::remove_all(path);
     }
@@ -63,6 +79,9 @@ public:
         for (auto& name : names_without_extension) {
             AddDataLayer(name, type);
         }
+    }
+    void AddFile(const std::string& filename) {
+        std::ofstream{ path / filename };
     }
     void GenDefaultLayers() {
         AddDataLayer("0", LayersType::Data);

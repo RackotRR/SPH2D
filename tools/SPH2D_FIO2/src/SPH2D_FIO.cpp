@@ -33,7 +33,7 @@ static void loadTimeLayers(
 LayersPathPtr
 SPHFIO::findTimeLayersPath() {
 
-	auto experiment = ExperimentStatistics::load(directories.getExperimentDirectory());
+	auto experiment = ExperimentDirectory{ directories.getExperimentDirectory() };
 	auto available_layers_path = std::make_shared<LayersPath>();
 
 	if (!experiment.data_layers.empty()) {

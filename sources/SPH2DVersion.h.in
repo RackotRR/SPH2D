@@ -215,8 +215,24 @@
 //        - SPH2D_PARAMS: fix no LoadingParams publication
 //        - SPH2D_FIO: fix can't be compiled with rr_float as float
 //        - SPH2D: add logging of total time simulation took
+// 3.0.14 - SPH2D_PARAMS: remove ExperimentStatistics module
+//        - SPH2D_PARAMS: add ExperimentDirectory module
+//        - SPH2D_PARAMS: add ExperimentDirectories module
+//        - SPH2D_PARAMS: add ExperimentDirectory unit tests
+//        - SPH2D_PARAMS: add ExperimentDirectories unit tests
+//        - SPH2D_PARAMS: add UISelector modules for ExperimentDirectories and ExperimentLayers
+//        - SPH2D_PARAMS: fix SPH2DParams particle type definition
+//        - SPH2D_FIO: move experiment selection into SPH2D_PARAMS
+//        - SPH2D_PicGen: move experiment selection into SPH2D_PARAMS
+//        - SPH2D_COMMON: move experiment and layers selection into SPH2D_PARAMS
+//        - SPH2D_COMMON: fix saving first time layer as 0.0 second of simulation
+//        - SPH2D_COMMON: fix first time layer rewriting
 // TODO:
-// 3.1   - RRSPH2D: add files prefix of subproject
+// 3.1.0  - RRSPH2D: move SPH2D_FIO2 into subproject RRSPHFIO
+//        - RRSPH2D: move filesystem features from SPH2D_PARAMS into RRSPHFIO
+//        - RRSPH2D: move filesystem featrues from SPH2D_COMMON into RRSPHFIO
+// 3.2.0  - RRSPH2D: add RRMetaParams subproject
+// 3.x.x - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release
 //       - SPH2D: shared_darray based calculations
 //       - SPH2D_FIO: add CLI settings

@@ -13,9 +13,9 @@ struct SPH2DParams {
     rr_float g;
     rr_float mass;
     rr_float hsml;
-    rr_uint TYPE_BOUNDARY;
-    rr_uint TYPE_NON_EXISTENT;
-    rr_uint TYPE_WATER;    
+    rr_int TYPE_BOUNDARY;
+    rr_int TYPE_NON_EXISTENT;
+    rr_int TYPE_WATER;    
     rr_float cell_scale_k;
     rr_uint max_cells;
     rr_uint maxn;

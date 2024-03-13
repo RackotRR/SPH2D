@@ -12,24 +12,69 @@
 */
 class ExperimentLayers {
 public:
-    class ListingError : public std::runtime_error {
-    public:
+    using layers_t = std::set<ExperimentLayer>;
+    using iterator = layers_t::const_iterator;
+
+public:
+    /**
+     * @brief meet invalid file in loading directory
+    */
+    struct ListingError : std::runtime_error {
         ListingError(std::string s) :
             std::runtime_error{ std::move(s) } {}
     };
-    class RemoveError : public std::runtime_error {
-    public:
+
+    /**
+     * @brief tried to remove time layers with non-default loading params
+    */
+    struct RemoveError : std::runtime_error {
         RemoveError(std::string s) :
             std::runtime_error{ std::move(s) } {}
     };
-    class LoadingParamsError : public std::runtime_error {
-    public:
+
+    /**
+     * @brief tried to load layers with invalid LoadingParams
+    */
+    struct LoadingParamsError : std::runtime_error {
         LoadingParamsError(std::string s) :
             std::runtime_error{ std::move(s) } {}
     };
+    struct ChangeExperimentDirectoryException : std::exception {};
 
-    using layers_t = std::set<ExperimentLayer>;
-    using iterator = layers_t::const_iterator;
+public:
+    /**
+     * @brief wrapper for ExperimentLayer selection with text user interface
+    */
+    class UISelector {
+        static constexpr int ID_CHANGE_EXPERIMENT = -1;
+    public:
+        UISelector(const layers_t& layers,
+            std::istream& input,
+            std::ostream& output);
+
+        /**
+         * @brief user interface for time layer selection
+         * @throw ChangeExperimentDirectoryException if user needs to change loading_directory
+         * @return selected ExperimentLayer
+        */
+        const ExperimentLayer& select() const;
+    private:
+        /**
+         * @brief prints time layers info and tags
+         * @return map from tag to time layer index
+        */
+        std::vector<int> enumerate() const;
+
+        /**
+         * @brief makes sure user entered valid integer
+         * @return enumerated tag
+        */
+        int input_layer_id() const;
+    private:
+        const layers_t& layers;
+        std::istream& input;
+        std::ostream& output;
+    };
 public:
     ExperimentLayers() = default;
 
@@ -72,6 +117,8 @@ public:
     const ExperimentLayer& at(size_t i) const;
     iterator begin() const;
     iterator end() const;
+
+    const ExperimentLayer& ui_select() const;
 private:
     static layers_t find_in_directory(const std::filesystem::path& directory);
     static void apply_loading_params(layers_t& layers, LoadingParams loading_params);

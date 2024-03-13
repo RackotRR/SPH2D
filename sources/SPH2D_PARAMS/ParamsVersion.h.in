@@ -115,6 +115,13 @@
 //          - add ExperimentLayer unit tests
 //          - add ExperimentLayers unit tests
 //          - fix strange time layers deletion on experiment start
+//   3.0.12 - remove ExperimentStatistics module
+//          - add ExperimentDirectory module
+//          - add ExperimentDirectories module
+//          - add ExperimentDirectory unit tests
+//          - add ExperimentDirectories unit tests
+//          - add UISelector modules for ExperimentDirectories and ExperimentLayers
+//          - fix SPH2DParams particle type definition
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 

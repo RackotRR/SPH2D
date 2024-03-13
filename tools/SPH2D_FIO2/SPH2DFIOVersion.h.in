@@ -18,3 +18,4 @@
 //       - move common variable names into SPH2D_PARAMS
 // 2.3.5 - add C++17 support
 // 2.3.6 - fix can't be compiled with rr_float as float
+// 2.3.7 - move experiment selection into SPH2D_PARAMS

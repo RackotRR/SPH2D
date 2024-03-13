@@ -42,6 +42,9 @@
 // 1.2.7 - replace qunitic kernel with Wendland kernel function
 //       - fix EOS, allow negative pressure
 //       - update resolving cell_scale_k
+// 1.2.8 - move experiment and layers selection into SPH2D_PARAMS
+//       - fix saving first time layer as 0.0 second of simulation
+//       - fix first time layer rewriting
 // TODO:
 // 1.2 - add confirmation for deletion (suffix 'f' to skip confirmation)
 //     - add experiment copy at dump (suffix 'c' to copy dump and params into another directory)

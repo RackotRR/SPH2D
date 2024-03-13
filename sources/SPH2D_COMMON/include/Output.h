@@ -88,8 +88,8 @@ private:
 	std::filesystem::path dump_path;
 	std::filesystem::path analysis_path;
 
-	rr_float last_save_time;
-	rr_float last_dump_time;
+	rr_float last_save_time{};
+	rr_float last_dump_time{};
 
 	func_load_arr_float2 load_r;
 	func_load_arr_int load_itype;
@@ -97,5 +97,5 @@ private:
 	func_load_arr_float load_p;
 	func_load_arr_float load_rho;
 
-	int save_time_decimal_digits;
+	int save_time_decimal_digits{};
 };

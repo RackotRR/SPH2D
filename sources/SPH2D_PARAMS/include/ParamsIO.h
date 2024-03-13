@@ -9,7 +9,7 @@
 #include "ParticleParams.h"
 #include "PicGenParams.h"
 #include "SPH2DParams.h"
-#include "ExperimentStatistics.h"
+#include "ExperimentDirectory.h"
 
 ParticleParams load_particle_params(const std::filesystem::path& experiment_directory);
 void apply_particle_params(ExperimentParams& experiment_params, const ParticleParams& particle_params);
@@ -42,6 +42,3 @@ inline ExperimentParams load_experiment_params(const std::filesystem::path& expe
 
 void params_make_header(const std::filesystem::path& path);
 void params_make_json(const std::filesystem::path& path);
-
-Experiments find_experiments(const std::filesystem::path& search_directory);
-std::vector<int> enumerate_experiments(const Experiments& experiments, ExperimentEnumerateCondition condition);

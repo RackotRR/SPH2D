@@ -11,6 +11,7 @@
 #include <Output.h>
 #include <Input.h>
 
+#include "ExperimentDirectories.h"
 #include "SPH2DPicGenVersion.h"
 
 struct RGB {
@@ -277,34 +278,19 @@ static std::string getDirectoryToSearch() {
 }
 
 static std::filesystem::path PicGenCLI(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
+    ExperimentDirectories experiments;
     for (;;) {
-        auto experiments = find_experiments(experiments_directory);
-        if (experiments.empty()) {
-            std::cout << "Can't find any experiment in here: " << experiments_directory << std::endl;
-            experiments_directory = getDirectoryToSearch();
-            std::cout << "Directory changed: " << experiments_directory << std::endl;
-            continue;
-        } // no experiments in directory
-
-        auto experiment_indices = enumerate_experiments(experiments, ExperimentEnumerateCondition::pic_gen_params);
-
-        std::cout << "Type [-1] to change directory to search." << std::endl;
-        std::cout << "Type experiment number you want to load: " << std::endl;
-        std::cout << "> ";
-        int experiment_number;
-        std::cin >> experiment_number;
-
-        if (experiment_number == -1) {
-            experiments_directory = getDirectoryToSearch();
-            std::cout << "Directory changed: " << experiments_directory << std::endl;
-            continue;
+        try {
+            auto experiment = experiments.ui_select({
+                ExperimentDirectory::Property::have_pic_gen_params
+                });
+            return experiment->dir;
         }
-        else if (experiment_number >= experiment_indices.size() || experiment_number < 0) {
-            std::cout << "Wrong experiment number provided!" << std::endl;
-            continue;
+        catch (const ExperimentDirectories::ChangeDirectoryException& ex) {
+            experiments = ExperimentDirectories::ui_select_search_directory();
         }
-        else {
-            return experiments[experiment_indices[experiment_number]].dir;
+        catch (const std::exception& ex) {
+            std::cerr << "Error happened: " << ex.what() << std::endl;
         }
     }
 }
