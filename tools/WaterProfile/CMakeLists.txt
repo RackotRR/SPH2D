@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
-project(WaterProfile VERSION 2.2.5)
+project(WaterProfile VERSION 2.2.6)
 
 add_executable(WaterProfile
     src/WaterProfile.cpp 
     src/HeightTestingParams.cpp)
  target_include_directories(WaterProfile PRIVATE include)
 target_link_libraries(WaterProfile PRIVATE 
-    SPH2D_FIO
+    RRSPH_FIO
     RR
     fmt::fmt
     nlohmann::json
@@ -19,4 +19,4 @@ endif()
 
 configure_file(${PROJECT_SOURCE_DIR}/WaterProfileVersion.h.in "${PROJECT_SOURCE_DIR}/include/WaterProfileVersion.h")
 
-install(TARGETS WaterProfile DESTINATION SPH2D)
+install(TARGETS WaterProfile DESTINATION RRSPH)

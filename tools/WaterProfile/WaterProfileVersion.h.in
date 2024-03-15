@@ -17,3 +17,4 @@
 //       - fix default HeightTestingParams
 // 2.2.4 - add C++17 support
 // 2.2.5 - add particles_type filter
+// 2.2.6 - update install directory

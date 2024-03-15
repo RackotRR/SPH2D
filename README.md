@@ -1,4 +1,4 @@
-# RRSPH2D
+# RRSPH
 Implementation for 2D SPH simulation of water
 
 ![video_vx_0](https://user-images.githubusercontent.com/60754292/225715442-05b63d00-a091-4c36-adef-35da8d234468.gif)
@@ -6,17 +6,17 @@ Implementation for 2D SPH simulation of water
 Two-dimensional water simulation with weakly compressible smoothed particle hydrodynamics (WCSPH) method. This code is based on fortran code from ["Liu G.R., Liu M.B. - Smoothed Particle Hydrodynamics A Meshfree Particle Method 2003" book](https://www.worldscientific.com/worldscibooks/10.1142/5340).
 
 ### General
-Here are two versions of the program: based on **OpenMP** (SPH2D_OMP) and based on **OpenCL** (SPH2D_CL). 
+Here are two versions of the program: based on **OpenMP** (RRSPH_OMP) and based on **OpenCL** (RRSPH_CL). 
 Generally they use the same algorithms except nearest neighbour particle search (NNPS) modules:
-- SPH2D_OMP uses counting sort here;
-- SPH2D_CL uses bitonic sort (so here the maximum number of particles should be a power of 2) and binary search.
+- RRSPH_OMP uses counting sort here;
+- RRSPH_CL uses bitonic sort (so here the maximum number of particles should be a power of 2) and binary search.
 Though SPH is meshfree method, NNPS here uses mesh in order to accelerate pairs searching (method's described in [my report](https://github.com/RackotRR/SPH2D/files/10994545/_._2021_._._._.pdf)).
 
 Here are implemented dynamic boundaries based on Lennard-Jones potential. In several experiments I used them to simulate piston movement and generate waves by its means. Here is [my other report](https://github.com/RackotRR/SPH2D/files/10994558/_._2022_._._._._._._.pdf) on this topic.
 
 All the input is divided into particles data and model params. Particle data is generated with Python scripts or with PicGen tool. Model params can be filled in manually (based on default-generated params) or by the means of SPH2DParamsGenerator tools (Windows only). 
 
-SPH2D_CL can efficiently load it in runtime, create `clparams.h` header and compile its programs with a lot of compile-time substitutions. 
+RRSPH_CL can efficiently load it in runtime, create `clparams.h` header and compile its programs with a lot of compile-time substitutions. 
 
 ### Install and run
 
@@ -29,10 +29,10 @@ cd SPH2D
 cmake -S . -B {binary_path} -DCMAKE_INSTALL_PREFIX={install_path}
 cmake --build {binary_path}
 cmake --install {binary_path}
-cd {install_path}/SPH2D
+cd {install_path}/RRSPH
 ```
 
-You have to install your project in order to use SPH2D_CL!
+You have to install your project in order to use RRSPH_CL!
 You can meet problems with SDL2 based projects on Windows. If so, specify path for its cache variables (see SPH2D_Drawer/cmake or SPH2D_PicGen/cmake) or update your PATH system variable.
 
 If succeed, run particles generation script:
@@ -50,9 +50,9 @@ Windows: copy default_experiment_params\ModelParams.json .\{experiment_name}\
 Linux: cp default_experiment_params/ModelParams.json ./{experiment_name}/
 ```
 
-Now you can start experiment with SPH2D_CL or SPH2D_OMP:
+Now you can start experiment with RRSPH_CL or RRSPH_OMP:
 ```
-./SPH2D_CL
+./RRSPH_CL
 > Found experiments:
 > [0] {experiment_name}: (0/1) data/dump layers
 > Type experiment number you want to load:
@@ -63,9 +63,9 @@ Now you can start experiment with SPH2D_CL or SPH2D_OMP:
 You can use this project however you want. I hope it just can be helpful or just interesting to see.
 
 It's recommended to compile the project with C++20 or later (you can use C++17, but some features can be disabled). GCC and msvc compilers supported. You can build and run it on Windows or Linux (macOS isn't tested).
-Here are two main executables: SPH2D_OMP and SPH2D_CL. Installation of SPH2D_CL also copies its OpenCL code to destination folder.
-There were experiments for several million particles powered by SPH2D_CL.
-If you don't have OpenCL package, it won't be compiled and installed, so you'll have only SPH2D_OMP. You can also use SPH2D_OMP without OpenMP in single-threaded way.
+Here are two main executables: RRSPH_OMP and RRSPH_CL. Installation of RRSPH_CL also copies its OpenCL code to destination folder.
+There were experiments for several million particles powered by RRSPH_CL.
+If you don't have OpenCL package, it won't be compiled and installed, so you'll have only RRSPH_OMP. You can also use RRSPH_OMP without OpenMP in single-threaded way.
 
 There are also several tools: 
 - FuncAtPoint: finds specified function value at point and plots it;

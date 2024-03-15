@@ -368,12 +368,13 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /tools/WaterProfile/include/WaterProfileVersion.h
-/sources/SPH2D_PARAMS/include/ParamsVersion.h
-/sources/SPH2D_COMMON/include/SPH2DCOMMONVersion.h
-/sources/SPH2D_PARAMS/include/SPH2DVersion.h
+/sources/RRSPH_PARAMS/include/ParamsVersion.h
+/sources/RRSPH_COMMON/include/RRSPHCOMMONVersion.h
+/sources/RRSPH_PARAMS/include/RRSPHVersion.h
 /tools/FuncAtPoint/include/FuncAtPointVersion.h
-/sources/SPH2D_CL/include/SPH2DCLVersion.h
-/sources/SPH2D_OMP/include/SPH2DOMPVersion.h
-/sources/SPH2DVersion.h
+/sources/RRSPH_CL/include/RRSPHCLVersion.h
+/sources/RRSPH_OMP/include/RRSPHOMPVersion.h
+/sources/RRSPHVersion.h
 /tools/SPH2D_PicGen/include/SPH2DPicGenVersion.h
-/tools/SPH2D_FIO2/include/SPH2DFIOVersion.h
+/tools/RRSPH_FIO2/include/RRSPHFIOVersion.h
+/tools/PartToGridConverter/include/PartToGridConverterVersion.h

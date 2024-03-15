@@ -11,6 +11,7 @@
 // 1.0.3 - fix no particles generated
 // 1.0.4 - add C++17 support
 // 1.0.5 - move experiment selection into SPH2D_PARAMS
+// 1.0.6 - update install directory
 // TODO:
 // 1.1.0 - Add CLI for project and params loading
 //       - Add PicGen log for experiment statistics

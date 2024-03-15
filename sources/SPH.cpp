@@ -1,12 +1,12 @@
-#ifdef SPH2D_OMP
-#include "SPH2DOMPVersion.h"
+#ifdef RRSPH_OMP
+#include "RRSPHOMPVersion.h"
 #include "TimeIntegration.h" 
-#elif defined SPH2D_CL
-#include "SPH2DCLVersion.h"
+#elif defined RRSPH_CL
+#include "RRSPHCLVersion.h"
 #include "CLCommon.h"
 #include "CLAdapter.h"
 #else
-static_assert(false, "undefined SPH2D Simulator");
+static_assert(false, "undefined RRSPH Simulator");
 #endif
 
 #include <iostream>
@@ -18,31 +18,31 @@ static_assert(false, "undefined SPH2D Simulator");
 #include "Input.h"
 #include "TimeFormat.h"
 
-#ifdef SPH2D_OMP
-rr_uint SPH2D_GetSpecificVersionMajor() {
-	return SPH2D_OMP_VERSION_MAJOR;
+#ifdef RRSPH_OMP
+rr_uint RRSPH_GetSpecificVersionMajor() {
+	return RRSPH_OMP_VERSION_MAJOR;
 }
-rr_uint SPH2D_GetSpecificVersionMinor() {
-	return SPH2D_OMP_VERSION_MINOR;
+rr_uint RRSPH_GetSpecificVersionMinor() {
+	return RRSPH_OMP_VERSION_MINOR;
 }
-rr_uint SPH2D_GetSpecificVersionPatch() {
-	return SPH2D_OMP_VERSION_PATCH;
+rr_uint RRSPH_GetSpecificVersionPatch() {
+	return RRSPH_OMP_VERSION_PATCH;
 }
-std::string SPH2D_GetSpecificVersionName() {
-	return "SPH2D_OMP";
+std::string RRSPH_GetSpecificVersionName() {
+	return "RRSPH_OMP";
 }
 #else
-rr_uint SPH2D_GetSpecificVersionMajor() {
-	return SPH2D_CL_VERSION_MAJOR;
+rr_uint RRSPH_GetSpecificVersionMajor() {
+	return RRSPH_CL_VERSION_MAJOR;
 }
-rr_uint SPH2D_GetSpecificVersionMinor() {
-	return SPH2D_CL_VERSION_MINOR;
+rr_uint RRSPH_GetSpecificVersionMinor() {
+	return RRSPH_CL_VERSION_MINOR;
 }
-rr_uint SPH2D_GetSpecificVersionPatch() {
-	return SPH2D_CL_VERSION_PATCH;
+rr_uint RRSPH_GetSpecificVersionPatch() {
+	return RRSPH_CL_VERSION_PATCH;
 }
-std::string SPH2D_GetSpecificVersionName() {
-	return "SPH2D_CL";
+std::string RRSPH_GetSpecificVersionName() {
+	return "RRSPH_CL";
 }
 #endif
 
@@ -57,7 +57,7 @@ void simulation() {
 
 	cli(r, v, rho, p, itype, ntotal, nfluid);
 
-#ifdef SPH2D_CL
+#ifdef RRSPH_CL
 	logCLInfo();
 #endif
 
@@ -65,7 +65,7 @@ void simulation() {
 	timer.start();
 #ifdef SPH2D_OMP
 	time_integration(r, v, rho, p, itype, ntotal, nfluid);
-#elif defined SPH2D_CL
+#elif defined RRSPH_CL
 	cl_time_integration(r, v, rho, p, itype, ntotal, nfluid);
 #endif
 	timer.finish();

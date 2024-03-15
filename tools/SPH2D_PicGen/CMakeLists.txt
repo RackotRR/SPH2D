@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2DPicGen VERSION 1.0.5)
+project(SPH2DPicGen VERSION 1.0.6)
 configure_file(${PROJECT_SOURCE_DIR}/SPH2DPicGenVersion.h.in ${PROJECT_SOURCE_DIR}/include/SPH2DPicGenVersion.h)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -13,9 +13,9 @@ target_include_directories(SPH2DPicGen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includ
 target_include_directories(SPH2DPicGen PRIVATE ${SDL2_INCLUDE_DIR})
 target_link_libraries(SPH2DPicGen PRIVATE 
     ${SDL2_LIBRARIES}
-    SPH2D_PARAMS
-    SPH2D_COMMON
+    RRSPH_PARAMS
+    RRSPH_COMMON
     nlohmann::json)
 
     
-install(TARGETS SPH2DPicGen DESTINATION SPH2D)
+install(TARGETS SPH2DPicGen DESTINATION RRSPH)

@@ -5,3 +5,4 @@
 #define PART_TO_GRID_CONVERTER_VERSION_PATCH @PROJECT_VERSION_MINOR@
 
 // 1.0.0 - start version control
+// 1.0.1 - update install directory

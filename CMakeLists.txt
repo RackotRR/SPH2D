@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(RRSPH2D VERSION 3.0.13)
-configure_file(${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h.in ${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h)
+project(RRSPH VERSION 3.1.0)
+configure_file(${CMAKE_SOURCE_DIR}/sources/RRSPHVersion.h.in ${CMAKE_SOURCE_DIR}/sources/RRSPHVersion.h)
 
 enable_testing()
 
@@ -13,5 +13,5 @@ add_subdirectory(sources)
 add_subdirectory(tools)
 
 if (IS_DIRECTORY docs)
-    install(DIRECTORY docs DESTINATION SPH2D)
+    install(DIRECTORY docs DESTINATION RRSPH)
 endif()
