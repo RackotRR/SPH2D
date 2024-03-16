@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RRSPH_COMMON VERSION 1.3.0)
+project(RRSPH_COMMON VERSION 1.3.1)
 configure_file(RRSPHCOMMONVersion.h.in "${PROJECT_SOURCE_DIR}/include/RRSPHCOMMONVersion.h")
 
 add_library(RRSPH_COMMON STATIC
@@ -18,7 +18,7 @@ target_link_libraries(RRSPH_COMMON PRIVATE csv)
 target_link_libraries(RRSPH_COMMON PRIVATE Threads::Threads)
 target_link_libraries(RRSPH_COMMON PRIVATE nlohmann::json)
 target_link_libraries(RRSPH_COMMON PUBLIC
-    RRSPH_PARAMS
+    RRSPH_FIO
     RR
     fmt::fmt
 )

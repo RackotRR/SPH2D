@@ -3,7 +3,7 @@
 #include "TimeEstimate.h"
 #include "TimeFormat.h"
 
-void print_time_estimate(std::chrono::nanoseconds total_time_took, rr_float current_time) {
+void print_time_estimate(rr_uint itimestep, std::chrono::nanoseconds total_time_took, rr_float current_time) {
 	using std::chrono::duration_cast;
 	using std::chrono::nanoseconds;
 
@@ -13,10 +13,10 @@ void print_time_estimate(std::chrono::nanoseconds total_time_took, rr_float curr
 
 	nanoseconds time_left = duration_cast<nanoseconds>(total_time_took * time_took_coef);
 
-	std::cout << fmt::format("{} / {} (part: {}) {{ passed: {}; est: {} }}",
+	std::cout << fmt::format("{} / {} (step: {}) {{ passed: {}; est: {} }}",
 		format_save_time(current_time, params.save_time),
 		params.simulation_time,
-		params.ntotal,
+		itimestep,
 		format_timer(total_time_took),
 		format_timer(time_left)) << std::endl;
 }

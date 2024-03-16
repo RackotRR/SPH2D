@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include "Params.h"
 
+#include "ExperimentDirectory.h"
+
 #include "Grid.h"
 #include "Directories.h"
 
@@ -22,10 +24,23 @@ namespace sphfio {
 		rr_float size_y;
 	};
 
+
 	class SPHFIO {
 	public:
+		/**
+		 * @brief user interface for ExperimentDirectory selection
+		*/
 		SPHFIO();
+
+		/**
+		 * @brief loading ExperimentDirectory from path
+		*/
 		SPHFIO(const std::filesystem::path& experiment_dir);
+
+		/**
+		 * @brief common ctor
+		*/
+		SPHFIO(ExperimentDirectory::Ptr experiment_dir);
 
 		ParamsPtr getParams() const;
 
@@ -37,11 +52,11 @@ namespace sphfio {
 		const Directories directories;
 	private:
 		ParamsPtr loadExperimentParams();
-		LayersPathPtr findTimeLayersPath();
+		ExperimentLayers::Ptr find_time_layers_path() const;
 		std::unordered_set<std::string> findAvailableVariables(ParamsPtr params);
 	private:
+		ExperimentDirectory::Ptr experiment;
 		ParamsPtr params;
-		LayersPathPtr available_layers_path;
 		std::unordered_set<std::string> available_variables;
 	};
 

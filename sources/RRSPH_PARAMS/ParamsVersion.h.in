@@ -129,6 +129,11 @@
 //          - rename SPH2D_common_version -> RRSPH_common_version
 //          - remove ParamsLoading module
 //          - update install directory
+//    3.1.1 - move ExperimentDirectories module into RRSPH_FIO
+//          - move ExperimentDirectory module into RRSPH_FIO
+//          - move ExperimentLayers module into RRSPH_FIO
+//          - move ExperimentLayer module into RRSPH_FIO
+//          - remove outdated docs
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 

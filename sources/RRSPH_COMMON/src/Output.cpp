@@ -336,6 +336,6 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 
 	bool should_estimate_by_default = !params.use_custom_time_estimate_step && should_save;
 	if (check_custom_time_estimate_step(itimestep) || should_estimate_by_default) {
-		print_time_estimate(timer.total(), time);
+		print_time_estimate(itimestep, timer.total(), time);
 	}
 }

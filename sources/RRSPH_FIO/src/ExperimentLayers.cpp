@@ -7,6 +7,8 @@
 
 #include "ExperimentLayers.h"
 
+using namespace sphfio;
+
 ///
 /// ExperimentLayers
 ///
@@ -130,6 +132,11 @@ const ExperimentLayer& ExperimentLayers::at(size_t i) const {
 
     return *std::next(begin(), i);
 }
+
+ExperimentLayers::iterator ExperimentLayers::lower_bound(rr_float time) const {
+    return layers.lower_bound(ExperimentLayer{ fmt::format("{}.csv", time) });
+}
+
 ExperimentLayers::iterator ExperimentLayers::begin() const {
     return layers.begin();
 }

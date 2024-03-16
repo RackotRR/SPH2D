@@ -378,3 +378,5 @@ FodyWeavers.xsd
 /tools/SPH2D_PicGen/include/SPH2DPicGenVersion.h
 /tools/RRSPH_FIO2/include/RRSPHFIOVersion.h
 /tools/PartToGridConverter/include/PartToGridConverterVersion.h
+/sources/RRSPH_FIO/include/SPH2DFIOVersion.h
+/sources/RRSPH_FIO/include/RRSPHFIOVersion.h

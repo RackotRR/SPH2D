@@ -3,6 +3,8 @@
 #include "TestExperimentDir.h"
 #include <gtest/gtest.h>
 
+using namespace sphfio;
+
 class ExperimentLayersTest : public ::testing::Test {};
 
 TEST_F(ExperimentLayersTest, NoDirConstructorNothrow)

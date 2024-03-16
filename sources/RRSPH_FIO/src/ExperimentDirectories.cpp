@@ -4,6 +4,8 @@
 
 #include "ExperimentDirectories.h"
 
+using namespace sphfio;
+
 ///
 /// ExperimentDirectories
 ///

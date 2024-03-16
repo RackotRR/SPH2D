@@ -240,10 +240,14 @@
 //        - RRSPH_PARAMS: rename SPH2D_specific_version -> RRSPH_specific_version
 //        - RRSPH_PARAMS: rename SPH2D_common_version -> RRSPH_common_version
 //        - RRSPH_PARAMS: remove ParamsLoading module
+//  3.1.1 - RRSPH: move filesystem features from SPH2D_PARAMS into RRSPHFIO
+//        - RRSPH_COMMON: fix showing dump selection with only dump layer
+//        - RRSPH_COMMON: replace particles info on time estimation with timestep info
+//        - RRSPH_FIO: fix invalid ExperimentDirectory name with dots
+//        - RRSPH_FIO: update filesystem features
+//        - RRSPH_PARAMS: remove outdated docs
 // TODO:
-// 3.1.1  - RRSPH2D: move filesystem features from SPH2D_PARAMS into RRSPHFIO
-//        - RRSPH2D: move filesystem featrues from SPH2D_COMMON into RRSPHFIO
-// 3.2.0  - RRSPH2D: add RRMetaParams subproject
+// 3.2.0 - RRSPH2D: add RRMetaParams subproject
 // 3.x.x - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release
 //       - SPH2D: shared_darray based calculations

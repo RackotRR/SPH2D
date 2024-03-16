@@ -6,14 +6,15 @@
 #include <Params.h>
 #include <RR/Memory/HeapDArray.h>
 
+#include "ExperimentLayer.h"
+#include "ExperimentLayers.h"
+
 namespace sphfio {
-	using LayersPath = std::vector<std::filesystem::path>;
-	using LayersPathPtr = std::shared_ptr<LayersPath>;
 	using ParamsPtr = std::shared_ptr<ExperimentParams>;
 
 	struct TimeLayer {
 		TimeLayer() = default;
-		TimeLayer(const std::filesystem::path& path, ParamsPtr params);
+		TimeLayer(const ExperimentLayer& experiment_layer, ParamsPtr params);
 
 		RR::Memory::heap_darray<rr_float2> r;
 		RR::Memory::heap_darray<rr_int> itype;
@@ -28,13 +29,19 @@ namespace sphfio {
 		ParamsPtr params;
 	};
 
-	struct LazyGrid {
+	/**
+	 * @brief grid with layers loading on demand
+	*/
+	class LazyGrid {
+	public:
 		using time_points_t = std::vector<rr_float>;
-		LazyGrid(LayersPathPtr available_layers_path, ParamsPtr params);
 
+		/**
+		 * @brief wrapper aroung ExperimentLayers::iterator for TimeLayer construction on access
+		*/
 		class Iterator {
 		public:
-			Iterator(const LazyGrid& lazy_grid, size_t current = 0);
+			Iterator(const LazyGrid& lazy_grid, ExperimentLayers::iterator iter);
 
 			[[nodiscard]] TimeLayer operator*() const;
 			Iterator& operator++();
@@ -43,42 +50,46 @@ namespace sphfio {
 			bool operator!=(const Iterator& other) const;
 		private:
 			const LazyGrid& lazy_grid;
-			size_t current;
+			ExperimentLayers::iterator iter;
 		};
+	public:
+		LazyGrid(const ExperimentLayers::Ptr experiment_layers, ParamsPtr params);
 
 		Iterator begin() const;
 		Iterator end() const;
-
 		Iterator find(rr_float time) const;
 
 		size_t size() const;
 		bool empty() const;
-		const time_points_t& time_points() const;
+
+		[[nodiscard]] time_points_t time_points() const;
 	private:
-		LayersPathPtr available_layers_path;
+		const ExperimentLayers::Ptr experiment_layers;
 		ParamsPtr params;
-		std::vector<rr_float> time_points_;
 	};
 
-	struct Grid {
+	/**
+	 * @brief grid with layers loading on construction
+	*/
+	class Grid {
+	public:
+		using iterator = std::vector<TimeLayer>::const_iterator;
+		using time_layers_t = std::vector<TimeLayer>;
 		using time_points_t = std::vector<rr_float>;
+	public:
+		Grid(const ExperimentLayers::Ptr experiment_layers, ParamsPtr params);
 
-		Grid(LayersPathPtr available_layers_path, ParamsPtr params);
-
-		std::vector<TimeLayer>::const_iterator begin() const;
-		std::vector<TimeLayer>::const_iterator end() const;
-		std::vector<TimeLayer>::iterator begin();
-		std::vector<TimeLayer>::iterator end();
-
-		std::vector<TimeLayer>::const_iterator find(rr_float time) const;
+		iterator begin() const;
+		iterator end() const;
+		iterator find(rr_float time) const;
 
 		const TimeLayer& at(size_t layer_num) const;
 		size_t size() const;
 		bool empty() const;
-		const time_points_t& time_points() const;
+
+		[[nodiscard]] time_points_t time_points() const;
 	private:
-		ParamsPtr params;
-		std::vector<TimeLayer> grid;
-		std::vector<rr_float> time_points_;
+		time_layers_t grid;
+		const ExperimentLayers::Ptr experiment_layers;
 	};
 }

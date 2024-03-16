@@ -6,20 +6,47 @@
 
 using namespace sphfio;
 
-LazyGrid::LazyGrid(LayersPathPtr available_layers_path, ParamsPtr params) :
-    available_layers_path{ available_layers_path },
-    params{ params },
-    time_points_{ std::vector<rr_float>(available_layers_path->size()) }
+///
+/// LazyGrid
+///
+
+LazyGrid::LazyGrid(const ExperimentLayers::Ptr experiment_layers, ParamsPtr params) :
+    experiment_layers{ experiment_layers },
+    params{ params }
 {
-    for (int i = 0; i < available_layers_path->size(); ++i) {
-		// expect time layer name represents time moment
-		time_points_[i] = std::stod(available_layers_path->at(i).stem().string());
-    }
 }
 
-LazyGrid::Iterator::Iterator(const LazyGrid& lazy_grid, size_t current) :
+LazyGrid::Iterator LazyGrid::begin() const {
+    return Iterator{ *this, experiment_layers->begin() };
+}
+LazyGrid::Iterator LazyGrid::end() const {
+    return Iterator{ *this, experiment_layers->end() };
+}
+
+LazyGrid::Iterator LazyGrid::find(rr_float time) const {
+	auto iter = experiment_layers->lower_bound(time);
+	if (iter == experiment_layers->end()) {
+		return end();
+	}
+	else {
+		return Iterator{ *this, iter };
+	}
+}
+
+size_t LazyGrid::size() const {
+    return experiment_layers->size();
+}
+bool LazyGrid::empty() const {
+    return experiment_layers->empty();
+}
+
+///
+/// LazyGrid::Iterator
+///
+
+LazyGrid::Iterator::Iterator(const LazyGrid& lazy_grid, ExperimentLayers::iterator iter) :
     lazy_grid{ lazy_grid },
-    current{ current }
+    iter{ iter }
 {
 }
 
@@ -29,49 +56,32 @@ LazyGrid::Iterator LazyGrid::Iterator::operator++(int) {
     return tmp;
 }
 LazyGrid::Iterator& LazyGrid::Iterator::operator++() {
-    ++current;
+    ++iter;
     return *this;
 }
 
 TimeLayer LazyGrid::Iterator::operator*() const {
-    assert(current < lazy_grid.available_layers_path->size());
-    auto layer = TimeLayer{ lazy_grid.available_layers_path->at(current), lazy_grid.params };
-    std::cout << fmt::format("layer {} / {}...\n", current, lazy_grid.size());
+    auto layer = TimeLayer{ *iter, lazy_grid.params };
+
+    auto& experiment_layers = lazy_grid.experiment_layers;
+    size_t layer_i = std::distance(experiment_layers->begin(), iter);
+    size_t layers_total = experiment_layers->size();
+    std::cout << fmt::format("layer {} / {}...\n", layer_i, layers_total);
     return layer;
 }
 
-LazyGrid::Iterator LazyGrid::begin() const {
-    return Iterator{ *this };
-}
-LazyGrid::Iterator LazyGrid::end() const {
-    return Iterator{ *this, available_layers_path->size() };
-}
-
-LazyGrid::Iterator LazyGrid::find(rr_float time) const {
-	auto iter = std::lower_bound(time_points_.begin(), time_points_.end(), time);
-	if (iter == time_points_.end()) {
-		return end();
-	}
-	else {
-		size_t i = iter - time_points_.begin();
-		return Iterator{ *this, i };
-	}
-}
-
-size_t LazyGrid::size() const {
-    return available_layers_path->size();
-}
-bool LazyGrid::empty() const {
-    return size() == 0;
-}
-
 bool LazyGrid::Iterator::operator==(const Iterator& other) const {
-    return current == other.current;
+    return iter == other.iter;
 }
 bool LazyGrid::Iterator::operator!=(const Iterator& other) const {
-    return current != other.current;
+    return iter != other.iter;
 }
 
-const LazyGrid::time_points_t& LazyGrid::time_points() const {
-    return time_points_;
+LazyGrid::time_points_t LazyGrid::time_points() const {
+    time_points_t times;
+    times.reserve(experiment_layers->size());
+    for (auto& layer : *experiment_layers) {
+        times.push_back(layer.get_time());
+    }
+    return times;
 }

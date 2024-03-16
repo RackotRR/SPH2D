@@ -8,6 +8,8 @@
 #include "TestExperimentDir.h"
 #include <gtest/gtest.h>
 
+using namespace sphfio;
+
 class ExperimentDirectoriesTest : public ::testing::Test {
 public:
     static auto get_test_dir() {

@@ -5,6 +5,8 @@
 #include "TestExperimentDir.h"
 #include <gtest/gtest.h>
 
+using namespace sphfio;
+
 class ExperimentDirectoryTest : public ::testing::Test {};
 
 TEST_F(ExperimentDirectoryTest, CtorEmpty)

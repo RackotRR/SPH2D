@@ -1,6 +1,8 @@
 #include "ExperimentLayer.h"
 #include <gtest/gtest.h>
 
+using namespace sphfio;
+
 class ExperimentLayerTest : public ::testing::Test {};
 
 TEST_F(ExperimentLayerTest, InvalidPathThrow)

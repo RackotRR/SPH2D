@@ -21,3 +21,9 @@
 // 2.3.7 - move experiment selection into SPH2D_PARAMS
 // 2.4.0 - rename SPH2D_FIO -> RRSPH_FIO
 //       - update install directory
+// 2.4.1 - move ExperimentDirectories module from RRSPH_PARAMS
+//       - move ExperimentDirectory module from RRSPH_PARAMS
+//       - move ExperimentLayers module from RRSPH_PARAMS
+//       - move ExperimentLayer module from RRSPH_PARAMS
+//       - fix invalid ExperimentDirectory name with dots
+//       - update filesystem features

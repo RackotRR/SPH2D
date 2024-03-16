@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RRSPH_PARAMS VERSION 3.1.0)
+project(RRSPH_PARAMS VERSION 3.1.1)
 configure_file(ParamsVersion.h.in "${PROJECT_SOURCE_DIR}/include/ParamsVersion.h")
 file(COPY "${CMAKE_SOURCE_DIR}/sources/RRSPHVersion.h" DESTINATION "${PROJECT_SOURCE_DIR}/include/")
 
@@ -7,9 +7,6 @@ add_library(RRSPH_PARAMS STATIC
     "src/ParamsOutput.cpp" 
     "src/ParticleParams.cpp"
     "src/ModelParams.cpp"
-    "src/ExperimentDirectory.cpp"
-    "src/ExperimentDirectories.cpp"
-    "src/ExperimentLayers.cpp"
     "src/PicGenParamsLoad.cpp"
     "src/Version.h" 
     "src/ComputingParams.cpp"
@@ -21,19 +18,5 @@ target_link_libraries(RRSPH_PARAMS PRIVATE
     fmt::fmt
     RR)
     
-install(DIRECTORY docs DESTINATION RRSPH)
 install(FILES default/ModelParams.json DESTINATION RRSPH/default_experiment_params/)
 install(FILES default/LoadingParams.json DESTINATION RRSPH/default_experiment_params/)
-
-
-add_executable(testRRSPHParams 
-    "tests/testExperimentLayer.cpp"
-    "tests/testExperimentLayers.cpp"
-    "tests/testExperimentDirectory.cpp"
-    "tests/testExperimentDirectories.cpp"
-)
-target_link_libraries(testRRSPHParams PRIVATE RRSPH_PARAMS)
-target_link_libraries(testRRSPHParams PRIVATE GTest::gtest_main)
-
-include(GoogleTest)
-gtest_discover_tests(testRRSPHParams)

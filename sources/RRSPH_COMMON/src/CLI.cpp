@@ -19,24 +19,27 @@ void cli(
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid) // total fluid particles
 {
-	ExperimentDirectories experiments{};
+	sphfio::ExperimentDirectories experiments{};
 
 	for (;;) {
 		try {
 			auto experiment = experiments.ui_select({
-				ExperimentDirectory::Property::have_dump,
-				ExperimentDirectory::Property::have_model_params,
-				ExperimentDirectory::Property::have_particle_params
+				sphfio::ExperimentDirectory::Property::have_dump,
+				sphfio::ExperimentDirectory::Property::have_model_params,
+				sphfio::ExperimentDirectory::Property::have_particle_params
 				});
-			auto& selected_dump = experiment->dump_layers.ui_select();
+			auto& dump_layers = experiment->dump_layers;
+			auto& selected_dump = dump_layers->size() > 1 ?
+				dump_layers->ui_select() :
+				dump_layers->at(0);
 			experiment->remove_layers_after_time(selected_dump.get_time());
 			fileInput(r, v, rho, p, itype, ntotal, nfluid, selected_dump.path, experiment->dir);
 			break;
 		}
-		catch (const ExperimentDirectories::ChangeDirectoryException& ex) {
-			experiments = ExperimentDirectories::ui_select_search_directory();
+		catch (const sphfio::ExperimentDirectories::ChangeDirectoryException& ex) {
+			experiments = sphfio::ExperimentDirectories::ui_select_search_directory();
 		}
-		catch (const ExperimentLayers::ChangeExperimentDirectoryException& ex) {
+		catch (const sphfio::ExperimentLayers::ChangeExperimentDirectoryException& ex) {
 			continue;
 		}
 		catch (const std::exception& ex) {

@@ -278,16 +278,16 @@ static std::string getDirectoryToSearch() {
 }
 
 static std::filesystem::path PicGenCLI(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
-    ExperimentDirectories experiments;
+    sphfio::ExperimentDirectories experiments;
     for (;;) {
         try {
             auto experiment = experiments.ui_select({
-                ExperimentDirectory::Property::have_pic_gen_params
+                sphfio::ExperimentDirectory::Property::have_pic_gen_params
                 });
             return experiment->dir;
         }
-        catch (const ExperimentDirectories::ChangeDirectoryException& ex) {
-            experiments = ExperimentDirectories::ui_select_search_directory();
+        catch (const sphfio::ExperimentDirectories::ChangeDirectoryException& ex) {
+            experiments = sphfio::ExperimentDirectories::ui_select_search_directory();
         }
         catch (const std::exception& ex) {
             std::cerr << "Error happened: " << ex.what() << std::endl;

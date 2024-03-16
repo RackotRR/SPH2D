@@ -46,7 +46,7 @@ static rr_uint loadLayerFromFileMM(const std::filesystem::path& path,
 	return j;
 }
 
-TimeLayer::TimeLayer(const std::filesystem::path& path, ParamsPtr params) :
+TimeLayer::TimeLayer(const ExperimentLayer& experiment_layer, ParamsPtr params) :
 	r{ params->ntotal },
 	itype{ params->ntotal },
 
@@ -54,14 +54,14 @@ TimeLayer::TimeLayer(const std::filesystem::path& path, ParamsPtr params) :
 	p{ params->save_velocity ? params->ntotal : 0 },
 	rho{ params->save_velocity ? params->ntotal : 0 },
 
-	ntotal{ loadLayerFromFileMM(path, params,
+	ntotal{ loadLayerFromFileMM(experiment_layer.path, params,
 		r,
 		itype,
 		v,
 		p,
 		rho) },
 
-	time{ static_cast<rr_float>(std::stod(path.stem().string())) }
+	time{ experiment_layer.get_time() }
 {
 }
 

@@ -9,25 +9,7 @@
 #include "ExperimentDirectory.h"
 #include "ParamsIO.h"
 
-static std::optional<ParticleParams> 
-try_load_particle_params(const std::filesystem::path& experiment_directory) {
-    try {
-        return load_particle_params(experiment_directory);
-    }
-    catch (const std::exception& ex) {
-        return std::nullopt;
-    }
-}
-
-static std::optional<ModelParams>
-try_load_model_params(const std::filesystem::path& experiment_directory) {
-    try {
-        return load_model_params(experiment_directory);
-    }
-    catch (const std::exception& ex) {
-        return std::nullopt;
-    }
-}
+using namespace sphfio;
 
 namespace {
     bool experiment_dir_have_data(const ExperimentDirectory& experiment) {
@@ -64,10 +46,10 @@ namespace {
 }
 
 bool ExperimentDirectory::have_data() const {
-    return data_layers.size() || dump_layers.size();
+    return data_layers->size() || dump_layers->size();
 }
 bool ExperimentDirectory::have_dump() const {
-    return dump_layers.size();
+    return dump_layers->size();
 }
 
 bool ExperimentDirectory::particle_params_presented(const std::filesystem::path & search_directory) {
@@ -99,22 +81,26 @@ bool ExperimentDirectory::any_param_file_presented(const std::filesystem::path& 
 }
 
 void ExperimentDirectory::remove_layers_after_time(rr_float time) {
-    data_layers.remove_after_time(time);
-    dump_layers.remove_after_time(time);
+    data_layers->remove_after_time(time);
+    dump_layers->remove_after_time(time);
 }
 
 ExperimentDirectory::ExperimentDirectory(std::filesystem::path experiment_directory) 
     : dir{ experiment_directory }
 {
     try {
-        data_layers = ExperimentLayers{ experiment_directory / "data", LoadingParams::load(experiment_directory) };
-        dump_layers = ExperimentLayers{ experiment_directory / "dump" };
+        data_layers = std::make_shared<ExperimentLayers>(experiment_directory / "data", LoadingParams::load(experiment_directory));
+        dump_layers = std::make_shared<ExperimentLayers>(experiment_directory / "dump");
+
+        if (data_layers == nullptr || dump_layers == nullptr) {
+            throw std::runtime_error{ "ExperimentLayers allocation error" };
+        }
     } 
     catch (std::exception& ex) {
         std::cout << "Warning: " << ex.what() << std::endl;
         std::cout << "Skip experiment layers in " << experiment_directory.string() << std::endl;
-        data_layers = {};
-        dump_layers = {};
+        data_layers = std::make_shared<ExperimentLayers>();
+        dump_layers = std::make_shared<ExperimentLayers>();
     }
 }
 
@@ -130,19 +116,23 @@ bool ExperimentDirectory::satisfy_properties(
     return true;
 }
 
-std::ostream& operator<<(std::ostream& stream, const ExperimentDirectory& experiment) {
-    std::string name = experiment.dir.stem().string();
-    size_t data_layers = experiment.data_layers.size();
-    size_t dump_layers = experiment.dump_layers.size();
+namespace sphfio {
 
-    // print '*' if used custom loading params for data
-    bool custom_loading_params = !experiment.data_layers.is_default_loaded();
-    std::string data_layers_str = fmt::format("{}{}", 
-        data_layers, custom_loading_params ? "*" : "");
+    std::ostream& operator<<(std::ostream& stream, const ExperimentDirectory& experiment) {
+        std::string name = experiment.dir.filename().string();
+        size_t data_layers = experiment.data_layers->size();
+        size_t dump_layers = experiment.dump_layers->size();
 
-    // format ExperimentDirectory
-    stream << fmt::format("{}: ({}/{}) data/dump layers",
-        name, data_layers_str, dump_layers);
+        // print '*' if used custom loading params for data
+        bool custom_loading_params = !experiment.data_layers->is_default_loaded();
+        std::string data_layers_str = fmt::format("{}{}",
+            data_layers, custom_loading_params ? "*" : "");
 
-    return stream;
+        // format ExperimentDirectory
+        stream << fmt::format("{}: ({}/{}) data/dump layers",
+            name, data_layers_str, dump_layers);
+
+        return stream;
+    }
+
 }

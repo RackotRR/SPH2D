@@ -4,11 +4,13 @@
 #include <iostream>
 #include <fmt/format.h>
 
-#include "SPH2D_FIO.h"
+#include "RRSPH_FIO.h"
 #include "ExperimentDirectories.h"
 #include "ParamsIO.h"
 
-static std::filesystem::path CLI(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
+using namespace sphfio;
+
+static ExperimentDirectory::Ptr CLI(std::filesystem::path experiments_directory = std::filesystem::current_path()) {
 	ExperimentDirectories experiments{ experiments_directory };
 	for (;;) {
 		try {
@@ -18,7 +20,7 @@ static std::filesystem::path CLI(std::filesystem::path experiments_directory = s
 				ExperimentDirectory::Property::have_particle_params,
 				ExperimentDirectory::Property::have_simulation_params
 				});
-			return experiment->dir;
+			return experiment;
 		}
 		catch (const ExperimentDirectories::ChangeDirectoryException& ex) {
 			experiments = ExperimentDirectories::ui_select_search_directory();
@@ -29,5 +31,4 @@ static std::filesystem::path CLI(std::filesystem::path experiments_directory = s
 	}
 }
 
-using sphfio::SPHFIO;
 SPHFIO::SPHFIO() : SPHFIO{ CLI() } {}
