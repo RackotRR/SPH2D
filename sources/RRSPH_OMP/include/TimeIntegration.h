@@ -3,32 +3,11 @@
 
 
 void time_integration(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
+	vheap_darray_floatn& r_var,	// coordinates of all particles
+	vheap_darray_floatn& v_var,	// velocities of all particles
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype, // material type: 2 - water, 0 - doesn't exist, -2 - virtual
 	const rr_uint start_ntotal, // total particle number at t = 0
 	const rr_uint nfluid // fluid particles 
 );
-
-void predict_half_step(
-	const rr_uint ntotal,
-	const heap_darray<rr_int>& itype, // material type 
-	const heap_darray<rr_float>& rho, // density
-	const heap_darray<rr_float>& drho,	// density change
-	const heap_darray<rr_float2>& v,	// velocities
-	const heap_darray<rr_float2>& a,	// acceleration
-	heap_darray<rr_float>& rho_predict, // half step for density
-	heap_darray<rr_float2>& v_predict); // half step for velocities
-
-void whole_step(
-	const rr_uint ntotal,
-	const rr_uint timestep,
-	const heap_darray<rr_float>& drho,	// density change
-	const heap_darray<rr_float2>& a,	// acceleration
-	const heap_darray<rr_float2>& av,	// average velocity
-	heap_darray<rr_int>& itype, // material type 
-	heap_darray<rr_float>& rho, // density
-	heap_darray<rr_float2>& v,	// velocities
-	heap_darray<rr_float2>& r); // coordinates of all particles

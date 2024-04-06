@@ -95,11 +95,12 @@ void sum_density(
 	}
 }
 
+template<typename rr_floatn>
 static void con_delta_density(
 	const rr_uint ntotal,	// number of particles 
-	const heap_darray<rr_float2>& r,// coordinates of all particles 
+	const heap_darray<rr_floatn>& r,// coordinates of all particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel
+	const heap_darray_md<rr_floatn>& dwdr, // precomputed kernel
 	const heap_darray<rr_float>& rho,	// density  
 	heap_darray<rr_float>& drhodt) // out, density change rate of each particle
 {
@@ -115,7 +116,7 @@ static void con_delta_density(
 		i = neighbours(n, j), i != params.ntotal; // particle near
 		++n)
 		{
-			rr_float2 r_ab = r(j) - r(i);
+			rr_floatn r_ab = r(j) - r(i);
 			rr_float r_factor = -dot(r_ab, dwdr(n, j)) / length_sqr(r_ab);
 			rr_float rho_factor = (rho(i) - rho(j)) / rho(i);
 			delta_rho += rho_factor * r_factor;
@@ -126,12 +127,13 @@ static void con_delta_density(
 }
 
 // calculate the density with SPH continuity approach
+template<typename rr_floatn>
 void con_density(
 	const rr_uint ntotal,	// number of particles 
-	const heap_darray<rr_float2>& r,// coordinates of all particles 
-	const heap_darray<rr_float2>& v,// velocity of all particles 
+	const heap_darray<rr_floatn>& r,// coordinates of all particles 
+	const heap_darray<rr_floatn>& v,// velocity of all particles 
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
-	const heap_darray_md<rr_float2>& dwdr, // precomputed kernel
+	const heap_darray_md<rr_floatn>& dwdr, // precomputed kernel
 	const heap_darray<rr_float>& rho,	// density  
 	heap_darray<rr_float>& drhodt) // out, density change rate of each particle
 {
@@ -146,7 +148,7 @@ void con_density(
 			i = neighbours(n, j), i != params.ntotal; // particle near
 			++n)
 		{
-			rr_float2 dvx = v(i) - v(j);
+			rr_floatn dvx = v(i) - v(j);
 			rr_float vcc = dot(dvx, dwdr(n, j));
 			drhodt(j) += params.mass * vcc;
 		}
@@ -159,5 +161,31 @@ void con_density(
 		dwdr,
 		rho,
 		drhodt);
+	}
+}
+
+void con_density(
+	const rr_uint ntotal,	// number of particles 
+	const vheap_darray_floatn& r_var,// coordinates of all particles 
+	const vheap_darray_floatn& v_var,// velocity of all particles 
+	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
+	const vheap_darray_floatn_md& dwdr_var, // precomputed kernel
+	const heap_darray<rr_float>& rho,	// density  
+	heap_darray<rr_float>& drhodt) // out, density change rate of each particle
+{
+	if (params.dim == 2) {
+		const auto& r = r_var.get_flt2();
+		const auto& v = v_var.get_flt2();
+		const auto& dwdr = dwdr_var.get_flt2();
+		con_density(ntotal, r, v, neighbours, dwdr, rho, drhodt);
+	}
+	else if (params.dim == 3) {
+		const auto& r = r_var.get_flt3();
+		const auto& v = v_var.get_flt3();
+		const auto& dwdr = dwdr_var.get_flt3();
+		con_density(ntotal, r, v, neighbours, dwdr, rho, drhodt);
+	}
+	else {
+		assert(0);
 	}
 }

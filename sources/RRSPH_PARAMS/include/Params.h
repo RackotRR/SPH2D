@@ -27,6 +27,8 @@ struct ExperimentParams {
 	rr_float x_mingeom{};
 	rr_float y_maxgeom{};
 	rr_float y_mingeom{};
+	rr_float z_mingeom{};
+	rr_float z_maxgeom{};
 
 	// deprecated
 	rr_uint x_fluid_particles{};

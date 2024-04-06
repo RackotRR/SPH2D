@@ -11,8 +11,8 @@
 
 // loading or generating initial particle information
 void cli(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
+	vheap_darray_floatn& r_var,	// coordinates of all particles
+	vheap_darray_floatn& v_var,	// velocities of all particles
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype,	// particle material type 
@@ -33,7 +33,7 @@ void cli(
 				dump_layers->ui_select() :
 				dump_layers->at(0);
 			experiment->remove_layers_after_time(selected_dump.get_time());
-			fileInput(r, v, rho, p, itype, ntotal, nfluid, selected_dump.path, experiment->dir);
+			fileInput(r_var, v_var, rho, p, itype, selected_dump.path, experiment->dir);
 			break;
 		}
 		catch (const sphfio::ExperimentDirectories::ChangeDirectoryException& ex) {

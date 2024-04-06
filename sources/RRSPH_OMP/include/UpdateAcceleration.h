@@ -4,16 +4,14 @@
 // determine the right hand side of a differential equation
 // in a single step for performing integration
 void update_acceleration(
-	const rr_uint nfluid, // number of fluid particles
-	const rr_uint ntotal, // number of particles 
 	const heap_darray<rr_int>& itype,	// material type of particles
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
-	const heap_darray<rr_float2>& v,	// velocities of all particles
+	const vheap_darray_floatn& r,	// coordinates of all particles
+	const vheap_darray_floatn& v,	// velocities of all particles
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure 
-	heap_darray<rr_float2>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
+	vheap_darray_floatn& a,	// out, a = dvx = d(vx)/dt, force per unit mass
 	heap_darray<rr_float>& drho,	// out, drho = d(rho)/dt
-	heap_darray<rr_float2>& av); // out, Monaghan average velocity
+	vheap_darray_floatn& av); // out, Monaghan average velocity
 
 void update_change_rate(rr_uint nfluid,
 	const heap_darray<rr_float2>& indvxdt,

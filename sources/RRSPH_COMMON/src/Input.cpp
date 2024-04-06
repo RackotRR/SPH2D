@@ -61,16 +61,15 @@ rr_uint countCells(
 	return max_cells;
 }
 
-rr_float find_depth(
-	rr_uint nfluid, 
-	const heap_darray<rr_float2>& r) 
+template<typename rr_floatn>
+rr_float find_depth(const heap_darray<rr_floatn>& r)
 {
 	if (params.depth != 0) return params.depth;
 
 	rr_float y_fluid_min = FLT_MAX;
 	rr_float y_fluid_max = -FLT_MAX;
 
-	for (rr_uint i = 0; i < nfluid; ++i) {
+	for (rr_uint i = 0; i < params.nfluid; ++i) {
 		y_fluid_max = std::max(r(i).y, y_fluid_max);
 		y_fluid_min = std::min(r(i).y, y_fluid_min);
 	}
@@ -170,14 +169,32 @@ ComputingParams make_ComputingParams() {
 	return computing_params;
 }
 
+static void printLogVersions() {
+	printlog(fmt::format("RRSPH v{}.{}.{}",
+		RRSPH_VERSION_MAJOR,
+		RRSPH_VERSION_MINOR,
+		RRSPH_VERSION_PATCH))();
+	printlog(fmt::format("Use {} v{}.{}.{}",
+		RRSPH_GetSpecificVersionName(),
+		RRSPH_GetSpecificVersionMajor(),
+		RRSPH_GetSpecificVersionMinor(),
+		RRSPH_GetSpecificVersionPatch()))();
+	printlog(fmt::format("Params v{}.{}.{}",
+		RRSPH_PARAMS_VERSION_MAJOR,
+		RRSPH_PARAMS_VERSION_MINOR,
+		RRSPH_PARAMS_VERSION_PATCH))();
+	printlog(fmt::format("Common v{}.{}.{}",
+		RRSPH_COMMON_VERSION_MAJOR,
+		RRSPH_COMMON_VERSION_MINOR,
+		RRSPH_COMMON_VERSION_PATCH))();
+}
+
 void fileInput(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
+	vheap_darray_floatn& r_var,	// coordinates of all particles
+	vheap_darray_floatn& v_var,	// velocities of all particles
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_int>& itype,// particle material type 
-	rr_uint& ntotal, // total particle number
-	rr_uint& nfluid, // total fluid particles
+	heap_darray<rr_int>& itype,// particle material type
 	const std::filesystem::path& initial_dump_path,
 	const std::filesystem::path& experiment_directory)
 {
@@ -189,33 +206,8 @@ void fileInput(
 	apply_model_params(params, model_params);
 	
 	printlog()("Experiment name: ")(experiment_directory.stem().string())();
-	printlog(fmt::format("RRSPH v{}.{}.{}", 
-		RRSPH_VERSION_MAJOR, 
-		RRSPH_VERSION_MINOR,
-		RRSPH_VERSION_PATCH))();
-	printlog(fmt::format("Use {} v{}.{}.{}",
-		RRSPH_GetSpecificVersionName(),
-		RRSPH_GetSpecificVersionMajor(),
-		RRSPH_GetSpecificVersionMinor(),
-		RRSPH_GetSpecificVersionPatch()))();
-	printlog(fmt::format("Params v{}.{}.{}", 
-		RRSPH_PARAMS_VERSION_MAJOR,
-		RRSPH_PARAMS_VERSION_MINOR,
-		RRSPH_PARAMS_VERSION_PATCH))();
-	printlog(fmt::format("Common v{}.{}.{}",
-		RRSPH_COMMON_VERSION_MAJOR,
-		RRSPH_COMMON_VERSION_MINOR,
-		RRSPH_COMMON_VERSION_PATCH))();
+	printLogVersions();
 	printlog()(__func__)();
-
-	ntotal = params.ntotal;
-	nfluid = params.nfluid;
-
-	r = heap_darray<rr_float2>(params.maxn);
-	v = heap_darray<rr_float2>(params.maxn);
-	rho = heap_darray<rr_float>(params.maxn);
-	p = heap_darray<rr_float>(params.maxn);
-	itype = heap_darray<rr_int>(params.maxn);
 
 	params.start_simulation_time = std::stod(initial_dump_path.stem().string());
 	fillInComputingParams();
@@ -223,23 +215,58 @@ void fileInput(
 	std::cout << "read data...";
 	csv::CSVReader reader(initial_dump_path.string());
 
+	// global init dimensions for variant-based arrays
+	vheap_darray_floatn::set_dimenstions(params.dim);
+	vheap_darray_floatn_md::set_dimenstions(params.dim);
+
+	r_var = vheap_darray_floatn(params.maxn);
+	v_var = vheap_darray_floatn(params.maxn);
+	rho = heap_darray<rr_float>(params.maxn);
+	p = heap_darray<rr_float>(params.maxn);
+	itype = heap_darray<rr_int>(params.maxn);
+
 	size_t j = 0;
-	for (const auto& row : reader) {
-		r(j).x = row["x"].get<float>();
-		r(j).y = row["y"].get<float>();
-		itype(j) = row["itype"].get<int>();
-		v(j).x = row["vx"].get<float>();
-		v(j).y = row["vy"].get<float>();
-		rho(j) = row["rho"].get<float>();
-		p(j) = row["p"].get<float>();
-		++j;
+	if (params.dim == 2) {
+		auto& r = r_var.get_flt2();
+		auto& v = v_var.get_flt2();
+
+		for (const auto& row : reader) {
+			r(j).x = row["x"].get<float>();
+			r(j).y = row["y"].get<float>();
+			itype(j) = row["itype"].get<int>();
+			v(j).x = row["vx"].get<float>();
+			v(j).y = row["vy"].get<float>();
+			rho(j) = row["rho"].get<float>();
+			p(j) = row["p"].get<float>();
+			++j;
+		}
+
+		particle_params.depth = params.depth = find_depth(r);
+	}
+	else if (params.dim == 3) {
+		auto& r = r_var.get_flt3();
+		auto& v = v_var.get_flt3();
+
+		for (const auto& row : reader) {
+			r(j).x = row["x"].get<float>();
+			r(j).y = row["y"].get<float>();
+			r(j).z = row["z"].get<float>();
+			itype(j) = row["itype"].get<int>();
+			v(j).x = row["vx"].get<float>();
+			v(j).y = row["vy"].get<float>();
+			v(j).z = row["vy"].get<float>();
+			rho(j) = row["rho"].get<float>();
+			p(j) = row["p"].get<float>();
+			++j;
+		}
+
+		particle_params.depth = params.depth = find_depth(r);
 	}
 
 	if (j != params.ntotal) {
 		throw std::runtime_error{ "dump corrupted: dump ntotal doesn't match params.ntotal!" };
 	}
 
-	particle_params.depth = params.depth = find_depth(nfluid, r);
 	postFillInModelParams(model_params);
 
 	std::cout << "...success" << std::endl;
@@ -248,5 +275,8 @@ void fileInput(
 	params_make_model_json(experiment_directory, model_params);
 	params_make_particles_json(experiment_directory, particle_params);
 	params_make_json(experiment_directory);
-	params_make_header(std::filesystem::current_path() / "cl" / "clparams.h");
+
+	if (RRSPH_GetSpecificVersionName() == "RRSPH_CL") {
+		params_make_header(std::filesystem::current_path() / "cl" / "clparams.h");
+	}
 }

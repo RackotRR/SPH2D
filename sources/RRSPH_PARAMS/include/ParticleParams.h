@@ -9,10 +9,14 @@ using opt_bool = std::optional<bool>;
 struct ParticleParams {
     static constexpr const char* filename = "ParticleParams.json";
 
+    rr_uint dim;
+
     rr_float x_mingeom;
     rr_float x_maxgeom;
     rr_float y_mingeom;
     rr_float y_maxgeom;
+    rr_float z_mingeom;
+    rr_float z_maxgeom;
 
     rr_uint ntotal;
     rr_uint nfluid;

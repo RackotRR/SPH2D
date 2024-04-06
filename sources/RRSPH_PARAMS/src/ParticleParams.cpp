@@ -22,10 +22,14 @@ void apply_particle_params(ExperimentParams& experiment_params, const ParticlePa
     RR::Logger::printlog(__func__)();
     #define move_param(param) move_param_impl(experiment_params.param, particle_params.param)
 
+    move_param(dim);
+
     move_param(x_mingeom);
     move_param(x_maxgeom);
     move_param(y_mingeom);
     move_param(y_maxgeom);
+    move_param(z_mingeom);
+    move_param(z_maxgeom);
 
     move_param(delta);
     move_param(ntotal);
@@ -72,10 +76,14 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
         } \
 	} while (false)
 
+    load(dim);
+
     load(x_mingeom);
     load(x_maxgeom);
     load(y_mingeom);
     load(y_maxgeom);
+    load(z_mingeom);
+    load(z_maxgeom);
 
     load(delta);
     load(ntotal);
@@ -106,10 +114,14 @@ void params_make_particles_json(const std::filesystem::path& experiment_director
         if (particle_params.param.has_value()) json[#param] = particle_params.param.value(); \
     } while (false)
 
+    print_param(dim);
+
     print_param(x_maxgeom);
     print_param(x_mingeom);
     print_param(y_maxgeom);
     print_param(y_mingeom);
+    print_param(z_mingeom);
+    print_param(z_maxgeom);
 
     print_param(delta);
     print_param(ntotal);

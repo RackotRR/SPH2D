@@ -12,7 +12,9 @@ add_library(RRSPH_OMP_SHARED
     src/Kernel.cpp
     src/UpdateAcceleration.cpp
     src/TimeIntegration.cpp
+    src/PredictHalfStep.cpp
     src/WaveMaker.cpp
+    src/WholeStep.cpp
 )
 target_include_directories(RRSPH_OMP_SHARED PUBLIC include)
 target_compile_definitions(RRSPH_OMP_SHARED PUBLIC RRSPH_OMP)

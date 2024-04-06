@@ -42,25 +42,28 @@ constexpr rr_float powun(rr_float value, rr_uint power) {
 	return result;
 }
 
-inline rr_float length_sqr(float3 vec) {
+inline rr_float length_sqr(rr_float3 vec) {
 	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
-inline rr_float length_sqr(float2 vec) {
+inline rr_float length_sqr(rr_float2 vec) {
 	return vec.x * vec.x + vec.y * vec.y;
 }
-inline rr_float length(float3 vec) {
+inline rr_float length(rr_float3 vec) {
 	return sqrt(length_sqr(vec));
 }
-inline rr_float length(float2 vec) {
+inline rr_float length(rr_float2 vec) {
 	return sqrt(length_sqr(vec));
 }
-inline rr_float distance(float3 vec1, float3 vec2) {
+inline rr_float distance(rr_float3 vec1, rr_float3 vec2) {
 	return length(vec1 - vec2);
 }
-inline rr_float distance(float2 vec1, float2 vec2) {
+inline rr_float distance(rr_float2 vec1, rr_float2 vec2) {
 	return length(vec1 - vec2);
 }
-inline rr_float dot(float2 v1, float2 v2) {
+inline rr_float dot(rr_float3 v1, rr_float3 v2) {
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+inline rr_float dot(rr_float2 v1, rr_float2 v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 

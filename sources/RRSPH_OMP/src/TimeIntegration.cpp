@@ -1,11 +1,11 @@
 #include "CommonIncl.h"
 #include "Output.h"
-#include "TimeFormat.h"
 #include "UpdateAcceleration.h"
-#include "ConsistencyCheck.h"
 #include "WaveMaker.h"
 #include "Density.h"
 #include "TimeIntegration.h"
+#include "PredictHalfStep.h"
+#include "WholeStep.h"
 
 #include "RR/Time/Timer.h"
 
@@ -17,82 +17,9 @@
 #include <omp.h>
 #endif
 
-void predict_half_step(
-	const rr_uint ntotal,
-	const heap_darray<rr_int>& itype, // material type 
-	const heap_darray<rr_float>& rho, // density
-	const heap_darray<rr_float>& drho,	// density change
-	const heap_darray<rr_float2>& v,	// velocities
-	const heap_darray<rr_float2>& a,	// acceleration
-	heap_darray<rr_float>& rho_predict, // half step for density
-	heap_darray<rr_float2>& v_predict)	// half step for velocities
-{
-	printlog()(__func__)();
-
-	for (rr_uint i = 0; i < ntotal; i++) {
-		if (density_is_using_continuity()) {
-			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
-		}
-
-		if (itype(i) > 0) {
-			v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
-		}
-	}
-}
-
-static bool is_point_within_geometry(const rr_float2& point) {
-	return point.x < params.x_maxgeom &&
-		point.x > params.x_mingeom &&
-		point.y < params.y_maxgeom &&
-		point.y > params.y_mingeom;
-}
-void whole_step(
-	const rr_uint ntotal,
-	const rr_uint timestep,
-	const heap_darray<rr_float>& drho,	// density change
-	const heap_darray<rr_float2>& a,	// acceleration
-	const heap_darray<rr_float2>& av,	// average velocity
-	heap_darray<rr_int>& itype, // material type 
-	heap_darray<rr_float>& rho, // density
-	heap_darray<rr_float2>& v,	// velocities
-	heap_darray<rr_float2>& r)	// coordinates of all particles
-{
-	printlog()(__func__)();
-
-	rr_float r_dt = params.dt;
-	rr_float v_dt = timestep ? params.dt : params.dt * 0.5f;
-
-	for (rr_uint i = 0; i < ntotal; i++) {
-		if (density_is_using_continuity()) {
-			rho(i) = rho(i) + drho(i) * v_dt;
-		}
-
-		if (itype(i) > 0) {
-			v(i) += a(i) * v_dt;
-
-			if (params.average_velocity) {
-				v(i) += av(i);
-			}
-
-			if (params.consistency_treatment == CONSISTENCY_FIX) {
-				rr_float2 new_r = r(i) + v(i) * r_dt;
-				if (is_point_within_geometry(new_r)) {
-					r(i) = new_r;
-				}
-				else {
-					itype(i) = params.TYPE_NON_EXISTENT;
-				}
-			}
-			else {
-				r(i) += v(i) * r_dt;
-			}
-		}
-	}
-}
-
 void time_integration(
-	heap_darray<rr_float2>& r,	// coordinates of all particles
-	heap_darray<rr_float2>& v,	// velocities of all particles
+	vheap_darray_floatn& r_var,	// coordinates of all particles
+	vheap_darray_floatn& v_var,	// velocities of all particles
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure
 	heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
@@ -117,9 +44,9 @@ void time_integration(
 		return density_is_using_continuity() ? rho_predict : rho;
 	};
 
-	heap_darray<rr_float2> v_predict(params.maxn);
-	heap_darray<rr_float2> a(params.maxn);
-	heap_darray<rr_float2> av(params.average_velocity ? params.maxn : 0);
+	vheap_darray_floatn v_predict_var(params.maxn);
+	vheap_darray_floatn a_var(params.maxn);
+	vheap_darray_floatn av_var(params.average_velocity ? params.maxn : 0);
 
 	rr_float time = params.start_simulation_time;
 	rr_uint itimestep = 0;
@@ -137,13 +64,13 @@ void time_integration(
 		predict_half_step(ntotal,
 			itype,
 			rho, drho, 
-			v, a, 
-			rho_predict, v_predict);
+			v_var, a_var, 
+			rho_predict, v_predict_var);
 
 		// definition of variables out of the function vector:
-		update_acceleration(nfluid, ntotal, itype, r, 
-			v_predict, conditional_rho(), 
-			p, a, drho, av);
+		update_acceleration(itype, r_var, 
+			v_predict_var, conditional_rho(), 
+			p, a_var, drho, av_var);
 
 		if (params.nwm && time >= params.nwm_time_start) {
 			make_waves(r, v, a, itype, nfluid, ntotal, time);
@@ -151,8 +78,8 @@ void time_integration(
 
 		whole_step(ntotal,
 			itimestep,
-			drho, a, av,
-			itype, rho, v, r);
+			drho, a_var, av_var,
+			itype, rho, v_var, r_var);
 
 		time += params.dt;
 		itimestep++;

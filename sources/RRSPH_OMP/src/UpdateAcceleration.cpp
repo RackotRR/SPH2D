@@ -103,22 +103,20 @@ T optimize(rr_uint ntotal,
 // determine the right hand side of a differential equation
 // in a single step for performing integration
 void update_acceleration(
-	const rr_uint nfluid, // number of fluid particles
-	const rr_uint ntotal, // number of particles 
 	const heap_darray<rr_int>& itype,	// material type of particles
-	const heap_darray<rr_float2>& r,	// coordinates of all particles
-	const heap_darray<rr_float2>& v,	// velocities of all particles
+	const vheap_darray_floatn& r_var,	// coordinates of all particles
+	const vheap_darray_floatn& v_var,	// velocities of all particles
 	heap_darray<rr_float>& rho,	// out, density
 	heap_darray<rr_float>& p,	// out, pressure 
-	heap_darray<rr_float2>& a,	// out, a = dvx = d(vx)/dt, force per unit mass
+	vheap_darray_floatn& a_var,	// out, a = dvx = d(vx)/dt, force per unit mass
 	heap_darray<rr_float>& drho,	// out, drho = d(rho)/dt
-	heap_darray<rr_float2>& av) // out, Monaghan average velocity
+	vheap_darray_floatn& av_var) // out, Monaghan average velocity
 {
 	printlog_debug()(__func__)();
 
-	static heap_darray<rr_float2> indvxdt(params.maxn);
-	static heap_darray<rr_float2> exdvxdt(params.maxn);
-	static heap_darray<rr_float2> arvdvxdt(params.artificial_viscosity ? params.maxn : 0);
+	static vheap_darray_floatn indvxdt_var(params.maxn);
+	static vheap_darray_floatn exdvxdt_var(params.maxn);
+	static vheap_darray_floatn arvdvxdt_var(params.artificial_viscosity ? params.maxn : 0);
 
 	static heap_darray<rr_float> arvmu{
 		params.artificial_viscosity && 
@@ -131,30 +129,30 @@ void update_acceleration(
 	static SmoothingKernelsW_t smoothing_kernels_w = make_smoothing_kernels_w();
 	static SmoothingKernelsDwDr_t smoothing_kernels_dwdr = make_smoothing_kernels_dwdr();
 
-	grid_find(ntotal,
+	grid_find(params.ntotal,
 		r,
 		itype,
 		neighbours);
 	
 	for (auto& [skf, w] : smoothing_kernels_w) {
-		calculate_kernels_w(ntotal,
+		calculate_kernels_w(params.ntotal,
 			r, neighbours,
 			w, skf);
 	}
 	for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
-		calculate_kernels_dwdr(ntotal,
+		calculate_kernels_dwdr(params.ntotal,
 			r, neighbours,
 			dwdr, skf);
 	}
 
 
 	if (params.density_treatment == DENSITY_SUMMATION) {
-		sum_density(ntotal,
+		sum_density(params.ntotal,
 			neighbours, smoothing_kernels_w[params.density_skf],
 			rho);
 	}
 	else {
-		con_density(ntotal,
+		con_density(params.ntotal,
 			r, v,
 			neighbours, smoothing_kernels_dwdr[params.density_skf],
 			rho,
@@ -162,50 +160,50 @@ void update_acceleration(
 	}
 
 	if (params.artificial_pressure) {
-		int_force(ntotal,
-			r, v, rho,
+		int_force(params.ntotal,
+			r_var, v_var, rho,
 			neighbours, 
 			smoothing_kernels_w[params.artificial_pressure_skf],
 			smoothing_kernels_dwdr[params.intf_skf],
-			p, indvxdt);
+			p, indvxdt_var);
 	}
 	else {
 		heap_darray_md<rr_float> dummy_w;
-		int_force(ntotal,
-			r, v, rho,
+		int_force(params.ntotal,
+			r_var, v_var, rho,
 			neighbours, 
 			dummy_w,
 			smoothing_kernels_dwdr[params.intf_skf],
-			p, indvxdt);
+			p, indvxdt_var);
 	}
 
 	if (params.artificial_viscosity) {
-		artificial_viscosity(ntotal,
-			r, v, rho,
+		artificial_viscosity(
+			r_var, v_var, rho,
 			neighbours, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
-			arvdvxdt, arvmu);
+			arvdvxdt_var, arvmu);
 	}
 
-	external_force(ntotal,
-		r,
+	external_force(params.ntotal,
+		r_var,
 		neighbours, itype,
-		exdvxdt);
+		exdvxdt_var);
 
 	// calculating average velocity of each particle for avoiding penetration
 	if (params.average_velocity) {
-		average_velocity(nfluid,
+		average_velocity(params.nfluid,
 			r, itype, v, rho, 
 			neighbours, smoothing_kernels_w[params.average_velocity_skf],
 			av);
 	}
 
 	// convert forces to dvdt
-	update_change_rate(nfluid,
+	update_change_rate(params.nfluid,
 		indvxdt, exdvxdt, arvdvxdt,
 		a);
 
 	if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
-		update_dt(ntotal, a, arvmu);
+		update_dt(params.ntotal, a, arvmu);
 	}
 }
 

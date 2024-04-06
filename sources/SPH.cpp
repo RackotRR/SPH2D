@@ -47,15 +47,13 @@ std::string RRSPH_GetSpecificVersionName() {
 #endif
 
 void simulation() {
-	rr_uint ntotal; // number of particles 
-	rr_uint nfluid; 
 	heap_darray<rr_int> itype; // material type of particles
-	heap_darray<rr_float2> r; // coordinates of all particles
-	heap_darray<rr_float2> v; // velocities of all particles
+	vheap_darray_floatn r_var; // coordinates of all particles
+	vheap_darray_floatn v_var; // velocities of all particles
 	heap_darray<rr_float> rho; // density
-	heap_darray<rr_float> p; // pressure
+	heap_darray<rr_float> p;   // pressure
 
-	cli(r, v, rho, p, itype, ntotal, nfluid);
+	cli(r_var, v_var, rho, p, itype);
 
 #ifdef RRSPH_CL
 	logCLInfo();
@@ -63,10 +61,10 @@ void simulation() {
 
 	RR::Timer timer;
 	timer.start();
-#ifdef SPH2D_OMP
-	time_integration(r, v, rho, p, itype, ntotal, nfluid);
+#ifdef RRSPH_OMP
+	time_integration(r_var, v_var, rho, p, itype);
 #elif defined RRSPH_CL
-	cl_time_integration(r, v, rho, p, itype, ntotal, nfluid);
+	cl_time_integration(r_var, v_var, rho, p, itype);
 #endif
 	timer.finish();
 

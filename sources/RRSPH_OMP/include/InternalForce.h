@@ -8,14 +8,14 @@
 */
 void int_force(
 	const rr_uint ntotal, // number of particles, 
-	const heap_darray<rr_float2>& r,	// coordinates of all particles 
-	const heap_darray<rr_float2>& v,	// velocities of all particles
+	const vheap_darray_floatn& r,	// coordinates of all particles 
+	const vheap_darray_floatn& v,	// velocities of all particles
 	const heap_darray<rr_float>& rho,	// density
 	const heap_darray_md<rr_uint>& neighbours, // neighbours indices
 	const heap_darray_md<rr_float>& artificial_pressure_w, // precomputed kernel
-	const heap_darray_md<rr_float2>& intf_dwdr, // precomputed kernel derivative
+	const vheap_darray_floatn_md& intf_dwdr, // precomputed kernel derivative
 	heap_darray<rr_float>& p,	// particle pressure
-	heap_darray<rr_float2>& a);	// acceleration with respect to x, y, z
+	vheap_darray_floatn& a);	// acceleration with respect to x, y, z
 
 void find_stress_tensor(
 	const rr_uint ntotal, // number of particles
