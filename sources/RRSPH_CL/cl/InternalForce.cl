@@ -2,48 +2,6 @@
 #include "EOS.cl"
 #include "SmoothingKernel.cl"
 
-__kernel void find_stress_tensor(
-    __global const rr_float2* v,
-    __global const rr_float* rho,
-    __global const rr_uint* neighbours,
-    __global const rr_float2* dwdr,
-
-    __global rr_float* txx,
-    __global rr_float* txy,
-    __global rr_float* tyy)
-{
-    size_t j = get_global_id(0);
-    if (j >= params_ntotal) return;
-
-    rr_float txx_temp = 0.f;
-    rr_float txy_temp = 0.f;
-    rr_float tyy_temp = 0.f;
-
-    rr_uint i;
-    for (rr_iter n = 0;
-        i = neighbours[at(n, j)], i != params_ntotal; // particle near
-        ++n)
-    {
-        rr_float2 dwdri = dwdr[at(n, j)];
-        rr_float2 dvx = v[j] - v[i];
-
-        rr_float hxx = 2.f * dvx.x * dwdri.x - dvx.y * dwdri.y;
-        rr_float hxy = dvx.x * dwdri.y + dvx.y * dwdri.x;
-        rr_float hyy = 2.f * dvx.y * dwdri.y - dvx.x * dwdri.x;
-        hxx *= 2.f / 3.f;
-        hyy *= 2.f / 3.f;
-
-        rr_float rhoi = rho[i];
-        txx_temp += params_mass * hxx / rhoi;
-        txy_temp += params_mass * hxy / rhoi;
-        tyy_temp += params_mass * hyy / rhoi;
-    }
-
-    txx[j] = txx_temp;
-    txy[j] = txy_temp;
-    tyy[j] = tyy_temp;
-}
-
 #ifdef params_artificial_pressure
 static rr_float calc_art_pressure(
 	rr_float w_ij,
@@ -75,31 +33,28 @@ static rr_float calc_art_pressure(
 #endif
 
 __kernel void find_internal_changes_pij_d_rhoij(
-    __global const rr_float2* v,
+    __global const rr_floatn* v,
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
 #ifdef params_artificial_pressure
     __global const rr_float* artificial_pressure_w,
 #endif
-    __global const rr_float2* intf_dwdr,
-    __global const rr_float* txx,
-    __global const rr_float* txy,
-    __global const rr_float* tyy,
+    __global const rr_floatn* intf_dwdr,
     __global const rr_float* p,
 
-    __global rr_float2* a)
+    __global rr_floatn* a)
 {
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
 
-    rr_float2 a_temp = 0.f;
+    rr_floatn a_temp = 0;
 
     rr_uint i;
     for (rr_iter n = 0;
         i = neighbours[at(n, j)], i != params_ntotal; // particle near
         ++n)
     {
-        rr_float2 dwdri = intf_dwdr[at(n, j)];
+        rr_floatn dwdri = intf_dwdr[at(n, j)];
 
         rr_float p_ij = p[i] + p[j];
         rr_float rho_ij = rho[i] + rho[j];
@@ -113,49 +68,36 @@ __kernel void find_internal_changes_pij_d_rhoij(
         );
 #endif
 
-        rr_float2 pressure_term = -dwdri * pressure_factor;
-
-        rr_float2 viscous_term = 0;
-#ifdef params_visc
-        viscous_term.x += (txx[i] + txx[j]) * dwdri.x * params_visc_coef;
-        viscous_term.x += (txy[i] + txy[j]) * dwdri.y * params_visc_coef;
-        viscous_term.y += (txy[i] + txy[j]) * dwdri.x * params_visc_coef;
-        viscous_term.y += (tyy[i] + tyy[j]) * dwdri.y * params_visc_coef;
-        viscous_term = viscous_term / rho_ij;
-#endif // params_visc
-
-        a_temp -= (pressure_term + viscous_term) * params_mass;
+        rr_floatn pressure_term = -dwdri * pressure_factor;
+        a_temp -= pressure_term * params_mass;
     }
 
     a[j] = a_temp;
 }
 
 __kernel void find_internal_changes_pidrho2i_pjdrho2j(
-    __global const rr_float2* v,
+    __global const rr_floatn* v,
     __global const rr_float* rho,
     __global const rr_uint* neighbours,
 #ifdef params_artificial_pressure
     __global const rr_float* artificial_pressure_w,
 #endif
-    __global const rr_float2* intf_dwdr,
-    __global const rr_float* txx,
-    __global const rr_float* txy,
-    __global const rr_float* tyy,
+    __global const rr_floatn* intf_dwdr,
     __global const rr_float* p,
 
-    __global rr_float2* a)
+    __global rr_floatn* a)
 {
     size_t j = get_global_id(0);
     if (j >= params_ntotal) return;
 
-    rr_float2 a_temp = 0.f;
+    rr_floatn a_temp = 0;
 
     rr_uint i;
     for (rr_iter n = 0;
         i = neighbours[at(n, j)], i != params_ntotal; // particle near
         ++n)
     {
-        rr_float2 dwdri = intf_dwdr[at(n, j)];
+        rr_floatn dwdri = intf_dwdr[at(n, j)];
         rr_float rho2_i = sqr(rho[i]);
         rr_float rho2_j = sqr(rho[j]);
         rr_float pressure_factor = (p[i] / rho2_i + p[j] / rho2_j);
@@ -168,15 +110,7 @@ __kernel void find_internal_changes_pidrho2i_pjdrho2j(
         );
 #endif
 
-        rr_float2 h = -dwdri * pressure_factor;
-
-#ifdef params_visc
-        h.x += (txx[i] / rho2_i + txx[j] / rho2_j) * dwdri.x * params_visc_coef;
-        h.x += (txy[i] / rho2_i + txy[j] / rho2_j) * dwdri.y * params_visc_coef;
-        h.y += (txy[i] / rho2_i + txy[j] / rho2_j) * dwdri.x * params_visc_coef;
-        h.y += (tyy[i] / rho2_i + tyy[j] / rho2_j) * dwdri.y * params_visc_coef;
-#endif // params_visc
-
+        rr_floatn h = -dwdri * pressure_factor;
         a_temp -= h * params_mass;
     }
 

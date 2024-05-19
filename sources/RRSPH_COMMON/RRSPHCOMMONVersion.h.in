@@ -48,6 +48,14 @@
 // 1.3.0 - rename SPH2D_COMMON -> RRSPH_COMMON
 // 1.3.1 - fix showing dump selection with only dump layer
 //       - replace particles info on time estimation with timestep info
+// 1.3.2 - add use_crash_dump model param
+//       - rename SPH2DOutput -> RRSPHOutput
+//       - add support for 3D input/output
+//       - made verbose error message on cells count overflow
+//       - add particles within boundaries check on input
+//       - made common consistency check message format
+//       - add 3D smoothing kernel calculation
+//       - add 3D grid utils
 // TODO:
 // 1.3 - add confirmation for deletion (suffix 'f' to skip confirmation)
 //     - add experiment copy at dump (suffix 'c' to copy dump and params into another directory)

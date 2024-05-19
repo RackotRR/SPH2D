@@ -180,6 +180,7 @@ struct ExperimentParams {
 	bool save_pressure{ true };
 	bool save_density{ true };
 
+	bool use_crash_dump{ true };
 	bool use_dump{ false };
 	rr_float dump_time{};
 

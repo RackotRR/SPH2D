@@ -37,6 +37,8 @@ namespace ParamsGeneration {
 			set(x_mingeom);
 			set(y_maxgeom);
 			set(y_mingeom);
+			set(z_mingeom);
+			set(z_maxgeom);
 			set(x_fluid_particles);
 			set(y_fluid_particles);
 			set(x_fluid_min);
@@ -96,9 +98,9 @@ namespace ParamsGeneration {
 			set(artificial_viscosity);
 			set(artificial_shear_visc);
 			set(artificial_bulk_visc);
-			set_param("TYPE_BOUNDARY", params.TYPE_BOUNDARY);
-			set_param("TYPE_NON_EXISTENT", params.TYPE_NON_EXISTENT);
-			set_param("TYPE_WATER", params.TYPE_WATER);
+			set_param("TYPE_BOUNDARY", (rr_int)params.TYPE_BOUNDARY);
+			set_param("TYPE_NON_EXISTENT", (rr_int)params.TYPE_NON_EXISTENT);
+			set_param("TYPE_WATER", (rr_int)params.TYPE_WATER);
 			set(mass);
 			set(rho0);
 			set(consistency_check);

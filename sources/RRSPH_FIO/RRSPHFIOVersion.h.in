@@ -27,3 +27,4 @@
 //       - move ExperimentLayer module from RRSPH_PARAMS
 //       - fix invalid ExperimentDirectory name with dots
 //       - update filesystem features
+// 2.4.2 - add support for 3D data loading

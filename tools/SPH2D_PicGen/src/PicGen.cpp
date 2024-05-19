@@ -232,8 +232,8 @@ void generate_particles_data(
 
     try {
         params.ntotal = ntotal;
-        SPH2DOutput::instance().initialize(experiment_dir);
-        SPH2DOutput::instance().dump(
+        RRSPHOutput::instance().initialize(experiment_dir);
+        RRSPHOutput::instance().dump(
             make_shared_darray(std::move(r)),
             make_shared_darray(std::move(itype)),
             make_shared_darray(std::move(v)),

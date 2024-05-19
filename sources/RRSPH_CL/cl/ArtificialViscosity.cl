@@ -7,13 +7,13 @@
 
 
 __kernel void artificial_viscosity(
-	__global const rr_float2* r
-	, __global const rr_float2* v
+	__global const rr_floatn* r
+	, __global const rr_floatn* v
 	, __global const rr_float* rho
 	, __global const rr_uint* neighbours
-	, __global const rr_float2* dwdr
+	, __global const rr_floatn* dwdr
 
-	, __global rr_float2* a
+	, __global rr_floatn* a
 #ifdef art_visc_dynamic_dt
 	, __global rr_float* arvmu
 #endif
@@ -21,7 +21,7 @@ __kernel void artificial_viscosity(
 	size_t j = get_global_id(0);
 	if (j >= params_ntotal) return;
 
-	rr_float2 a_temp = 0; 
+	rr_floatn a_temp = 0; 
 
 #ifdef art_visc_dynamic_dt
 	rr_float mu_max = 0;
@@ -36,8 +36,8 @@ __kernel void artificial_viscosity(
 		i = neighbours[at(n, j)], i != params_ntotal; // particle near
 		++n)
 	{
-		rr_float2 dv = v[j] - v[i];
-		rr_float2 dr = r[j] - r[i];
+		rr_floatn dv = v[j] - v[i];
+		rr_floatn dr = r[j] - r[i];
 		rr_float vr = dot(dv, dr);
 		rr_float rr = length_sqr(dr);
 
@@ -53,7 +53,7 @@ __kernel void artificial_viscosity(
 			// calculate PIv_ij = (-alpha mu_ij c_ij + beta mu_ij^2) / rho_ij
 			rr_float rho_ij = 0.5f * (rho[i] + rho[j]);
 			rr_float piv = (art_visc_beta * mu_ij - art_visc_alpha * params_eos_sound_vel) * mu_ij / rho_ij;
-			rr_float2 h = -dwdr[at(n, j)] * piv;
+			rr_floatn h = -dwdr[at(n, j)] * piv;
 
 			a_temp -= h * params_mass;
 		}

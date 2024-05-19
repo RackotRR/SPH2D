@@ -2,31 +2,31 @@
 #include "SmoothingKernel.h"
 
 
-inline void cubic_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
+inline void cubic_kernel(rr_float dist, rr_floatn diff, rr_float* w, rr_floatn* dwdr) {
     *w = cubic_kernel_w(dist);
     *dwdr = cubic_kernel_dwdr(dist, diff);
 }
 
-inline void gauss_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
+inline void gauss_kernel(rr_float dist, rr_floatn diff, rr_float* w, rr_floatn* dwdr) {
     *w = gauss_kernel_w(dist);
     *dwdr = gauss_kernel_dwdr(dist, diff);
 }
 
-inline void wendland_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
+inline void wendland_kernel(rr_float dist, rr_floatn diff, rr_float* w, rr_floatn* dwdr) {
     *w = wendland_kernel_w(dist);
     *dwdr = wendland_kernel_dwdr(dist, diff);
 }
 
-inline void desbrun_kernel(rr_float dist, rr_float2 diff, rr_float* w, rr_float2* dwdr) {
+inline void desbrun_kernel(rr_float dist, rr_floatn diff, rr_float* w, rr_floatn* dwdr) {
     *w = desbrun_kernel_w(dist);
     *dwdr = desbrun_kernel_dwdr(dist, diff);
 }
 
 inline void smoothing_kernel_specific(
     const rr_float dist,
-    const rr_float2 diff,
+    const rr_floatn diff,
     rr_float* w,
-    rr_float2* dwdr,
+    rr_floatn* dwdr,
     rr_uint skf)
 {
     switch (skf) {
@@ -49,7 +49,7 @@ inline rr_float smoothing_kernel_w(rr_float dist, rr_uint skf) {
     }
 }
 
-inline rr_float2 smoothing_kernel_dwdr(rr_float dist, rr_float2 diff, rr_uint skf) {
+inline rr_floatn smoothing_kernel_dwdr(rr_float dist, rr_floatn diff, rr_uint skf) {
     switch (skf) {
     case 1: return cubic_kernel_dwdr(dist, diff);
     case 2: return gauss_kernel_dwdr(dist, diff);
@@ -61,7 +61,7 @@ inline rr_float2 smoothing_kernel_dwdr(rr_float dist, rr_float2 diff, rr_uint sk
 
 
 __kernel void calculate_kernels_w(
-    const __global rr_float2* r,
+    const __global rr_floatn* r,
     const __global rr_uint* neighbours, // neighbours indices
     __global rr_float* w, // precomputed kernel
     rr_uint skf)
@@ -74,16 +74,16 @@ __kernel void calculate_kernels_w(
         i = neighbours[at(n, j)], i != params_ntotal; // particle near
         ++n)
     {
-        rr_float2 diff = r[i] - r[j];
+        rr_floatn diff = r[i] - r[j];
         rr_float dist = length(diff);
 
         w[at(n, j)] = smoothing_kernel_w(dist, skf);
     }
 }
 __kernel void calculate_kernels_dwdr(
-    const __global rr_float2* r,
+    const __global rr_floatn* r,
     const __global rr_uint* neighbours, // neighbours indices
-    __global rr_float2* dwdr, // precomputed kernel
+    __global rr_floatn* dwdr, // precomputed kernel
     rr_uint skf)
 {
     size_t j = get_global_id(0);
@@ -94,7 +94,7 @@ __kernel void calculate_kernels_dwdr(
         i = neighbours[at(n, j)], i != params_ntotal; // particle near
         ++n)
     {
-        rr_float2 diff = r[i] - r[j];
+        rr_floatn diff = r[i] - r[j];
         rr_float dist = length(diff);
 
         dwdr[at(n, j)] = smoothing_kernel_dwdr(dist, diff, skf);

@@ -2,28 +2,29 @@
 #include "RRFloat2.h"
 #include "RRFloat3.h"
 #include "RR/Memory/HeapDArray.h"
-#include<variant>
+#include <variant>
 
 class vheap_darray_floatn {
 	using flt2 = RR::Memory::heap_darray<rr_float2>;
 	using flt3 = RR::Memory::heap_darray<rr_float3>;
 
-	static inline rr_uint dimensions = 0;
-	std::variant<flt2, flt3> data;
 public:
+	std::variant<flt2, flt3> data;
+	static inline rr_uint dimensions = 0;
 	static void set_dimenstions(rr_uint dimensions) {
 		vheap_darray_floatn::dimensions = dimensions;
 	}
 
+	vheap_darray_floatn() = default;
 	vheap_darray_floatn(rr_uint n) {
-		if (params.dim == 2) {
-			data = flt2(n);
+		if (dimensions == 2) {
+			data.emplace<flt2>(n);
 		}
-		else if (params.dim == 3) {
-			data = flt3(n);
+		else if (dimensions == 3) {
+			data.emplace<flt3>(n);
 		}
 		else {
-			assert(0);
+			throw std::exception{ "vheap_darray_floatn ctor error: invalid dimensions value" };
 		}
 	}
 
@@ -55,10 +56,10 @@ public:
 	}
 
 	vheap_darray_floatn_md(rr_uint n, rr_uint m) {
-		if (params.dim == 2) {
+		if (dimensions == 2) {
 			data = flt2(n, m);
 		}
-		else if (params.dim == 3) {
+		else if (dimensions == 3) {
 			data = flt3(n, m);
 		}
 		else {
@@ -80,3 +81,5 @@ public:
 		return std::get<flt3>(data);
 	}
 };
+
+using shared_vheap_darray_floatn = std::shared_ptr<vheap_darray_floatn>;

@@ -45,9 +45,11 @@
 
 #define NAME_VARIABLE_X "x"
 #define NAME_VARIABLE_Y "y"
+#define NAME_VARIABLE_Z "z"
 #define NAME_VARIABLE_ITYPE "itype"
 #define NAME_VARIABLE_VX "vx"
 #define NAME_VARIABLE_VY "vy"
+#define NAME_VARIABLE_VZ "vz"
 #define NAME_VARIABLE_P "p"
 #define NAME_VARIABLE_RHO "rho"
 

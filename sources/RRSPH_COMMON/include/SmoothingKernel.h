@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPH2D_SMOOTHING_KERNEL_H
-#define SPH2D_SMOOTHING_KERNEL_H
+#ifndef RRSPH_SMOOTHING_KERNEL_H
+#define RRSPH_SMOOTHING_KERNEL_H
 
 
 #ifndef KERNEL_INCLUDE
@@ -12,29 +12,47 @@ inline rr_float get_kernel_q(rr_float dist) {
     return dist / params_hsml;
 }
 
+#pragma region CUBIC_KERNEL
 //
 // cubic kernel
 //
+#define cubic_factor2 (15.f / (7.f * params_pi * sqr(params_hsml)))
+#define cubic_factor3 (3.f / (2.f * params_pi * cube(params_hsml)))
 #ifdef KERNEL_INCLUDE
-#define cubic_factor() (15.f / (7.f * params_pi * sqr(params_hsml)))
+#if params_dim == 3
+#define cubic_factor() cubic_factor3
+#else
+#define cubic_factor() cubic_factor2
+#endif
 #else
 inline rr_float cubic_factor() {
-	static rr_float factor = 15.f / (7.f * params_pi * sqr(params_hsml));
+	static rr_float factor = params.dim == 3 ? cubic_factor3 : cubic_factor2;
 	return factor;
 }
 #endif
+
 inline rr_float cubic_kernel_q1(rr_float q) {
     return cubic_factor() * (2.f / 3.f - sqr(q) + cube(q) * 0.5f);
 }
-inline rr_float2 cubic_kernel_q1_grad(rr_float q, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn cubic_kernel_q1_grad(rr_float q, rr_floatn diff) {
     return diff / sqr(params_hsml) * cubic_factor() * (-2.f + 3.f * 0.5f * q);
 }
+
 inline rr_float cubic_kernel_q2(rr_float q) {
     return cubic_factor() * (1.f / 6.f * cube(2.f - q));
 }
-inline rr_float2 cubic_kernel_q2_grad(rr_float q, rr_float dist, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn cubic_kernel_q2_grad(rr_float q, rr_float dist, rr_floatn diff) {
     return -diff / dist / params_hsml * cubic_factor() * (sqr(2.f - q) * 0.5f);
 }
+
 inline rr_float cubic_kernel_w(rr_float dist) {
 	rr_float q = get_kernel_q(dist);
 	if (q <= 1) {
@@ -47,7 +65,11 @@ inline rr_float cubic_kernel_w(rr_float dist) {
 		return 0.f;
 	}
 }
-inline rr_float2 cubic_kernel_dwdr(rr_float dist, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn cubic_kernel_dwdr(rr_float dist, rr_floatn diff) {
 	rr_float q = get_kernel_q(dist);
 	if (q <= 1) {
 		return cubic_kernel_q1_grad(q, diff);
@@ -59,51 +81,82 @@ inline rr_float2 cubic_kernel_dwdr(rr_float dist, rr_float2 diff) {
 		return 0.f;
 	}
 }
+#pragma endregion
 
+#pragma region GAUSS_KERNEL
 //
 // gauss kernel 
 //
+#define gauss_factor2 (1.f / (params_pi * sqr(params_hsml)))
+#define gauss_factor3 (1.f / (params_pi * sqrt(params_pi) * cube(params_hsml)))
 #ifdef KERNEL_INCLUDE
-#define gauss_factor() (1.f / (powun(params_hsml, 2) * params_pi))
+#if params_dim == 3
+#define gauss_factor() gauss_factor3
+#else
+#define gauss_factor() gauss_factor2
+#endif
 #else
 inline rr_float gauss_factor() {
-	static rr_float factor = 1.f / (powun(params_hsml, 2) * params_pi);
+	static rr_float factor = params.dim == 3 ? gauss_factor3 : gauss_factor2;
 	return factor;
 }
 #endif
+
 inline rr_float gauss_kernel_q3(rr_float q) {
 	return gauss_factor() * exp(-q * q);
 }
-inline rr_float2 gauss_kernel_q3_grad(rr_float gauss_w, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn gauss_kernel_q3_grad(rr_float gauss_w, rr_floatn diff) {
 	return diff / sqr(params_hsml) * (-2.f) * gauss_w;
 }
+
 inline rr_float gauss_kernel_w(rr_float dist) {
 	rr_float q = get_kernel_q(dist);
 	return gauss_kernel_q3(q);
 }
-inline rr_float2 gauss_kernel_dwdr(rr_float dist, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn gauss_kernel_dwdr(rr_float dist, rr_floatn diff) {
 	return gauss_kernel_q3_grad(gauss_kernel_w(dist), diff);
 }
+#pragma endregion
 
-
+#pragma region WENDLAND_KERNEL
 //
 // wendland kernel
 //
+#define wendland_factor2 (7.f / (4.f * params_pi * sqr(params_hsml)))
+#define wendland_factor3 (21.f / (16.f * params_pi * cube(params_hsml)))
 #ifdef KERNEL_INCLUDE
-#define wendland_factor() (7.f / (4.f * params_pi * sqr(params_hsml)))
+#if params_dim == 3
+#define wendland_factor() wendland_factor3
+#else
+#define wendland_factor() wendland_factor2
+#endif
 #else
 inline rr_float wendland_factor() {
-	static rr_float factor = 7.f / (4.f * params_pi * sqr(params_hsml));
+	static rr_float factor = params.dim == 3 ? wendland_factor3 : wendland_factor2;
 	return factor;
 }
 #endif
+
 inline rr_float wendland_kernel_q2(rr_float q) {
 	return wendland_factor() * powun(1.f - 0.5f * q, 4) * (2.f * q + 1.f);
 }
-inline rr_float2 wendland_kernel_q2_grad(rr_float q, rr_float dist, rr_float2 diff) {
-	rr_float2 f = diff / params_hsml / dist * wendland_factor() * 2;
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn wendland_kernel_q2_grad(rr_float q, rr_float dist, rr_floatn diff) {
+	rr_floatn f = diff / params_hsml / dist * wendland_factor() * 2;
 	return f * (powun(1.f - 0.5f * q, 4) - (2.f * q + 1.f) * powun(1.f - 0.5 * q, 3));
 }
+
 inline rr_float wendland_kernel_w(rr_float dist) {
 	rr_float q = get_kernel_q(dist);
 	if (q <= 2) {
@@ -113,7 +166,11 @@ inline rr_float wendland_kernel_w(rr_float dist) {
 		return 0.f;
 	}
 }
-inline rr_float2 wendland_kernel_dwdr(rr_float dist, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn wendland_kernel_dwdr(rr_float dist, rr_floatn diff) {
 	rr_float q = get_kernel_q(dist);
 	if (q <= 2) {
 		return wendland_kernel_q2_grad(q, dist, diff);
@@ -122,24 +179,38 @@ inline rr_float2 wendland_kernel_dwdr(rr_float dist, rr_float2 diff) {
 		return 0.f;
 	}
 }
+#pragma endregion
 
+#pragma region DESBRUN_KERNEL
 //
 // desbrun kernel
 //
+#define desbrun_factor2 (5.f / (16.f * params_pi * sqr(params_hsml)))
+#define desbrun_factor3 (15.f / (params_pi * cube(4 * params_hsml)))
 #ifdef KERNEL_INCLUDE
-#define desbrun_factor() (5.f / (16.f * params_pi * sqr(params_hsml)))
+#if params_dim == 3
+#define desbrun_factor() desbrun_factor3
+#else
+#define desbrun_factor() desbrun_factor2
+#endif
 #else
 inline rr_float desbrun_factor() {
-	static rr_float factor = 5.f / (16.f * params_pi * sqr(params_hsml));
+	static rr_float factor = params.dim == 3 ? desbrun_factor3 : desbrun_factor2;
 	return factor;
 }
 #endif
+
 inline rr_float desbrun_kernel_q2(rr_float q) {
 	return desbrun_factor() * cube(2.f - q);
 }
-inline rr_float2 desbrun_kernel_q2_grad(rr_float q, rr_float dist, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn desbrun_kernel_q2_grad(rr_float q, rr_float dist, rr_floatn diff) {
 	return diff / dist / params_hsml * desbrun_factor() * (-3.f * sqr(2.f - q));
 }
+
 inline rr_float desbrun_kernel_w(rr_float dist) {
 	rr_float q = get_kernel_q(dist);
 	if (q <= 2) {
@@ -149,7 +220,11 @@ inline rr_float desbrun_kernel_w(rr_float dist) {
 		return 0;
 	}
 }
-inline rr_float2 desbrun_kernel_dwdr(rr_float dist, rr_float2 diff) {
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn desbrun_kernel_dwdr(rr_float dist, rr_floatn diff) {
 	rr_float q = get_kernel_q(dist);
 	if (q <= 2) {
 		return desbrun_kernel_q2_grad(q, dist, diff);
@@ -158,10 +233,11 @@ inline rr_float2 desbrun_kernel_dwdr(rr_float dist, rr_float2 diff) {
 		return 0.f;
 	}
 }
+#pragma endregion
 
 
 #ifndef KERNEL_INCLUDE
 #undef params_hsml
 #undef params_pi
 #endif
-#endif // !SPH2D_SMOOTHING_KERNEL_H
+#endif // !RRSPH_SMOOTHING_KERNEL_H

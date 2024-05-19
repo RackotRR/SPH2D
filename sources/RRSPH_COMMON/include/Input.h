@@ -19,9 +19,4 @@ void cli(
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype);// particle material type 
 
-rr_uint countCells(
-	rr_float hsml,
-	rr_float x_mingeom,
-	rr_float y_mingeom,
-	rr_float x_maxgeom,
-	rr_float y_maxgeom);
+rr_uint countCells(rr_float hsml);

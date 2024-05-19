@@ -12,6 +12,7 @@
 #include "GridUtils.h"
 #include "ParamsIO.h"
 #include "RRSPHCOMMONVersion.h"
+#include "ConsistencyCheck.h"
 
 static rr_uint get_cell_scale_k(rr_uint skf) {
 	switch (skf) {
@@ -41,21 +42,33 @@ static rr_float get_cell_scale_k(std::vector<rr_uint> skf) {
 	return *max;
 }
 
-rr_uint countCells(
-	rr_float hsml,
-	rr_float x_mingeom,
-	rr_float y_mingeom,
-	rr_float x_maxgeom,
-	rr_float y_maxgeom)
-{
-	rr_uint x_id = get_cell_x_from_coordinate(params.x_maxgeom);
-	rr_uint y_id = get_cell_x_from_coordinate(params.y_maxgeom);
+rr_uint countCells(rr_float hsml) {
+	rr_uint x_id = get_cell_coord_from_particle_coord(params.x_maxgeom, params.x_mingeom);
+	rr_uint y_id = get_cell_coord_from_particle_coord(params.y_maxgeom, params.y_mingeom);
+	rr_uint z_id;
+	rr_uint max_id;
+	rr_uint id;
 
-	if (x_id > UINT16_MAX || y_id > UINT16_MAX) {
-		throw std::runtime_error{ "can't make grid with so many cells" };
+	if (params.dim == 3) {
+		z_id = get_cell_coord_from_particle_coord(params.z_maxgeom, params.z_mingeom);
+		max_id = 1 << 10;
+		id = get_cell_idx_by_cell_coord3({ x_id, y_id, z_id });
+	}
+	else
+	{
+		z_id = 0;
+		max_id = 1 << 16;
+		id = get_cell_idx_by_cell_coord2({ x_id, y_id });
 	}
 
-	rr_uint id = get_cell_idx_by_cell_xy(x_id, y_id);
+	if (x_id > max_id || y_id > max_id || z_id >= max_id) {
+		std::string x_constraint = fmt::format("{}/{}", x_id, max_id);
+		std::string y_constraint = fmt::format("{}/{}", y_id, max_id);
+		std::string z_constraint = fmt::format("{}/{}", z_id, max_id);
+		std::string constraints = fmt::format("({}; {}; {})", x_constraint, y_constraint, z_constraint);
+		throw std::runtime_error{ "can't make grid with so many cells: " + constraints };
+	}
+
 	rr_uint max_cells = 1 << (intlog2(id) + 1);
 
 	return max_cells;
@@ -77,18 +90,15 @@ rr_float find_depth(const heap_darray<rr_floatn>& r)
 	return y_fluid_max - y_fluid_min;
 }
 
-void fillInComputingParams() {
+static void fillInComputingParams() {
+	printlog()(__func__)();
+
 	params.hsml = params.delta * params.intf_hsml_coef;
 
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
 
-	params.max_cells = countCells(
-		params.hsml,
-		params.x_mingeom,
-		params.y_mingeom,
-		params.x_maxgeom,
-		params.y_maxgeom);
-
+	params.max_cells = countCells(params.hsml);
+	
 	params.mass = params.rho0 * params.delta * params.delta;
 
 	params.cell_scale_k = get_cell_scale_k({
@@ -99,7 +109,7 @@ void fillInComputingParams() {
 		params.density_skf
 	});
 }
-void postFillInModelParams(ModelParams& model_params)
+static void postFillInModelParams(ModelParams& model_params)
 {
 	if (params.eos_sound_vel_method == EOS_SOUND_VEL_DAM_BREAK) {
 		model_params.eos_sound_vel = params.eos_sound_vel = sqrt(200 * params.g * params.depth * params.eos_sound_vel_coef);
@@ -126,7 +136,7 @@ void postFillInModelParams(ModelParams& model_params)
 	}
 }
 
-ComputingParams make_ComputingParams() {
+static ComputingParams make_ComputingParams() {
 	ComputingParams computing_params;
 
 #define set_param(param) do { computing_params.param = params.param; } while(false)
@@ -189,6 +199,43 @@ static void printLogVersions() {
 		RRSPH_COMMON_VERSION_PATCH))();
 }
 
+template<typename rr_floatn>
+void loadArrays(
+	const std::filesystem::path& initial_dump_path,
+	heap_darray<rr_floatn>& r,
+	heap_darray<rr_floatn>& v,
+	heap_darray<rr_float>& rho,
+	heap_darray<rr_float>& p,
+	heap_darray<rr_int>& itype)
+{
+	std::cout << "read data...";
+	csv::CSVReader reader(initial_dump_path.string());
+	size_t j = 0;
+
+	for (const auto& row : reader) {
+		r(j).x = row["x"].get<rr_float>();
+		r(j).y = row["y"].get<rr_float>();
+		if constexpr (std::is_same<rr_floatn, rr_float3>::value == true) {
+			r(j).z = row["z"].get<rr_float>();
+		}
+		itype(j) = row["itype"].get<rr_int>();
+		v(j).x = row["vx"].get<rr_float>();
+		v(j).y = row["vy"].get<rr_float>();
+		if constexpr (std::is_same<rr_floatn, rr_float3>::value == true) {
+			v(j).z = row["vz"].get<rr_float>();
+		}
+		rho(j) = row["rho"].get<rr_float>();
+		p(j) = row["p"].get<rr_float>();
+		++j;
+	}
+
+	if (j != params.ntotal) {
+		throw std::runtime_error{ "dump corrupted: dump ntotal doesn't match params.ntotal!" };
+	}
+
+	std::cout << "...success" << std::endl;
+}
+
 void fileInput(
 	vheap_darray_floatn& r_var,	// coordinates of all particles
 	vheap_darray_floatn& v_var,	// velocities of all particles
@@ -198,7 +245,7 @@ void fileInput(
 	const std::filesystem::path& initial_dump_path,
 	const std::filesystem::path& experiment_directory)
 {
-	SPH2DOutput::instance().initialize(experiment_directory);
+	RRSPHOutput::instance().initialize(experiment_directory);
 
 	auto particle_params = load_particle_params(experiment_directory);
 	auto model_params = load_model_params(experiment_directory);
@@ -207,69 +254,44 @@ void fileInput(
 	
 	printlog()("Experiment name: ")(experiment_directory.stem().string())();
 	printLogVersions();
-	printlog()(__func__)();
 
 	params.start_simulation_time = std::stod(initial_dump_path.stem().string());
 	fillInComputingParams();
 
-	std::cout << "read data...";
-	csv::CSVReader reader(initial_dump_path.string());
-
 	// global init dimensions for variant-based arrays
+	printlog("set experiment dimensions: ")(params.dim)();
 	vheap_darray_floatn::set_dimenstions(params.dim);
 	vheap_darray_floatn_md::set_dimenstions(params.dim);
 
+	printlog("allocate memory for ")(params.maxn)(" particles")();
 	r_var = vheap_darray_floatn(params.maxn);
 	v_var = vheap_darray_floatn(params.maxn);
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
-	size_t j = 0;
 	if (params.dim == 2) {
 		auto& r = r_var.get_flt2();
 		auto& v = v_var.get_flt2();
-
-		for (const auto& row : reader) {
-			r(j).x = row["x"].get<float>();
-			r(j).y = row["y"].get<float>();
-			itype(j) = row["itype"].get<int>();
-			v(j).x = row["vx"].get<float>();
-			v(j).y = row["vy"].get<float>();
-			rho(j) = row["rho"].get<float>();
-			p(j) = row["p"].get<float>();
-			++j;
-		}
-
+		loadArrays(initial_dump_path, r, v, rho, p, itype);
 		particle_params.depth = params.depth = find_depth(r);
 	}
 	else if (params.dim == 3) {
 		auto& r = r_var.get_flt3();
 		auto& v = v_var.get_flt3();
-
-		for (const auto& row : reader) {
-			r(j).x = row["x"].get<float>();
-			r(j).y = row["y"].get<float>();
-			r(j).z = row["z"].get<float>();
-			itype(j) = row["itype"].get<int>();
-			v(j).x = row["vx"].get<float>();
-			v(j).y = row["vy"].get<float>();
-			v(j).z = row["vy"].get<float>();
-			rho(j) = row["rho"].get<float>();
-			p(j) = row["p"].get<float>();
-			++j;
-		}
-
+		loadArrays(initial_dump_path, r, v, rho, p, itype);
 		particle_params.depth = params.depth = find_depth(r);
 	}
+	else {
+		printlog("invalid params.dim value: ")(params.dim)();
+		exit(-1);
+	}
 
-	if (j != params.ntotal) {
-		throw std::runtime_error{ "dump corrupted: dump ntotal doesn't match params.ntotal!" };
+	if (!check_particles_are_within_boundaries(r_var, itype)) {
+		throw std::runtime_error{ "failed consistency check on input" };
 	}
 
 	postFillInModelParams(model_params);
-
-	std::cout << "...success" << std::endl;
 
 	params_make_computing_json(experiment_directory, make_ComputingParams());
 	params_make_model_json(experiment_directory, model_params);

@@ -16,9 +16,9 @@ namespace sphfio {
 		TimeLayer() = default;
 		TimeLayer(const ExperimentLayer& experiment_layer, ParamsPtr params);
 
-		RR::Memory::heap_darray<rr_float2> r;
+		vheap_darray_floatn r_var;
 		RR::Memory::heap_darray<rr_int> itype;
-		RR::Memory::heap_darray<rr_float2> v;
+		vheap_darray_floatn v_var;
 		RR::Memory::heap_darray<rr_float> p;
 		RR::Memory::heap_darray<rr_float> rho;
 

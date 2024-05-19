@@ -76,19 +76,43 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
         } \
 	} while (false)
 
-    load(dim);
+    load_default(dim, 2);
 
     load(x_mingeom);
     load(x_maxgeom);
     load(y_mingeom);
     load(y_maxgeom);
-    load(z_mingeom);
-    load(z_maxgeom);
+
+    if (particle_params.dim == 3) {
+        load(z_mingeom);
+        load(z_maxgeom);
+        load(z_mingeom);
+        load(z_maxgeom);
+    }
 
     load(delta);
     load(ntotal);
     load(nfluid);
     load(nvirt);
+
+    load_default(x_fluid_particles, 1);
+    load_default(y_fluid_particles, 1);
+    load_default(z_fluid_particles, 1);
+
+    load_default(x_fluid_min, 0);
+    load_default(x_fluid_max, 0);
+    load_default(y_fluid_min, 0);
+    load_default(y_fluid_max, 0);
+    load_default(z_fluid_min, 0);
+    load_default(z_fluid_max, 0);
+
+    load_default(x_boundary_left, 0);
+    load_default(x_boundary_right, 0);
+    load_default(x_boundary_center, 0);
+    load_default(y_boundary_bottom, 0);
+    load_default(y_boundary_top, 0);
+    load_default(z_boundary_near, 0);
+    load_default(z_boundary_far, 0);
 
     load_default(rho0, 1000);
     load_default(nwm_particles_start, particle_params.ntotal);
@@ -127,6 +151,25 @@ void params_make_particles_json(const std::filesystem::path& experiment_director
     print_param(ntotal);
     print_param(nfluid);
     print_param(nvirt);
+
+    print_param(x_fluid_particles);
+    print_param(y_fluid_particles);
+    print_param(z_fluid_particles);
+
+    print_param(x_fluid_min);
+    print_param(x_fluid_max);
+    print_param(y_fluid_min);
+    print_param(y_fluid_max);
+    print_param(z_fluid_min);
+    print_param(z_fluid_max);
+
+    print_param(x_boundary_left);
+    print_param(x_boundary_right);
+    print_param(x_boundary_center);
+    print_param(y_boundary_bottom);
+    print_param(y_boundary_top);
+    print_param(z_boundary_near);
+    print_param(z_boundary_far);
 
     print_param(rho0);
     print_param(nwm_particles_start);

@@ -48,6 +48,7 @@ struct ModelParams {
     opt_float dump_time;
     opt_uint step_time_estimate;
     bool use_dump{ false };
+    bool use_crash_dump{ true };
     bool use_custom_time_estimate_step{ false };
 
     bool consistency_check{ true };

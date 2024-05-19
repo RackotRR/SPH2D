@@ -15,7 +15,17 @@ static void check_passed_consistency(const shared_darray<T>& arr, bool need) {
 	assert(need && arr.get() && arr->size() == params.maxn);
 }
 
-void SPH2DOutput::initialize(const std::filesystem::path& experiment_path) {
+static void check_passed_consistency(const shared_vheap_darray_floatn& arr, bool need) {
+	assert(need && arr.get());
+	if (params.dim == 3) {
+		assert(arr->get_flt3().size() == params.maxn);
+	}
+	else {
+		assert(arr->get_flt2().size() == params.maxn);
+	}
+}
+
+void RRSPHOutput::initialize(const std::filesystem::path& experiment_path) {
 	this->experiment_path = experiment_path;
 	if (!std::filesystem::exists(experiment_path)) {
 		throw std::runtime_error{ "No experiment directory exists: " + experiment_path.string() };
@@ -32,10 +42,10 @@ void SPH2DOutput::initialize(const std::filesystem::path& experiment_path) {
 	init_logger((experiment_path / "log.txt").string());
 }
 
-void SPH2DOutput::setup_output(
-	func_load_arr_float2 load_r,
+void RRSPHOutput::setup_output(
+	func_load_arr_floatn load_r,
 	func_load_arr_int load_itype,
-	func_load_arr_float2 load_v,
+	func_load_arr_floatn load_v,
 	func_load_arr_float load_p,
 	func_load_arr_float load_rho)
 {
@@ -54,7 +64,7 @@ void SPH2DOutput::setup_output(
 	// first layer output
 	auto r = load_r();
 	auto itype = load_itype();
-	shared_darray<rr_float2> v = params.save_velocity ? load_v() : nullptr;
+	shared_vheap_darray_floatn v = params.save_velocity ? load_v() : nullptr;
 	shared_darray<rr_float> rho = params.save_density ? load_rho() : nullptr;
 	shared_darray<rr_float> p = params.save_pressure ? load_p() : nullptr;
 
@@ -68,7 +78,7 @@ void SPH2DOutput::setup_output(
 		params.start_simulation_time);
 }
 
-std::vector<std::string> SPH2DOutput::make_csv_header(
+static std::vector<std::string> make_csv_header(
 	bool r,
 	bool itype,
 	bool v,
@@ -80,6 +90,9 @@ std::vector<std::string> SPH2DOutput::make_csv_header(
 	if (r) {
 		header.emplace_back(NAME_VARIABLE_X);
 		header.emplace_back(NAME_VARIABLE_Y);
+		if (params.dim == 3) {
+			header.emplace_back(NAME_VARIABLE_Z);
+		}
 	}
 	if (itype) {
 		header.emplace_back(NAME_VARIABLE_ITYPE);
@@ -87,6 +100,9 @@ std::vector<std::string> SPH2DOutput::make_csv_header(
 	if (v) {
 		header.emplace_back(NAME_VARIABLE_VX);
 		header.emplace_back(NAME_VARIABLE_VY);
+		if (params.dim == 3) {
+			header.emplace_back(NAME_VARIABLE_VZ);
+		}
 	}
 	if (rho) {
 		header.emplace_back(NAME_VARIABLE_RHO);
@@ -98,53 +114,99 @@ std::vector<std::string> SPH2DOutput::make_csv_header(
 	return header;
 }
 
-void SPH2DOutput::print_dump(
-	shared_darray<rr_float2> r,
+template<typename rr_floatn>
+void print_dump(
+	shared_vheap_darray_floatn r_var,
 	shared_darray<rr_int> itype,
-	shared_darray<rr_float2> v,
+	shared_vheap_darray_floatn v_var,
 	shared_darray<rr_float> rho,
 	shared_darray<rr_float> p,
 	const std::filesystem::path& path)
 {
 	std::ofstream stream{ path };
 	auto writer = csv::make_csv_writer(stream);
-	writer << make_csv_header(r.get(), itype.get(), v.get(), rho.get(), p.get());
+	writer << make_csv_header(r_var.get(), itype.get(), v_var.get(), rho.get(), p.get());
+
+	const heap_darray<rr_floatn>* r{};
+	const heap_darray<rr_floatn>* v{};
+	if constexpr (is_using_float3<rr_floatn>()) {
+		r = &r_var->get_flt3();
+		v = &v_var->get_flt3();
+	}
+	else {
+		r = &r_var->get_flt2();
+		v = &v_var->get_flt2();
+	}
 
 	for (rr_uint i = 0; i < params.ntotal; i++) {
-		writer << std::array{
-			std::to_string(r->at(i).x),
+		if constexpr (is_using_float3<rr_floatn>()) {
+			writer << std::array{
+				std::to_string(r->at(i).x),
+				std::to_string(r->at(i).y),
+				std::to_string(r->at(i).z),
+				std::to_string(itype->at(i)),
+				std::to_string(v->at(i).x),
+				std::to_string(v->at(i).y),
+				std::to_string(v->at(i).z),
+				std::to_string(rho->at(i)),
+				std::to_string(p->at(i))
+			};
+		}
+		else {
+			writer << std::array{
+				std::to_string(r->at(i).x),
 				std::to_string(r->at(i).y),
 				std::to_string(itype->at(i)),
 				std::to_string(v->at(i).x),
 				std::to_string(v->at(i).y),
 				std::to_string(rho->at(i)),
 				std::to_string(p->at(i))
-		};
+			};
+		}
 	}
 }
 
-void SPH2DOutput::print(
-	shared_darray<rr_float2> r,
+template<typename rr_floatn>
+void print(
+	shared_vheap_darray_floatn r_var,
 	shared_darray<rr_int> itype,
-	shared_darray<rr_float2> v,
+	shared_vheap_darray_floatn v_var,
 	shared_darray<rr_float> rho,
 	shared_darray<rr_float> p,
 	const std::filesystem::path& path)
 {
 	std::ofstream stream{ path };
 	auto writer = csv::make_csv_writer(stream);
-	auto header = make_csv_header(r.get(), itype.get(), v.get(), rho.get(), p.get());
+	auto header = make_csv_header(r_var.get(), itype.get(), v_var.get(), rho.get(), p.get());
 	writer << header;
+
+	const heap_darray<rr_floatn>* r{};
+	const heap_darray<rr_floatn>* v{};
+	if constexpr (is_using_float3<rr_floatn>()) {
+		r = &r_var->get_flt3();
+		v = &v_var->get_flt3();
+	}
+	else {
+		r = &r_var->get_flt2();
+		v = &v_var->get_flt2();
+	}
 
 	std::vector<std::string> row;
 	row.reserve(header.size());
 	for (rr_uint i = 0; i < params.ntotal; i++) {
 		row.push_back(std::to_string(r->at(i).x));
 		row.push_back(std::to_string(r->at(i).y));
+		if constexpr (is_using_float3<rr_floatn>()) {
+			row.push_back(std::to_string(r->at(i).z));
+		}
+
 		row.push_back(std::to_string(itype->at(i)));
 		if (v) {
 			row.push_back(std::to_string(v->at(i).x));
 			row.push_back(std::to_string(v->at(i).y));
+			if constexpr (is_using_float3<rr_floatn>()) {
+				row.push_back(std::to_string(v->at(i).z));
+			}
 		}
 		if (rho) {
 			row.push_back(std::to_string(rho->at(i)));
@@ -158,10 +220,10 @@ void SPH2DOutput::print(
 	}
 }
 
-void SPH2DOutput::dump(
-	shared_darray<rr_float2> r,
+void RRSPHOutput::dump(
+	shared_vheap_darray_floatn r_var,
 	shared_darray<rr_int> itype,
-	shared_darray<rr_float2> v,
+	shared_vheap_darray_floatn v_var,
 	shared_darray<rr_float> rho,
 	shared_darray<rr_float> p,
 	rr_uint itimestep,
@@ -169,29 +231,43 @@ void SPH2DOutput::dump(
 {
 	printlog_debug()(__func__)();
 
-	check_passed_consistency(r, true);
+	check_passed_consistency(r_var, true);
 	check_passed_consistency(itype, true);
-	check_passed_consistency(v, true);
+	check_passed_consistency(v_var, true);
 	check_passed_consistency(rho, true);
 	check_passed_consistency(p, true);
 
 	std::string t = format_save_time(time, params.dump_time);
-	thread_pool.add_thread(
-		std::thread(&SPH2DOutput::print_dump, this,
-			r,
-			itype,
-			v,
-			rho,
-			p,
-			dump_path / fmt::format("{}.csv", t)));
+	auto target_path = dump_path / fmt::format("{}.csv", t);
+
+	if (params.dim == 3) {
+		thread_pool.add_thread(
+			std::thread(print_dump<rr_float3>,
+				r_var,
+				itype,
+				v_var,
+				rho,
+				p,
+				target_path));
+	}
+	else {
+		thread_pool.add_thread(
+			std::thread(print_dump<rr_float2>,
+				r_var,
+				itype,
+				v_var,
+				rho,
+				p,
+				target_path));
+	}
 
 	std::cout << fmt::format("dump: {} ({}s)", itimestep, t) << std::endl;
 }
 
-void SPH2DOutput::crash_dump(
-	shared_darray<rr_float2> r,
+void RRSPHOutput::crash_dump(
+	shared_vheap_darray_floatn r_var,
 	shared_darray<rr_int> itype,
-	shared_darray<rr_float2> v,
+	shared_vheap_darray_floatn v_var,
 	shared_darray<rr_float> rho,
 	shared_darray<rr_float> p,
 	rr_uint itimestep,
@@ -199,29 +275,43 @@ void SPH2DOutput::crash_dump(
 {
 	printlog_debug()(__func__)();
 
-	check_passed_consistency(r, true);
+	check_passed_consistency(r_var, true);
 	check_passed_consistency(itype, true);
-	check_passed_consistency(v, true);
+	check_passed_consistency(v_var, true);
 	check_passed_consistency(rho, true);
 	check_passed_consistency(p, true);
 
 	std::string t = format_time_digits(time, save_time_decimal_digits);
-	thread_pool.add_thread(
-		std::thread(&SPH2DOutput::print_dump, this,
-			r,
-			itype,
-			v,
-			rho,
-			p,
-			experiment_path / fmt::format("crash_dump_{}.csv", t)));
+	auto target_path = experiment_path / fmt::format("crash_dump_{}.csv", t);
+
+	if (params.dim == 3) {
+		thread_pool.add_thread(
+			std::thread(print_dump<rr_float3>,
+				r_var,
+				itype,
+				v_var,
+				rho,
+				p,
+				target_path));
+	}
+	else {
+		thread_pool.add_thread(
+			std::thread(print_dump<rr_float2>,
+				r_var,
+				itype,
+				v_var,
+				rho,
+				p,
+				target_path));
+	}
 
 	std::cout << fmt::format("crash dump: {} ({}s)", itimestep, t) << std::endl;
 }
 
-void SPH2DOutput::output(
-	shared_darray<rr_float2> r,
+void RRSPHOutput::output(
+	shared_vheap_darray_floatn r_var,
 	shared_darray<rr_int> itype,
-	shared_darray<rr_float2> v,
+	shared_vheap_darray_floatn v_var,
 	shared_darray<rr_float> rho,
 	shared_darray<rr_float> p,
 	rr_uint itimestep,
@@ -229,37 +319,51 @@ void SPH2DOutput::output(
 {
 	printlog_debug()(__func__)();
 
-	check_passed_consistency(r, true);
+	check_passed_consistency(r_var, true);
 	check_passed_consistency(itype, true);
-	check_passed_consistency(v, params.save_velocity);
+	check_passed_consistency(v_var, params.save_velocity);
 	check_passed_consistency(rho, params.save_density);
 	check_passed_consistency(p, params.save_pressure);
 
 	std::string t = format_time_digits(time, save_time_decimal_digits);
-	thread_pool.add_thread(
-		std::thread(&SPH2DOutput::print, this,
-			r,
-			itype,
-			v,
-			rho,
-			p,
-			data_path / fmt::format("{}.csv", t)));
+	auto target_path = data_path / fmt::format("{}.csv", t);
+
+	if (params.dim == 3) {
+		thread_pool.add_thread(
+			std::thread(print<rr_float3>,
+				r_var,
+				itype,
+				v_var,
+				rho,
+				p,
+				target_path));
+	}
+	else {
+		thread_pool.add_thread(
+			std::thread(print<rr_float2>,
+				r_var,
+				itype,
+				v_var,
+				rho,
+				p,
+				target_path));
+	}
 
 	std::cout << fmt::format("output: {} ({}s)", itimestep, t) << std::endl;
 }
 
-void SPH2DOutput::start_step(rr_float time) {
+void RRSPHOutput::start_step(rr_float time) {
 	printlog()(fmt::format("time: {}/{} s", 
 		format_save_time(time, params.save_time), 
 		params.simulation_time))();
 
 	timer.start();
 }
-void SPH2DOutput::finish_step() {
+void RRSPHOutput::finish_step() {
 	timer.finish();
 }
 
-void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
+void RRSPHOutput::update_step(rr_float time, rr_uint itimestep) {
 	printlog_debug()(fmt::format("{} at {} ({}s)", __func__, itimestep, time))();
 	
 	assert(load_r);
@@ -282,9 +386,9 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 		bool need_p = (should_save && params.save_pressure) || should_dump;
 		bool need_rho = (should_save && params.save_density) || should_dump;
 
-		shared_darray<rr_float2> r_temp = need_r ? load_r() : nullptr;
+		shared_vheap_darray_floatn r_temp = need_r ? load_r() : nullptr;
 		shared_darray<rr_int> itype_temp = need_itype ? load_itype() : nullptr;
-		shared_darray<rr_float2> v_temp = need_v ? load_v() : nullptr;
+		shared_vheap_darray_floatn v_temp = need_v ? load_v() : nullptr;
 		shared_darray<rr_float> p_temp = need_p ? load_p() : nullptr;
 		shared_darray<rr_float> rho_temp = need_rho ? load_rho() : nullptr;
 
@@ -293,18 +397,20 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 				check_particles_are_within_boundaries(r_temp, itype_temp);
 			}
 			catch (...) {
-				if (!v_temp) v_temp = load_v();
-				if (!p_temp) p_temp = load_p();
-				if (!rho_temp) rho_temp = load_rho();
+				if (params.use_crash_dump) {
+					if (!v_temp) v_temp = load_v();
+					if (!p_temp) p_temp = load_p();
+					if (!rho_temp) rho_temp = load_rho();
 
-				crash_dump(
-					r_temp,
-					itype_temp,
-					v_temp,
-					rho_temp,
-					p_temp,
-					itimestep,
-					time);
+					crash_dump(
+						r_temp,
+						itype_temp,
+						v_temp,
+						rho_temp,
+						p_temp,
+						itimestep,
+						time);
+				}
 				throw;
 			}
 		}

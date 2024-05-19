@@ -69,6 +69,9 @@ SPHFIO::SPHFIO(ExperimentDirectory::Ptr experiment) :
 	params{ loadExperimentParams() },
 	available_variables{ findAvailableVariables(params) }
 {
+	// global init dimensions for variant-based arrays
+	vheap_darray_floatn::set_dimenstions(params->dim);
+	vheap_darray_floatn_md::set_dimenstions(params->dim);
 }
 
 bool SPHFIO::isAdditionalValuePresented(const std::string& value) const {

@@ -27,9 +27,9 @@ __kernel void sum_density(
 
 inline void con_delta_density(
     rr_uint j,
-    __global const rr_float2* r,
+    __global const rr_floatn* r,
     __global const rr_uint* neighbours,
-    __global const rr_float2* dwdr,
+    __global const rr_floatn* dwdr,
     __global const rr_float* rho,
 
     __global rr_float* drho)
@@ -41,7 +41,7 @@ inline void con_delta_density(
         i = neighbours[at(n, j)], i != params_ntotal; // particle near
         ++n) 
     {
-        rr_float2 r_ab = r[j] - r[i];
+        rr_floatn r_ab = r[j] - r[i];
         rr_float r_factor = dot(r_ab, dwdr[at(n, j)]) / length_sqr(r_ab);
         rr_float rho_factor = (rho[i] - rho[j]) / rho[i];
         delta_rho += rho_factor * r_factor;
@@ -51,10 +51,10 @@ inline void con_delta_density(
 }
 
 __kernel void con_density(
-    __global const rr_float2* r,
-    __global const rr_float2* v,
+    __global const rr_floatn* r,
+    __global const rr_floatn* v,
     __global const rr_uint* neighbours,
-    __global const rr_float2* dwdr,
+    __global const rr_floatn* dwdr,
     __global const rr_float* rho,
 
     __global rr_float* drho)
@@ -69,7 +69,7 @@ __kernel void con_density(
         i = neighbours[at(n, j)], i != params_ntotal; // particle near
         ++n) 
     {
-        rr_float2 dvx = v[i] - v[j];
+        rr_floatn dvx = v[i] - v[j];
         rr_float vcc = dot(dvx, dwdr[at(n, j)]);
         drho_temp += params_mass * vcc;
     }

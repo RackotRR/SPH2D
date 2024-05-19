@@ -18,6 +18,10 @@ void check_optional_params(const ModelParams& model_params) {
 #define throw_invalid_enum(param) throw std::runtime_error{ "Invalid enum value: " #param }
 #define throw_not_implemented(param) throw std::runtime_error{ "Not implemented: " #param }
 
+    if (model_params.visc) {
+        throw_not_implemented(visc);
+    }
+
     switch (model_params.eos_sound_vel_method) {
     case EOS_SOUND_VEL_SPECIFIC:
         need_param(eos_sound_vel);
@@ -139,6 +143,7 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(dump_time);
     move_param(step_time_estimate);
     move_param(use_dump);
+    move_param(use_crash_dump);
     move_param(use_custom_time_estimate_step);
 
     move_param(consistency_check);
@@ -235,6 +240,7 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_optional(dump_time);
     load_optional(step_time_estimate);
     load_default(use_dump);
+    load_default(use_crash_dump);
     load_default(use_custom_time_estimate_step);
 
     load_default(consistency_check);
@@ -317,6 +323,7 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
     print_not_null(dump_time);
     print_not_null(step_time_estimate);
     print_param(use_dump);
+    print_param(use_crash_dump);
     print_param(use_custom_time_estimate_step);
 
     print_param(consistency_check);

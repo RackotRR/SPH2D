@@ -1,14 +1,14 @@
 #include "common.h"
 
 __kernel void average_velocity(
-	__global const rr_float2* r,
+	__global const rr_floatn* r,
 	__global const rr_int* itype,
-	__global const rr_float2* v,
+	__global const rr_floatn* v,
 	__global const rr_float* rho,
 	__global const rr_uint* neighbours,
 	__global const rr_float* w,
 
-	__global rr_float2* av)
+	__global rr_floatn* av)
 {
 	size_t j = get_global_id(0);
 	if (j >= params_nfluid) return;
@@ -16,7 +16,7 @@ __kernel void average_velocity(
 	av[j] = 0;
 
 #ifdef params_average_velocity
-	rr_float2 av_temp = 0.f;
+	rr_floatn av_temp = 0;
 
 	rr_uint i;
 	for (rr_iter n = 0;
@@ -24,8 +24,8 @@ __kernel void average_velocity(
 		++n)
 	{
 		if (itype[i] > 0) {
-			rr_float2 dvx = v[i] - v[j];
-			av_temp += dvx * params_mass / (rho[i] + rho[j]) * w[at(n, j)] * 2.f;
+			rr_floatn dvx = v[i] - v[j];
+			av_temp += dvx * params_mass / (rho[i] + rho[j]) * w[at(n, j)] * 2;
 		}
 	}
 

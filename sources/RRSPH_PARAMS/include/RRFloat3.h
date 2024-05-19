@@ -2,7 +2,7 @@
 #include "RRTypes.h"
 
 struct rr_float3 {
-    rr_float x, y, z;
+    rr_float x, y, z, dummy;
     auto operator-(const rr_float3& v2) const {
         return rr_float3{
             .x = x - v2.x,

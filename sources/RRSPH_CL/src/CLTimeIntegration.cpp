@@ -18,7 +18,7 @@ namespace {
     RRKernel calculate_kernels_dwdr_kernel;
     RRKernel sum_density_kernel;
     RRKernel con_density_kernel;
-    RRKernel find_stress_tensor_kernel;
+    //RRKernel find_stress_tensor_kernel;
     RRKernel update_internal_state_kernel;
     RRKernel find_internal_changes_kernel;
     RRKernel external_force_kernel;
@@ -58,7 +58,7 @@ void makePrograms() {
     find_neighbours_kernel = RRKernel(grid_find_program, "find_neighbours");
     sum_density_kernel = RRKernel(density_program, "sum_density");
     con_density_kernel = RRKernel(density_program, "con_density");
-    find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
+    //find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
     update_internal_state_kernel = RRKernel(internal_force_program, "update_internal_state");
 
     if (params.intf_sph_approximation == INTF_SPH_APPROXIMATION_1) {
@@ -78,6 +78,25 @@ void makePrograms() {
 
     if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
         dt_correction_optimize = RRKernel(time_integration_program, "dt_correction_optimize");
+    }
+}
+
+template<typename... ArgsT>
+cl::Buffer makeBufferFloatN(cl_mem_flags flags, size_t elements) {
+    if (params.dim == 3) {
+        return makeBuffer<rr_float3>(flags, elements);
+    }
+    else {
+        return makeBuffer<rr_float2>(flags, elements);
+    }
+}
+
+static cl::Buffer makeBufferCopyHostFloatN(const vheap_darray_floatn& arr) {
+    if (params.dim == 3) {
+        return makeBufferCopyHost(arr.get_flt3());
+    }
+    else {
+        return makeBufferCopyHost(arr.get_flt2());
     }
 }
 
@@ -135,7 +154,7 @@ static auto make_smoothing_kernels_dwdr(cl_mem_flags flags) {
 
     for (auto& [skf, dwdr] : smoothing_kernels_dwdr) {
 		printlog_debug(" ")(skf);
-        smoothing_kernels_dwdr[skf] = makeBuffer<rr_float2>(flags, params.max_neighbours * params.maxn);
+        smoothing_kernels_dwdr[skf] = makeBufferFloatN(flags, params.max_neighbours * params.maxn);
     }
 
 	printlog_debug();
@@ -146,6 +165,18 @@ template<typename T>
 static shared_darray<T> load_array(const cl::Buffer& buffer) {
     auto arr_ptr = std::make_shared<heap_darray<T>>(params.maxn);
     cl::copy(buffer, arr_ptr->begin(), arr_ptr->end());
+    return arr_ptr;
+}
+static shared_vheap_darray_floatn load_floatn_array(const cl::Buffer& buffer) {
+    auto arr_ptr = std::make_shared<vheap_darray_floatn>(params.maxn);
+    if (params.dim == 3) {
+        auto& internal_arr = arr_ptr->get_flt3();
+        cl::copy(buffer, internal_arr.begin(), internal_arr.end());
+    }
+    else {
+        auto& internal_arr = arr_ptr->get_flt2();
+        cl::copy(buffer, internal_arr.begin(), internal_arr.end());
+    }
     return arr_ptr;
 }
 
@@ -220,15 +251,10 @@ static void cl_internal_force(
     cl::Buffer& p_,
     cl::Buffer& indvxdt_)
 {
-    static auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    static auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-    static auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
-
-    printlog_debug("find stress tensor")();
-    find_stress_tensor_kernel(
-        v_predict_, rho_predict_, neighbours_, intf_dwdr_,
-        txx_, txy_, tyy_
-    ).execute(params.maxn, params.local_threads);
+    //printlog_debug("find stress tensor")();
+    //find_stress_tensor_kernel(
+    //    v_predict_, rho_predict_, neighbours_, intf_dwdr_
+    //).execute(params.maxn, params.local_threads);
 
     printlog_debug("update internal state")();
     update_internal_state_kernel(
@@ -240,7 +266,7 @@ static void cl_internal_force(
         find_internal_changes_kernel(
             v_predict_, rho_predict_,
             neighbours_, artificial_pressure_w_, intf_dwdr_,
-            txx_, txy_, tyy_, p_,
+            p_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
     }
@@ -248,7 +274,7 @@ static void cl_internal_force(
         find_internal_changes_kernel(
             v_predict_, rho_predict_,
             neighbours_, intf_dwdr_,
-            txx_, txy_, tyy_, p_,
+            p_,
             indvxdt_
         ).execute(params.maxn, params.local_threads);
     }
@@ -376,21 +402,19 @@ static void cl_update_nwm(
 }
 
 void cl_time_integration(
-    heap_darray<rr_float2>& r,	// coordinates of all particles
-    heap_darray<rr_float2>& v,	// velocities of all particles
+    vheap_darray_floatn& r,	// coordinates of all particles
+    vheap_darray_floatn& v,	// velocities of all particles
     heap_darray<rr_float>& rho,	// out, density
     heap_darray<rr_float>& p,	// out, pressure
-    heap_darray<rr_int>& itype, // material type: >0: material, <0: virtual
-    const rr_uint ntotal, // total particle number at t = 0
-    const rr_uint nfluid)  // fluid particles 
+    heap_darray<rr_int>& itype) // material type: >0: material, <0: virtual
 {
     printlog(__func__);
 
     makePrograms();
 
     // common
-    auto r_ = makeBufferCopyHost(r);
-    auto v_ = makeBufferCopyHost(v);
+    auto r_ = makeBufferCopyHostFloatN(r);
+    auto v_ = makeBufferCopyHostFloatN(v);
     auto rho_ = makeBufferCopyHost(rho);
     auto p_ = makeBufferCopyHost(p);
     auto itype_ = makeBufferCopyHost(itype);
@@ -407,8 +431,8 @@ void cl_time_integration(
         return density_is_using_continuity() ? rho_predict_ : rho_;
     };
 
-    auto v_predict_ = makeBuffer<rr_float2>(CL_MEM_READ_WRITE, params.maxn);
-    auto a_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    auto v_predict_ = makeBufferFloatN(CL_MEM_READ_WRITE, params.maxn);
+    auto a_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
 
     // grid find
     auto neighbours_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_neighbours * params.maxn);
@@ -417,7 +441,7 @@ void cl_time_integration(
     auto smoothing_kernels_dwdr = make_smoothing_kernels_dwdr(CL_MEM_READ_WRITE);
 
     // internal force
-    auto indvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    auto indvxdt_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
 
     // artificial pressure
     cl::Buffer artificial_viscosity_dummy; // temp solution
@@ -425,18 +449,18 @@ void cl_time_integration(
         &smoothing_kernels_w[params.artificial_pressure_skf] : &artificial_viscosity_dummy;
 
     // external force
-    auto exdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+    auto exdvxdt_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
 
     // artificial viscosity
     cl::Buffer arvdvxdt_;
     if (params.artificial_viscosity) {
-        arvdvxdt_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+        arvdvxdt_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
     } 
 
     // average velocity
     cl::Buffer av_;
     if (params.average_velocity) {
-        av_ = makeBuffer<rr_float2>(DEVICE_ONLY, params.maxn);
+        av_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
     }
 
     // dynamic dt correction
@@ -450,15 +474,15 @@ void cl_time_integration(
     rr_uint itimestep = 0;
     rr_float time = params.start_simulation_time;
 
-    SPH2DOutput::instance().setup_output(
-        std::bind(load_array<rr_float2>, r_),
+    RRSPHOutput::instance().setup_output(
+        std::bind(load_floatn_array, r_),
         std::bind(load_array<rr_int>, itype_),
-        std::bind(load_array<rr_float2>, v_),
+        std::bind(load_floatn_array, v_),
         std::bind(load_array<rr_float>, p_),
         std::bind(load_array<rr_float>, rho_));
 
     while (time <= params.simulation_time) {
-        SPH2DOutput::instance().start_step(time);
+        RRSPHOutput::instance().start_step(time);
 
         printlog_debug("predict_half_step_kernel")();
         if (density_is_using_continuity()) {
@@ -564,7 +588,7 @@ void cl_time_integration(
         time += params.dt;
         itimestep++;
 
-        SPH2DOutput::instance().update_step(time, itimestep);
-        SPH2DOutput::instance().finish_step();
+        RRSPHOutput::instance().update_step(time, itimestep);
+        RRSPHOutput::instance().finish_step();
     }
 }

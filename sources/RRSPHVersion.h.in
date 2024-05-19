@@ -246,6 +246,21 @@
 //        - RRSPH_FIO: fix invalid ExperimentDirectory name with dots
 //        - RRSPH_FIO: update filesystem features
 //        - RRSPH_PARAMS: remove outdated docs
+//  3.1.2 - RRSPH_CL: add support for 3D simulation
+//        - RRSPH_CL: remove dynamic viscosity simulation
+//        - RRSPH_CL: made verbose output on memory allocation
+//        - RRSPH_PARAMS: add 3D data types
+//        - RRSPH_PARAMS: add RRFloatnDArray for float2 and float3 data
+//        - RRSPH_PARAMS: mark visc model param as not implemented
+//        - RRSPH_PARAMS: use_crash_dump model param
+//        - RRSPH_FIO: add support for 3D data loading
+//        - RRSPH_COMMON: add support for 3D input/output
+//        - RRSPH_COMMON: add 3D smoothing kernel calculation
+//        - RRSPH_COMMON: add 3D grid utils
+//        - RRSPH_COMMON: made common consistency check message format
+//        - RRSPH_COMMON: add particles within boundaries check on input
+//        - RRSPH_COMMON: made verbose error message on cells count overflow
+//        - RRSPH_COMMON: add use_crash_dump model param
 // TODO:
 // 3.2.0 - RRSPH2D: add RRMetaParams subproject
 // 3.x.x - RRSPH2D: add files prefix of subproject

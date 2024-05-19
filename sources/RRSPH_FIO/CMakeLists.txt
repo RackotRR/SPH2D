@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RRSPH_FIO VERSION 2.4.1)
+project(RRSPH_FIO VERSION 2.4.2)
 configure_file(RRSPHFIOVersion.h.in "${PROJECT_SOURCE_DIR}/include/RRSPHFIOVersion.h")
 
 add_library(RRSPH_FIO 

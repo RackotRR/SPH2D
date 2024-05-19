@@ -1,10 +1,22 @@
 #include "common.h"
 #include "SmoothingKernel.cl"
 
+#if params_dim == 3
+
+#define get_cell_idx get_cell_idx3
+#define get_neighbouring_cells get_neighbouring_cells3
+
+#else /* params_dim ==2 */
+
+#define get_cell_idx get_cell_idx2
+#define get_neighbouring_cells get_neighbouring_cells2
+
+#endif
+
 #define max_dist_kernel sqr(params_cell_scale_k * params_hsml)
 
 __kernel void binary_search(
-    __global const rr_float2* r,
+    __global const rr_floatn* r,
     __global const rr_uint* grid,
     __global rr_uint* cells)
 {
@@ -40,7 +52,7 @@ inline void swap(
     grid[second] = temp;
 }
 inline bool less(
-    __global const rr_float2* r,
+    __global const rr_floatn* r,
     rr_uint first,
     rr_uint second)
 {
@@ -50,7 +62,7 @@ inline bool less(
     return (first != params_ntotal) && (get_cell_idx(r[first]) < get_cell_idx(r[second]));
 }
 inline bool greater(
-    __global const rr_float2* r,
+    __global const rr_floatn* r,
     rr_uint first,
     rr_uint second)
 {
@@ -60,7 +72,7 @@ inline bool greater(
     return (second != params_ntotal) && (get_cell_idx(r[first]) > get_cell_idx(r[second]));
 }
 __kernel void bitonic_sort_step(
-    __global rr_float2* r, 
+    __global rr_floatn* r, 
     __global rr_uint* grid, 
     rr_uint pass, 
     rr_uint step_size, 
@@ -91,7 +103,7 @@ __kernel void fill_in_grid(__global rr_uint* grid){
 }
 
 __kernel void find_neighbours(
-    __global const rr_float2* r,
+    __global const rr_floatn* r,
     __global const rr_int* itype,
     __global const rr_uint* grid,
     __global const rr_uint* cell_starts_in_grid,
@@ -106,10 +118,10 @@ __kernel void find_neighbours(
     if (itype[j] != params_TYPE_NON_EXISTENT)
     {
         rr_uint center_cell_idx = get_cell_idx(r[j]);
-        rr_uint neighbour_cells[9];
+        rr_uint neighbour_cells[neighbour_cells_count];
         get_neighbouring_cells(center_cell_idx, neighbour_cells);
 
-        for (rr_uint cell_i = 0; cell_i < 9; ++cell_i) { // run through neighbouring cells
+        for (rr_uint cell_i = 0; cell_i < neighbour_cells_count; ++cell_i) { // run through neighbouring cells
             rr_uint cell_idx = neighbour_cells[cell_i];
             if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
 
@@ -122,7 +134,7 @@ __kernel void find_neighbours(
                 if (i == j) continue; // particle isn't neighbour of itself
                 if (itype[i] == params_TYPE_NON_EXISTENT) continue; // don't add non-existing particle
 
-                rr_float2 diff = r[i] - r[j];
+                rr_floatn diff = r[i] - r[j];
                 rr_float dist_sqr = length_sqr(diff);
 
                 if (dist_sqr < max_dist_kernel) {

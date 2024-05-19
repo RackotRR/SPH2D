@@ -12,11 +12,11 @@
 
 
 __kernel void update_acceleration(
-	__global const rr_float2* indvxdt // int force
-	, __global const rr_float2* exdvxdt // ext force
-	, __global const rr_float2* arvdvxdt // art visc
+	__global const rr_floatn* indvxdt // int force
+	, __global const rr_floatn* exdvxdt // ext force
+	, __global const rr_floatn* arvdvxdt // art visc
 
-	, __global rr_float2* a // out, total acceleration
+	, __global rr_floatn* a // out, total acceleration
 #ifdef ti_dynamic_dt_correction
 	, __global rr_float* amagnitudes // out, |a|
 #endif
@@ -72,12 +72,12 @@ __kernel void predict_half_step(
 
 	__global const rr_int* itype,
 	__global const rr_float* drho,
-	__global const rr_float2* a,
+	__global const rr_floatn* a,
 	__global const rr_float* rho,
-	__global const rr_float2* v,
+	__global const rr_floatn* v,
 
 	__global rr_float* rho_predict,
-	__global rr_float2* v_predict)
+	__global rr_floatn* v_predict)
 {
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
@@ -91,25 +91,30 @@ __kernel void predict_half_step(
 	}
 }
 
-static bool is_point_within_geometry(rr_float2 point) {
-	return point.x < params_x_maxgeom &&
-		point.x > params_x_mingeom &&
-		point.y < params_y_maxgeom &&
-		point.y > params_y_mingeom;
+static bool is_point_within_geometry(rr_floatn point) {
+	return point.x < params_x_maxgeom
+		&& point.x > params_x_mingeom
+		&& point.y < params_y_maxgeom
+		&& point.y > params_y_mingeom
+#if params_dim == 3
+		&& point.z < params_z_maxgeom
+		&& point.z > params_z_mingeom
+#endif
+		;
 }
 __kernel void whole_step(
 	rr_float dt,
 	rr_uint timestep,
 
 	__global const rr_float* drho,
-	__global const rr_float2* a,
+	__global const rr_floatn* a,
 
-	__global const rr_float2* av,
+	__global const rr_floatn* av,
 
 	__global rr_int* itype,
 	__global rr_float* rho,
-	__global rr_float2* v,
-	__global rr_float2* r)
+	__global rr_floatn* v,
+	__global rr_floatn* r)
 {
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
@@ -131,7 +136,7 @@ __kernel void whole_step(
 		
 
 #if params_consistency_treatment == CONSISTENCY_FIX
-		rr_float2 new_r = r[i] + v[i] * r_dt;
+		rr_floatn new_r = r[i] + v[i] * r_dt;
 		if (is_point_within_geometry(new_r)) {
 			r[i] = new_r;
 		}
@@ -146,8 +151,8 @@ __kernel void whole_step(
 }
 
 __kernel void nwm_dynamic_boundaries(
-	__global rr_float2* v,
-	__global rr_float2* r,
+	__global rr_floatn* v,
+	__global rr_floatn* r,
 	rr_float time,
 	rr_float dt)
 {

@@ -1,18 +1,16 @@
 #include "common.h"
 
 __kernel void external_force(
-	__global const rr_float2* r,
+	__global const rr_floatn* r,
 	__global const rr_uint* neighbours,
 	__global const rr_int* itype,
 
-	__global rr_float2* a)
+	__global rr_floatn* a)
 {
 	size_t j = get_global_id(0);
 	if (j >= params_ntotal) return;
 
-	rr_float2 a_temp;
-
-	a_temp.x = 0.f;
+	rr_floatn a_temp = 0;
 	a_temp.y = -params_g;
 
 
@@ -34,7 +32,7 @@ __kernel void external_force(
 		if (itype[j] > 0 && itype[i] < 0) {
 
 			// rr --- distance between particles
-			rr_float2 dr = r[j] - r[i];
+			rr_floatn dr = r[j] - r[i];
 			rr_float rr_sqr = length_sqr(dr);
 
 			if (rr_sqr < sqr(ext_force_rr0)) {
