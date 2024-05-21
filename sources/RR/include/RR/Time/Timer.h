@@ -48,7 +48,7 @@ namespace RR {
                 return 0;
             }
             else {
-                return static_cast<long long>(total<TimeType>() * 1.0 / _times);
+                return static_cast<long long>(total<TimeType>().count() * 1.0 / _times);
             }
         }
 

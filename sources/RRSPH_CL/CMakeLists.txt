@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RRSPH_CL VERSION 1.4.1)
+project(RRSPH_CL VERSION 1.4.2)
 configure_file(RRSPHCLVersion.h.in "${PROJECT_SOURCE_DIR}/include/RRSPHCLVersion.h")
 
 # OpenCL

@@ -237,6 +237,50 @@ inline rr_floatn desbrun_kernel_dwdr(rr_float dist, rr_floatn diff) {
 
 
 #ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_float smoothing_kernel_w(rr_float dist, rr_uint skf) {
+	switch (skf) {
+	case 1: return cubic_kernel_w(dist);
+	case 2: return gauss_kernel_w(dist);
+	case 3: return wendland_kernel_w(dist);
+	case 4: return desbrun_kernel_w(dist);
+	default: return cubic_kernel_w(dist);
+	}
+}
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_float smoothing_kernel_w_by_coord(rr_floatn rj, rr_floatn ri, rr_uint skf) {
+	rr_floatn diff = ri - rj;
+	rr_float dist = length(diff);
+	return smoothing_kernel_w(dist, skf);
+}
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn smoothing_kernel_dwdr(rr_float dist, rr_floatn diff, rr_uint skf) {
+	switch (skf) {
+	case 1: return cubic_kernel_dwdr(dist, diff);
+	case 2: return gauss_kernel_dwdr(dist, diff);
+	case 3: return wendland_kernel_dwdr(dist, diff);
+	case 4: return desbrun_kernel_dwdr(dist, diff);
+	default: return cubic_kernel_dwdr(dist, diff);
+	}
+}
+
+#ifndef KERNEL_INCLUDE
+template<typename rr_floatn>
+#endif
+inline rr_floatn smoothing_kernel_dwdr_by_coord(rr_floatn rj, rr_floatn ri, rr_uint skf) {
+	rr_floatn diff = ri - rj;
+	rr_float dist = length(diff);
+	return smoothing_kernel_dwdr(dist, diff, skf);
+}
+
+#ifndef KERNEL_INCLUDE
 #undef params_hsml
 #undef params_pi
 #endif

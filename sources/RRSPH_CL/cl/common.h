@@ -37,6 +37,7 @@ inline rr_float length_sqr(rr_float2 vec) {
 #endif
 
 #include "GridUtils.h"
+#include "SmoothingKernel.h"
 
 #define at(n, j) ((n) + params_max_neighbours * (j))
 #endif

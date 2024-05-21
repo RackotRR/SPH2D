@@ -1,39 +1,81 @@
 #include "common.h"
-
-#if params_dt_correction_method == DT_CORRECTION_DYNAMIC
-#define ti_dynamic_dt_correction
-#endif
-
-#if params_density_treatment == DENSITY_CONTINUITY
-#define density_is_using_continuity
-#elif params_density_treatment == DENSITY_CONTINUITY_DELTA
-#define density_is_using_continuity
-#endif
-
+#include "ArtificialViscosity.h"
+#include "AverageVelocity.h"
+#include "ExternalForce.h"
+#include "InternalForce.h"
+#include "Density.h"
+#include "TimeIntegration.h"
 
 __kernel void update_acceleration(
-	__global const rr_floatn* indvxdt // int force
-	, __global const rr_floatn* exdvxdt // ext force
-	, __global const rr_floatn* arvdvxdt // art visc
+	__global const rr_floatn* r,
+	__global const rr_floatn* v,
+	__global const rr_float* rho,
+	__global const rr_int* itype,
+	__global const rr_uint* neighbours,
+	__global const rr_float* p
 
+	, __global rr_floatn* av // out, average velocity
 	, __global rr_floatn* a // out, total acceleration
 #ifdef ti_dynamic_dt_correction
 	, __global rr_float* amagnitudes // out, |a|
+	, __global rr_float* arvmu // out, |max(mu_ij)|
 #endif
 ) {
-	size_t i = get_global_id(0);
-	if (i >= params_nfluid) return;
+	size_t j = get_global_id(0);
+	if (j >= params_nfluid) return;
 
-	
+	rr_float max_arvmu = 0;
+	rr_floatn av_temp = 0;
+	rr_floatn a_temp = 0;
+	a_temp.y = -params_g;
+
+	rr_uint i;
+	for (rr_iter n = 0;
+		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		++n)
+	{
+		rr_floatn diff_ij = r[i] - r[j];
+		rr_float dist_ij = length(diff_ij);
+
+		a_temp += external_force_part(
+			dist_ij,
+			r[j], r[j],
+			itype[j], itype[i]);
+		
+		a_temp += find_internal_changes_part(
+			diff_ij,
+			dist_ij,
+			p[j], p[i],
+			rho[j], rho[i]);
+
 #ifdef params_artificial_viscosity
-	a[i] = indvxdt[i] + exdvxdt[i] + arvdvxdt[i];
-#else
-	a[i] = indvxdt[i] + exdvxdt[i];
+		a_temp += artificial_viscosity_part(
+			r[j], r[i],
+			v[j], v[i],
+			rho[j], rho[i],
+			&max_arvmu
+		);
 #endif
+
+#ifdef params_average_velocity
+		av_temp += average_velocity_part(
+			dist_ij,
+			itype[i],
+			v[j], v[i],
+			rho[j], rho[i]);
+#endif
+	}
 
 
 #ifdef ti_dynamic_dt_correction
-	amagnitudes[i] = length(a[i]);
+	amagnitudes[j] = length(a[j]);
+	arvmu[j] = max_arvmu;
+#endif
+
+
+	a[j] = a_temp;
+#ifdef params_average_velocity
+	av[j] = av_temp;
 #endif
 }
 

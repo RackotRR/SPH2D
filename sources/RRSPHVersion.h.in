@@ -261,6 +261,12 @@
 //        - RRSPH_COMMON: add particles within boundaries check on input
 //        - RRSPH_COMMON: made verbose error message on cells count overflow
 //        - RRSPH_COMMON: add use_crash_dump model param
+//  3.1.3 - RR: fix timer average function
+//        - RRSPH_COMMON: support all smoothing kernel calculations 
+//        - RRSPH_CL: fix delta density treatment
+//        - RRSPH_CL: remove smoothing kernel precomputing
+//        - RRSPH_CL: move smoothing kernel calculations into RRSPH_COMMON
+//        - RRSPH_CL: accelerations computing optimization
 // TODO:
 // 3.2.0 - RRSPH2D: add RRMetaParams subproject
 // 3.x.x - RRSPH2D: add files prefix of subproject

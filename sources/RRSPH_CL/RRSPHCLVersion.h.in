@@ -43,6 +43,10 @@
 // 1.4.1 - remove dynamic viscosity simulation
 //       - add support for 3D simulation
 //       - made verbose output on memory allocation
+// 1.4.2 - fix delta density treatment
+//       - remove smoothing kernel precomputing
+//       - move smoothing kernel calculations into RRSPH_COMMON
+//       - accelerations computing optimization
 // TODO:
 // 1.4   - passing arguments through vectors of buffers
 // 1.4   - use mapping instead of copying for dynamic dt correction

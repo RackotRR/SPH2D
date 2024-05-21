@@ -1,9 +1,11 @@
+#ifndef CL_SPH_EOS_H
+#define CL_SPH_EOS_H
 #include "common.h"
 
-#if params_eos_sound_vel_method == 0 // dam break problem
+#if params_eos_sound_vel_method == EOS_SOUND_VEL_DAM_BREAK
 #define eos_art_c_sqr (200.f * params_g * params_depth * params_eos_sound_vel_coef) 
 #define eos_art_c (sqrt(eos_art_c_sqr))
-#else
+#else // params_eos_sound_vel_method == EOS_SOUND_VEL_SPECIFIC
 #define eos_art_c_sqr (params_eos_sound_vel * params_eos_sound_vel)
 #define eos_art_c params_eos_sound_vel
 #endif
@@ -14,3 +16,4 @@ inline rr_float p_art_water(const rr_float rho) {
 #define eos_mg_B (eos_art_c_sqr * params_rho0 / eos_gamma)
     return (powun(rho / params_rho0, eos_gamma) - 1.f) * eos_mg_B;
 }
+#endif

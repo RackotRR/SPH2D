@@ -1,5 +1,4 @@
 #include "common.h"
-#include "SmoothingKernel.cl"
 
 #if params_dim == 3
 
