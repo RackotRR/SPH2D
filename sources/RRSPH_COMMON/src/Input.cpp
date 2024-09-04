@@ -93,13 +93,13 @@ rr_float find_depth(const heap_darray<rr_floatn>& r)
 static void fillInComputingParams() {
 	printlog()(__func__)();
 
-	params.hsml = params.delta * params.intf_hsml_coef;
+	params.hsml = sqrt(params.dim) * params.delta * params.intf_hsml_coef;
 
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
 
 	params.max_cells = countCells(params.hsml);
 	
-	params.mass = params.rho0 * params.delta * params.delta;
+	params.mass = params.rho0 * powun(params.delta, params.dim);
 
 	params.cell_scale_k = get_cell_scale_k({
 		params.artificial_pressure_skf,

@@ -3,7 +3,6 @@
 
 template<typename rr_floatn>
 void predict_half_step(
-	const rr_uint ntotal,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& rho, // density
 	const heap_darray<rr_float>& drho,	// density change
@@ -14,7 +13,7 @@ void predict_half_step(
 {
 	printlog()(__func__)();
 
-	for (rr_uint i = 0; i < ntotal; i++) {
+	for (rr_uint i = 0; i < params.ntotal; i++) {
 		if (density_is_using_continuity()) {
 			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
 		}
@@ -26,7 +25,6 @@ void predict_half_step(
 }
 
 void predict_half_step(
-	const rr_uint ntotal,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& rho, // density
 	const heap_darray<rr_float>& drho,	// density change
@@ -39,13 +37,13 @@ void predict_half_step(
 		const auto& v = v_var.get_flt2();
 		const auto& a = a_var.get_flt2();
 		auto& v_predict = v_predict_var.get_flt2();
-		predict_half_step(ntotal, itype, rho, drho, v, a, rho_predict, v_predict);
+		predict_half_step(itype, rho, drho, v, a, rho_predict, v_predict);
 	}
 	else if (params.dim == 3) {
 		const auto& v = v_var.get_flt3();
 		const auto& a = a_var.get_flt3();
 		auto& v_predict = v_predict_var.get_flt3();
-		predict_half_step(ntotal, itype, rho, drho, v, a, rho_predict, v_predict);
+		predict_half_step(itype, rho, drho, v, a, rho_predict, v_predict);
 	}
 	else {
 		assert(0);

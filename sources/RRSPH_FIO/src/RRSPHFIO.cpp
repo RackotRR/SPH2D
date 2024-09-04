@@ -5,6 +5,8 @@
 #include "RRSPH_FIO.h"
 #include "ParamsIO.h"
 
+#include <RR/Logger/Logger.h>
+
 using namespace sphfio;
 
 ParamsPtr SPHFIO::getParams() const {
@@ -35,12 +37,16 @@ ExperimentLayers::Ptr SPHFIO::find_time_layers_path() const {
 
 
 ParamsPtr SPHFIO::loadExperimentParams() {
+	RR::Logger::printlog("LoadExperimentParams")();
+
 	auto& path = directories.getExperimentDirectory();
 	ParamsPtr experiment_params = std::make_shared<ExperimentParams>(load_experiment_params(path));
 	return experiment_params;
 }
 
 std::unordered_set<std::string> SPHFIO::findAvailableVariables(ParamsPtr params) {
+	RR::Logger::printlog("findAvailableVariables")();
+
 	std::unordered_set<std::string> available_variables;
 	available_variables.emplace(NAME_VARIABLE_X);
 	available_variables.emplace(NAME_VARIABLE_Y);
@@ -72,6 +78,8 @@ SPHFIO::SPHFIO(ExperimentDirectory::Ptr experiment) :
 	// global init dimensions for variant-based arrays
 	vheap_darray_floatn::set_dimenstions(params->dim);
 	vheap_darray_floatn_md::set_dimenstions(params->dim);
+
+	RR::Logger::printlog("RRSPHFIO loaded")();
 }
 
 bool SPHFIO::isAdditionalValuePresented(const std::string& value) const {

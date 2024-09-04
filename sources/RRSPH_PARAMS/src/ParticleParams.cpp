@@ -86,8 +86,10 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
     if (particle_params.dim == 3) {
         load(z_mingeom);
         load(z_maxgeom);
-        load(z_mingeom);
-        load(z_maxgeom);
+    }
+    else {
+        particle_params.z_mingeom = 0;
+        particle_params.z_maxgeom = 0;
     }
 
     load(delta);

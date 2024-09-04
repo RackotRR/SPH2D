@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(FuncAtPoint VERSION 1.0.3)
+project(FuncAtPoint VERSION 1.1.0)
 configure_file(FuncAtPointVersion.h.in "${PROJECT_SOURCE_DIR}/include/FuncAtPointVersion.h")
 
 add_executable(FuncAtPoint

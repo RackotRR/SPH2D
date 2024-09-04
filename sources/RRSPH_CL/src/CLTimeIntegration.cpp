@@ -41,8 +41,8 @@ void makePrograms() {
     sort_kernel = RRKernel(grid_find_program, "bitonic_sort_step");
     binary_search_kernel = RRKernel(grid_find_program, "binary_search");
     find_neighbours_kernel = RRKernel(grid_find_program, "find_neighbours");
-    sum_density_kernel = RRKernel(density_program, "sum_density");
-    con_density_kernel = RRKernel(density_program, "con_density");
+    sum_density_kernel = RRKernel(density_program, "density_sum");
+    con_density_kernel = RRKernel(density_program, "density_con");
     update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
@@ -114,12 +114,21 @@ static void cl_grid_find(
     static auto grid_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.maxn);
     static auto cells_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_cells);
 
+    static RR::Timer fill;
+    static RR::Timer sort;
+    static RR::Timer search;
+    static RR::Timer find;
+
     printlog_debug("fill in grid")();
+    fill.start();
     fill_in_grid_kernel(
         grid_
     ).execute(params.maxn, params.local_threads);
+    cl::finish();
+    fill.finish();
 
     printlog_debug("sort grid")();
+    sort.start();
     for (rr_uint pass = 0; pass < passes; ++pass) {
         rr_uint max_step_size = 1ull << pass;
         for (rr_uint step_size = max_step_size; step_size != 0; step_size >>= 1) {
@@ -132,17 +141,30 @@ static void cl_grid_find(
             ).execute(params.maxn, params.local_threads);
         }
     }
+    cl::finish();
+    sort.finish();
 
     printlog_debug("search in grid")();
+    search.start();
     binary_search_kernel(
         r_, grid_, cells_
     ).execute(params.max_cells, params.local_threads);
+    cl::finish();
+    search.finish();
 
     printlog_debug("find neighbours")();
+    find.start();
     find_neighbours_kernel(
         r_, itype_, grid_, cells_,
         neighbours_
     ).execute(params.maxn, params.local_threads);
+    cl::finish();
+    find.finish();
+
+    printlog_debug("grid_fill: ")(fill.average<std::chrono::microseconds>())();
+    printlog_debug("grid_sort: ")(sort.average<std::chrono::microseconds>())();
+    printlog_debug("grid_search: ")(search.average<std::chrono::microseconds>())();
+    printlog_debug("grid_find: ")(find.average<std::chrono::microseconds>())();
 }
 
 static void cl_update_acceleration(
@@ -178,7 +200,7 @@ static void cl_update_dt(
     cl::Buffer& amagnitudes_)
 {
     if (params.dt_correction_method != DT_CORRECTION_DYNAMIC) return;
-	static rr_float c0 = c_art_water();
+	static rr_float c0 = eos_art_c();
 	static rr_float never_ending_dt = (params.hsml / c0) * 1.E-6;
 
     static auto arvmu_optimized_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.local_threads);
@@ -204,7 +226,7 @@ static void cl_update_dt(
     rr_float max_a = *amagnitudes_iter;
     rr_float max_mu = *arvmu_iter;
 
-	rr_float min_dt_a = sqrt(params.hsml / length(max_a));
+	rr_float min_dt_a = sqrt(params.hsml / fabs(max_a));
 
 	rr_float min_dt_mu = params.hsml / (c0 + max_mu);
 
@@ -286,6 +308,8 @@ void cl_time_integration(
         av_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
     }
 
+    cl::Buffer dummy_ = makeBuffer<rr_float>(CL_MEM_READ_WRITE, params.maxn);
+
     // dynamic dt correction
     cl::Buffer arvmu_; // artificial viscosity mu
     cl::Buffer amagnitudes_; // acceleration magnitudes
@@ -305,9 +329,14 @@ void cl_time_integration(
         std::bind(load_array<rr_float>, rho_));
 
     while (time <= params.simulation_time) {
+        static RR::Timer total_timer;
+        total_timer.start();
+
         RRSPHOutput::instance().start_step(time);
 
         printlog_debug("predict_half_step_kernel")();
+        static RR::Timer half_step_timer;
+        half_step_timer.start();
         if (density_is_using_continuity()) {
             predict_half_step_kernel(
                 params.dt,
@@ -326,11 +355,19 @@ void cl_time_integration(
                 nullptr, v_predict_
             ).execute(params.maxn, params.local_threads);
         }
+        cl::finish();
+        half_step_timer.finish();
 
+        static RR::Timer grid_timer;
+        grid_timer.start();
         cl_grid_find(
             r_, itype_, 
             neighbours_);
+        cl::finish();
+        grid_timer.finish();
 
+        static RR::Timer density_timer;
+        density_timer.start();
         if (density_is_using_continuity()) {
             printlog_debug("con density")();
             con_density_kernel(
@@ -349,10 +386,17 @@ void cl_time_integration(
                 rho_, p_
             ).execute(params.maxn, params.local_threads);
         }
+        cl::finish();
+        density_timer.finish();
 
+        static RR::Timer acceleration_timer;
+        acceleration_timer.start();
         cl_update_acceleration(
             r_, v_, rho_, itype_, neighbours_, p_,
             av_, a_, amagnitudes_, arvmu_);
+        cl::finish();
+        acceleration_timer.finish();
+        
 
         cl_update_dt(arvmu_, amagnitudes_);
 
@@ -360,6 +404,8 @@ void cl_time_integration(
             r_, v_, 
             itype_, itype);
 
+        static RR::Timer step_timer;
+        step_timer.start();
         printlog_debug("whole step")();
         if (density_is_using_continuity()) {
             whole_step_kernel(
@@ -375,11 +421,26 @@ void cl_time_integration(
                 itype_, nullptr, v_, r_
             ).execute(params.maxn, params.local_threads);
         }
+        cl::finish();
+        step_timer.finish();
         
         time += params.dt;
         itimestep++;
 
+        RR::Timer update_step_timer;
+        update_step_timer.start();
         RRSPHOutput::instance().update_step(time, itimestep);
         RRSPHOutput::instance().finish_step();
+        update_step_timer.finish();
+
+        cl::finish();
+        total_timer.finish();
+        printlog("half step: ")(half_step_timer.average<std::chrono::microseconds>())();
+        printlog("grid: ")(grid_timer.average<std::chrono::microseconds>())();
+        printlog("density: ")(density_timer.average<std::chrono::microseconds>())();
+        printlog("acceleration: ")(acceleration_timer.average<std::chrono::microseconds>())();
+        printlog("whole step: ")(step_timer.average<std::chrono::microseconds>())();
+        printlog("update step: ")(update_step_timer.average<std::chrono::microseconds>())();
+        printlog("total: ")(total_timer.average<std::chrono::microseconds>())();
     }
 }

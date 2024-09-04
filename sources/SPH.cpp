@@ -6,7 +6,7 @@
 #include "CLCommon.h"
 #include "CLAdapter.h"
 #else
-static_assert(false, "undefined RRSPH Simulator");
+#error undefined RRSPH Simulator
 #endif
 
 #include <iostream>
@@ -79,6 +79,9 @@ int main(int arc, const char* argv[]) {
 	}
 	catch (const std::exception& ex) {
 		printlog("catch exception: ")(ex.what())();
+		std::cout << "Catch exception: " << ex.what() << std::endl;
 	}
+	std::cout << "Print key to continue..." << std::endl;
+	std::cin.get();
 	return 0;
 }

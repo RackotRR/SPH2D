@@ -49,6 +49,50 @@ static void print_water_height_time(
     std::cout << output_path.filename() << " rdy" << std::endl;
 }
 
+static void water_profile(
+    const sphfio::Grid& grid, 
+    sphfio::ParamsPtr params,
+    HeightTestingParams::Ptr testing_params,
+    const std::filesystem::path& target_directory) 
+{
+    HeightTesting testing{ grid, params, testing_params->particles_type };
+
+    auto& mode = testing_params->mode;
+    if (mode == "time") {
+        auto time_testing_params = std::static_pointer_cast<TimeTestingParams>(testing_params);
+        for (double x : time_testing_params->x) {
+            auto result = testing.timeProfile(x, time_testing_params->search_n);
+            auto output_path = target_directory / fmt::format("time_at_{}{}.csv", x, testing_params->postfix);
+            print_water_height_time(output_path,
+                std::move(result), grid.time_points(),
+                time_testing_params->t0, time_testing_params->t_k,
+                time_testing_params->y0, time_testing_params->y_k);
+        }
+    }
+    else if (mode == "space") {
+        auto space_testing_params = std::static_pointer_cast<SpaceTestingParams>(testing_params);
+        for (double t : space_testing_params->t) {
+            auto result = testing.spaceProfile(t, space_testing_params->search_n);
+            auto output_path = target_directory / fmt::format("space_at_{}{}.csv", t, testing_params->postfix);
+            print_water_height_space(output_path, std::move(result),
+                space_testing_params->x0, space_testing_params->x_k,
+                space_testing_params->y0, space_testing_params->y_k,
+                params->x_mingeom, params->delta);
+        }
+    }
+    else {
+        std::cout << "can't choose mode" << std::endl;
+        std::cout << "mode was: " << mode << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+static void show_prompt(void) {
+    std::cout << "Press [enter] to load testing params and compute (dir/HeightTestingParams.json)" << std::endl;
+    std::string tmp;
+    std::getline(std::cin, tmp);
+}
+
 int main() {
     std::cout << fmt::format("[WaterProfile v{}.{}.{}]",
         WATER_PROFILE_VERSION_MAJOR,
@@ -57,7 +101,13 @@ int main() {
 
     std::unique_ptr<sphfio::SPHFIO> sphfio;
     try {
-        sphfio = std::make_unique<sphfio::SPHFIO>();
+        auto experiment_dir = sphfio::CLI({
+            sphfio::ExperimentDirectory::Property::have_data,
+            sphfio::ExperimentDirectory::Property::have_simulation_params,
+            sphfio::ExperimentDirectory::Property::dimensions_2D
+            });
+
+        sphfio = std::make_unique<sphfio::SPHFIO>(experiment_dir);
     }
     catch (const std::exception& ex) {
         std::cerr << ex.what() << std::endl;
@@ -73,9 +123,7 @@ int main() {
     auto params = sphfio->getParams();
 
     for (;;) {
-        std::cout << "Press [enter] to load testing params and compute (dir/HeightTestingParams.json)" << std::endl;
-        std::string tmp;
-        std::getline(std::cin, tmp);
+        show_prompt();
 
         HeightTestingParams::Ptr testing_params;
         try {
@@ -88,37 +136,10 @@ int main() {
             continue;
         }
 
-        HeightTesting testing{ grid, params, testing_params->particles_type };
-
-        auto& mode = testing_params->mode;
-        if (mode == "time") {
-            auto time_testing_params = std::static_pointer_cast<TimeTestingParams>(testing_params);
-            for (double x : time_testing_params->x) {
-                auto result = testing.timeProfile(x, time_testing_params->search_n);
-                auto output_path = analysis_directory / fmt::format("time_at_{}{}.csv", x, testing_params->postfix);
-                print_water_height_time(output_path, 
-                    std::move(result), grid.time_points(),
-                    time_testing_params->t0, time_testing_params->t_k,
-                    time_testing_params->y0, time_testing_params->y_k);
-            }
-        }
-        else if (mode == "space") {
-            auto space_testing_params = std::static_pointer_cast<SpaceTestingParams>(testing_params);
-            for (double t : space_testing_params->t) {
-                auto result = testing.spaceProfile(t, space_testing_params->search_n);
-                auto output_path = analysis_directory / fmt::format("space_at_{}{}.csv", t, testing_params->postfix);
-                print_water_height_space(output_path, std::move(result),
-                    space_testing_params->x0, space_testing_params->x_k,
-                    space_testing_params->y0, space_testing_params->y_k,
-                    params->x_mingeom, params->delta);
-            }
-        }
-        else {
-            std::cout << "can't choose mode" << std::endl;
-            std::cout << "mode was: " << mode << std::endl;
-        }
-
-        std::cout << std::endl;
+        water_profile(grid,
+            params,
+            testing_params,
+            analysis_directory);
     }
 
     return 0;

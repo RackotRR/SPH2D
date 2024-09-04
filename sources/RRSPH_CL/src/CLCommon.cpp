@@ -21,7 +21,7 @@ cl::Program makeProgramFromSource(const std::string& source) {
     }
 
     auto cl_include_path = std::filesystem::current_path() / "cl";
-    std::string options = "-cl-std=CL1.2 -D KERNEL_INCLUDE -I " + cl_include_path.string();
+    std::string options = "-cl-std=CL1.2 -I " + cl_include_path.string();
     
     err = program.build(options.c_str());
     if (err != CL_SUCCESS) {

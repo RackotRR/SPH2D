@@ -21,6 +21,7 @@ target_compile_definitions(RRSPH_CL_SHARED PUBLIC CL_HPP_MINIMUM_OPENCL_VERSION=
 target_compile_definitions(RRSPH_CL_SHARED PUBLIC CL_TARGET_OPENCL_VERSION=120)
 target_compile_definitions(RRSPH_CL_SHARED PUBLIC RRSPH_CL)
 target_compile_definitions(RRSPH_CL_SHARED PUBLIC LOGGING_LEVEL=1)
+target_compile_definitions(RRSPH_CL_SHARED PUBLIC DO_ON_CPU)
 
 target_link_libraries(RRSPH_CL_SHARED PUBLIC 
     OpenCL::OpenCL

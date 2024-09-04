@@ -1,16 +1,30 @@
-#ifndef CL_SPH_ARTIFICIAL_VISCOSITY_H
-#define CL_SPH_ARTIFICIAL_VISCOSITY_H
+#pragma once
+#ifndef RRSPH_ARTIFICIAL_VISCOSITY_H
+#define RRSPH_ARTIFICIAL_VISCOSITY_H
 
+#if DO_ON_GPU
 #include "common.h"
+#else
+#include "CommonIncl.h"
+using std::max;
+#endif
 
-#if params_dt_correction_method == DT_CORRECTION_DYNAMIC
-#define art_visc_dynamic_dt
+#if DO_ON_CPU
+#define params_hsml params.hsml
+#define params_eos_sound_vel params.eos_sound_vel
+#define params_artificial_viscosity_skf params.artificial_viscosity_skf
+#define params_artificial_shear_visc params.artificial_shear_visc
+#define params_artificial_bulk_visc params.artificial_bulk_visc
+#define params_dt_correction_method params.dt_correction_method
 #endif
 
 #define art_visc_etq 0.1f // const to avoid singularities
 #define art_visc_alpha params_artificial_shear_visc
 #define art_visc_beta params_artificial_bulk_visc
 
+#if DO_ON_CPU
+template<typename rr_floatn>
+#endif
 inline rr_floatn artificial_viscosity_part(
 	rr_floatn r_j,
 	rr_floatn r_i,
@@ -33,9 +47,9 @@ inline rr_floatn artificial_viscosity_part(
 		// calculate mu_ij = hsml v_ij * r_ij / (r_ij^2 + hsml^2 etq^2)
 		rr_float mu_ij = params_hsml * vr / (rr + sqr(params_hsml * art_visc_etq));
 
-#ifdef art_visc_dynamic_dt
-		*arvmu = max(*arvmu, fabs(mu_ij));
-#endif
+		if (params_dt_correction_method == DT_CORRECTION_DYNAMIC) {
+			*arvmu = max(*arvmu, fabs(mu_ij));
+		}
 
 		// calculate PIv_ij = (-alpha mu_ij c_ij + beta mu_ij^2) / rho_ij
 		rr_float rho_ij = 0.5f * (rho_i + rho_j);

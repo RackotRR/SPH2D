@@ -4,7 +4,6 @@
 #include <memory>
 
 #include <Params.h>
-#include "GridUtils.h"
 #include <RR/Logger/Logger.h>
 #include <RR/Memory/HeapArray.h> 
 #include <RR/Memory/HeapDArray.h>

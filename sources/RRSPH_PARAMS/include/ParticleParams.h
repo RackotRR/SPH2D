@@ -9,18 +9,18 @@ using opt_bool = std::optional<bool>;
 struct ParticleParams {
     static constexpr const char* filename = "ParticleParams.json";
 
-    rr_uint dim;
+    rr_uint dim{ 2 };
 
-    rr_float x_mingeom;
-    rr_float x_maxgeom;
-    rr_float y_mingeom;
-    rr_float y_maxgeom;
-    rr_float z_mingeom;
-    rr_float z_maxgeom;
+    rr_float x_mingeom{};
+    rr_float x_maxgeom{};
+    rr_float y_mingeom{};
+    rr_float y_maxgeom{};
+    rr_float z_mingeom{};
+    rr_float z_maxgeom{};
 
-    rr_uint ntotal;
-    rr_uint nfluid;
-    rr_uint nvirt;
+    rr_uint ntotal{};
+    rr_uint nfluid{};
+    rr_uint nvirt{};
 
     rr_uint x_fluid_particles{};
     rr_uint y_fluid_particles{};
@@ -48,15 +48,15 @@ struct ParticleParams {
     rr_float z_boundary_near{};
     rr_float z_boundary_far{};
 
-    rr_float delta;
+    rr_float delta{};
     rr_float boundary_delta{};
     rr_float boundary_separation{};
 
-    rr_float rho0;
-    rr_float mass;
-    rr_uint nwm_particles_start;
-    rr_uint nwm_particles_end;
-    opt_float depth;
+    rr_float rho0{};
+    rr_float mass{};
+    rr_uint nwm_particles_start{};
+    rr_uint nwm_particles_end{};
+    opt_float depth{};
 
-    bool use_chess_order;
+    bool use_chess_order{};
 };

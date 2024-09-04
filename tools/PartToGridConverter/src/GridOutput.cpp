@@ -6,7 +6,7 @@
 #include "GridOutput.h"
 
 void printGridParams(const std::filesystem::path& path,
-    sphfio::Square square,
+    sphfio::ParamsPtr params,
     double delta)
 {
     nlohmann::json json;

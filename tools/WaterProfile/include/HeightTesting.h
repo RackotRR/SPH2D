@@ -24,6 +24,7 @@ public:
 
     double maxInLayer(const TimeLayer& layer, double x, double search_n) {
         double search_radius = search_n * params->hsml;
+        const auto& r = layer.r_var.get_flt2();
 
         std::vector<double> max_values;
 #pragma omp critical 
@@ -38,8 +39,8 @@ public:
             for (int i = 0; i < layer.ntotal; ++i) {
                 // don't check particle type if optional is not set
                 if (!particles_type || layer.itype(i) == particles_type.value()) {
-                    double current_x = layer.r(i).x;
-                    double current_y = layer.r(i).y;
+                    double current_x = r(i).x;
+                    double current_y = r(i).y;
 
                     if (std::fabs(current_x - x) < search_radius) {
                         max_values[thread] = std::max(max_values[thread], current_y);

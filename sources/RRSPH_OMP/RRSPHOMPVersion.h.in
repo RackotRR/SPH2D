@@ -17,7 +17,7 @@
 //       - crash dump is separate function
 // 1.1.2 - don't allow particles go outside geometry (CONSISTENCY_FIX)
 // 1.1.3 - greater SBT_REPULSIVE distance
-// 1.2.0 - new output manager (SPH2DOutput)
+// 1.2.0 - new output manager (RRSPHOutput)
 //       - remove starttimestep param
 //       - remove maxtimestep param
 // 1.2.1 - fix timestep didn't increment

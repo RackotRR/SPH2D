@@ -39,7 +39,7 @@ __kernel void update_acceleration(
 
 		a_temp += external_force_part(
 			dist_ij,
-			r[j], r[j],
+			r[j], r[i],
 			itype[j], itype[i]);
 		
 		a_temp += find_internal_changes_part(

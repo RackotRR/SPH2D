@@ -1,6 +1,9 @@
 #ifndef CL_SPH_COMMON_H
 #define CL_SPH_COMMON_H
 
+#define DO_ON_GPU 1
+#define DO_ON_CPU 0
+
 #include "clparams.h"
 #include "ParamsEnumeration.h"
 

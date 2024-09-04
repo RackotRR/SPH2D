@@ -22,3 +22,5 @@ target_link_libraries(RRSPH_COMMON PUBLIC
     RR
     fmt::fmt
 )
+target_compile_definitions(RRSPH_COMMON PUBLIC DO_ON_CPU=1)
+target_compile_definitions(RRSPH_COMMON PUBLIC DO_ON_GPU=0)

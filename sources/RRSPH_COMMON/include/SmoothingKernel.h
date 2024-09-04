@@ -3,7 +3,7 @@
 #define RRSPH_SMOOTHING_KERNEL_H
 
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 #define params_hsml params.hsml
 #define params_pi params.pi
 #endif
@@ -18,7 +18,7 @@ inline rr_float get_kernel_q(rr_float dist) {
 //
 #define cubic_factor2 (15.f / (7.f * params_pi * sqr(params_hsml)))
 #define cubic_factor3 (3.f / (2.f * params_pi * cube(params_hsml)))
-#ifdef KERNEL_INCLUDE
+#if DO_ON_GPU
 #if params_dim == 3
 #define cubic_factor() cubic_factor3
 #else
@@ -35,7 +35,7 @@ inline rr_float cubic_kernel_q1(rr_float q) {
     return cubic_factor() * (2.f / 3.f - sqr(q) + cube(q) * 0.5f);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn cubic_kernel_q1_grad(rr_float q, rr_floatn diff) {
@@ -46,7 +46,7 @@ inline rr_float cubic_kernel_q2(rr_float q) {
     return cubic_factor() * (1.f / 6.f * cube(2.f - q));
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn cubic_kernel_q2_grad(rr_float q, rr_float dist, rr_floatn diff) {
@@ -66,7 +66,7 @@ inline rr_float cubic_kernel_w(rr_float dist) {
 	}
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn cubic_kernel_dwdr(rr_float dist, rr_floatn diff) {
@@ -89,7 +89,7 @@ inline rr_floatn cubic_kernel_dwdr(rr_float dist, rr_floatn diff) {
 //
 #define gauss_factor2 (1.f / (params_pi * sqr(params_hsml)))
 #define gauss_factor3 (1.f / (params_pi * sqrt(params_pi) * cube(params_hsml)))
-#ifdef KERNEL_INCLUDE
+#if DO_ON_GPU
 #if params_dim == 3
 #define gauss_factor() gauss_factor3
 #else
@@ -106,7 +106,7 @@ inline rr_float gauss_kernel_q3(rr_float q) {
 	return gauss_factor() * exp(-q * q);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn gauss_kernel_q3_grad(rr_float gauss_w, rr_floatn diff) {
@@ -118,7 +118,7 @@ inline rr_float gauss_kernel_w(rr_float dist) {
 	return gauss_kernel_q3(q);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn gauss_kernel_dwdr(rr_float dist, rr_floatn diff) {
@@ -132,7 +132,7 @@ inline rr_floatn gauss_kernel_dwdr(rr_float dist, rr_floatn diff) {
 //
 #define wendland_factor2 (7.f / (4.f * params_pi * sqr(params_hsml)))
 #define wendland_factor3 (21.f / (16.f * params_pi * cube(params_hsml)))
-#ifdef KERNEL_INCLUDE
+#if DO_ON_GPU
 #if params_dim == 3
 #define wendland_factor() wendland_factor3
 #else
@@ -149,7 +149,7 @@ inline rr_float wendland_kernel_q2(rr_float q) {
 	return wendland_factor() * powun(1.f - 0.5f * q, 4) * (2.f * q + 1.f);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn wendland_kernel_q2_grad(rr_float q, rr_float dist, rr_floatn diff) {
@@ -167,7 +167,7 @@ inline rr_float wendland_kernel_w(rr_float dist) {
 	}
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn wendland_kernel_dwdr(rr_float dist, rr_floatn diff) {
@@ -187,7 +187,7 @@ inline rr_floatn wendland_kernel_dwdr(rr_float dist, rr_floatn diff) {
 //
 #define desbrun_factor2 (5.f / (16.f * params_pi * sqr(params_hsml)))
 #define desbrun_factor3 (15.f / (params_pi * cube(4 * params_hsml)))
-#ifdef KERNEL_INCLUDE
+#if DO_ON_GPU
 #if params_dim == 3
 #define desbrun_factor() desbrun_factor3
 #else
@@ -204,7 +204,7 @@ inline rr_float desbrun_kernel_q2(rr_float q) {
 	return desbrun_factor() * cube(2.f - q);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn desbrun_kernel_q2_grad(rr_float q, rr_float dist, rr_floatn diff) {
@@ -221,7 +221,7 @@ inline rr_float desbrun_kernel_w(rr_float dist) {
 	}
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn desbrun_kernel_dwdr(rr_float dist, rr_floatn diff) {
@@ -235,10 +235,6 @@ inline rr_floatn desbrun_kernel_dwdr(rr_float dist, rr_floatn diff) {
 }
 #pragma endregion
 
-
-#ifndef KERNEL_INCLUDE
-template<typename rr_floatn>
-#endif
 inline rr_float smoothing_kernel_w(rr_float dist, rr_uint skf) {
 	switch (skf) {
 	case 1: return cubic_kernel_w(dist);
@@ -249,7 +245,7 @@ inline rr_float smoothing_kernel_w(rr_float dist, rr_uint skf) {
 	}
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_float smoothing_kernel_w_by_coord(rr_floatn rj, rr_floatn ri, rr_uint skf) {
@@ -258,7 +254,7 @@ inline rr_float smoothing_kernel_w_by_coord(rr_floatn rj, rr_floatn ri, rr_uint 
 	return smoothing_kernel_w(dist, skf);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn smoothing_kernel_dwdr(rr_float dist, rr_floatn diff, rr_uint skf) {
@@ -271,7 +267,7 @@ inline rr_floatn smoothing_kernel_dwdr(rr_float dist, rr_floatn diff, rr_uint sk
 	}
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 template<typename rr_floatn>
 #endif
 inline rr_floatn smoothing_kernel_dwdr_by_coord(rr_floatn rj, rr_floatn ri, rr_uint skf) {
@@ -280,7 +276,7 @@ inline rr_floatn smoothing_kernel_dwdr_by_coord(rr_floatn rj, rr_floatn ri, rr_u
 	return smoothing_kernel_dwdr(dist, diff, skf);
 }
 
-#ifndef KERNEL_INCLUDE
+#if DO_ON_CPU
 #undef params_hsml
 #undef params_pi
 #endif

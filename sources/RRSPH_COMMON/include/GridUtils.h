@@ -1,11 +1,11 @@
 #pragma once
-#ifndef SPH2D_GRID_UTILS_H
-#define SPH2D_GRID_UTILS_H
+#ifndef RRSPH_GRID_UTILS_H
+#define RRSPH_GRID_UTILS_H
 
 #define maxu(a, b) ((a) > (b) ? (a) : (b))
 #define minu(a, b) ((a) < (b) ? (a) : (b))
 
-#ifdef KERNEL_INCLUDE
+#if DO_ON_GPU
 
 #define grid_cell_size_value (params_cell_scale_k * params_hsml)
 #define GRID_INVALID_CELL UINT_MAX
@@ -16,7 +16,7 @@
 #define neighbour_cells_count 9
 #endif
 
-#else
+#elif DO_ON_CPU
 
 #include <climits>
 #include "Params.h"
@@ -38,7 +38,10 @@ inline rr_float grid_cell_size() {
 #define params_x_mingeom params.x_mingeom
 #define params_y_mingeom params.y_mingeom
 #define params_z_mingeom params.z_mingeom
-#endif // KERNEL_INCLUDE
+
+#else
+#error undefined RRSPH Simulator
+#endif
 
 // Modified 32 bit version of 3D Morton code from Libmorton (https://github.com/Forceflow/libmorton)
 #pragma region 3D_MORTON_CURVE
@@ -154,7 +157,7 @@ inline rr_uint3 get_cell_coord3(rr_uint idx) {
     return m3D_d_magicbits(idx);
 }
 
-inline rr_uint get_shifted_coord(rr_uint base, rr_uint shift) {
+inline rr_uint get_shifted_coord(rr_uint base, rr_int shift) {
     switch (shift) {
     case -1:return minu(base, base - 1);
     case 1: return maxu(base, base + 1);
@@ -221,4 +224,4 @@ inline void get_neighbouring_cells3(rr_uint idx, rr_uint* cells) {
     }
 }
 
-#endif // !SPH2D_GRID_UTILS_H
+#endif // !RRSPH_GRID_UTILS_H

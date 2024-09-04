@@ -1,7 +1,7 @@
 #include "common.h"
-#include "EOS.cl"
+#include "EOS.h"
 
-__kernel void sum_density(
+__kernel void density_sum(
     __global const rr_floatn* r,
     __global const rr_uint* neighbours,
 
@@ -24,10 +24,10 @@ __kernel void sum_density(
     }
 
     rho[j] = rho_temp;
-    p[j] = p_art_water(rho[j]);
+    p[j] = eos_art_p(rho[j]);
 }
 
-__kernel void con_density(
+__kernel void density_con(
     __global const rr_floatn* r,
     __global const rr_floatn* v,
     __global const rr_uint* neighbours,
@@ -47,7 +47,7 @@ __kernel void con_density(
         ++n) 
     {
         rr_floatn r_ab = r[j] - r[i];
-        rr_floatn dwdr = smoothing_kernel_w_by_coord(r[j], r[i], params_density_skf);
+        rr_floatn dwdr = smoothing_kernel_dwdr_by_coord(r[j], r[i], params_density_skf);
         rr_floatn dvx = v[i] - v[j];
         rr_float vcc = dot(dvx, dwdr);
         drho_temp += params_mass * vcc;
@@ -61,5 +61,5 @@ __kernel void con_density(
     }
 
     drho[j] = drho_temp;
-    p[j] = p_art_water(rho[j]);
+    p[j] = eos_art_p(rho[j]);
 }

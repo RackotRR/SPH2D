@@ -22,6 +22,10 @@ void check_optional_params(const ModelParams& model_params) {
         throw_not_implemented(visc);
     }
 
+    if (model_params.density_normalization) {
+        throw_not_implemented(density_normalization);
+    }
+
     switch (model_params.eos_sound_vel_method) {
     case EOS_SOUND_VEL_SPECIFIC:
         need_param(eos_sound_vel);

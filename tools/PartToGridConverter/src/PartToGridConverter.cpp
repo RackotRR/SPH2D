@@ -13,10 +13,11 @@
 #include "PartToGridConverter.h"
 #include "GridOutput.h"
 
+template<typename rr_floatn>
 static void findNeighboursForNode(
     const rr_uint nodes,
-    const heap_darray<rr_float2>& part_r,
-    const heap_darray<rr_float2>& nodes_r,
+    const heap_darray<rr_floatn>& part_r,
+    const heap_darray<rr_floatn>& nodes_r,
     const heap_darray<rr_uint>& grid,
     const heap_darray<rr_uint>& cell_starts_in_grid,
     heap_darray_md<rr_uint>& neighbours, // neighbours indices

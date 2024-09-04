@@ -34,6 +34,21 @@ namespace {
         return ExperimentDirectory::pic_gen_params_presented(experiment.dir);
     }
 
+    bool experiment_dir_check_dimensions(const ExperimentDirectory& experiment, rr_uint target_dim) {
+        if (!experiment.particle_params_presented(experiment.dir)) {
+            return false;
+        }
+
+        auto particle_params = load_particle_params(experiment.dir);
+        return particle_params.dim == target_dim;
+    }
+    bool experiment_dir_dimensions_2D(const ExperimentDirectory& experiment) {
+        return experiment_dir_check_dimensions(experiment, 2);
+    }
+    bool experiment_dir_dimensions_3D(const ExperimentDirectory& experiment) {
+        return experiment_dir_check_dimensions(experiment, 3);
+    }
+
     const std::unordered_map<ExperimentDirectory::Property, bool(*)(const ExperimentDirectory&)> properties_check = {
         { ExperimentDirectory::Property::have_data, ::experiment_dir_have_data },
         { ExperimentDirectory::Property::have_dump, ::experiment_dir_have_dump },
@@ -42,6 +57,8 @@ namespace {
         { ExperimentDirectory::Property::have_particle_params, ::experiment_dir_have_particle_params },
         { ExperimentDirectory::Property::have_simulation_params, ::experiment_dir_have_simulation_params },
         { ExperimentDirectory::Property::have_pic_gen_params, ::experiment_dir_have_pic_gen_params },
+        { ExperimentDirectory::Property::dimensions_2D, ::experiment_dir_dimensions_2D },
+        { ExperimentDirectory::Property::dimensions_3D, ::experiment_dir_dimensions_3D },
     };
 }
 
@@ -83,6 +100,13 @@ bool ExperimentDirectory::any_param_file_presented(const std::filesystem::path& 
 void ExperimentDirectory::remove_layers_after_time(rr_float time) {
     data_layers->remove_after_time(time);
     dump_layers->remove_after_time(time);
+}
+
+ExperimentDirectory::ExperimentDirectory()
+    : dir{}
+{
+    data_layers = std::make_shared<ExperimentLayers>();
+    dump_layers = std::make_shared<ExperimentLayers>();
 }
 
 ExperimentDirectory::ExperimentDirectory(std::filesystem::path experiment_directory) 

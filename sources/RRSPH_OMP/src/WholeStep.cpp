@@ -1,13 +1,13 @@
 #include "WholeStep.h"
 #include "Density.h"
 
-inline bool is_point_within_geometry(const rr_float2& point) {
+static inline bool is_point_within_geometry(const rr_float2& point) {
 	return point.x < params.x_maxgeom &&
 		point.x > params.x_mingeom &&
 		point.y < params.y_maxgeom &&
 		point.y > params.y_mingeom;
 }
-inline bool is_point_within_geometry(const rr_float3& point) {
+static inline bool is_point_within_geometry(const rr_float3& point) {
 	return point.x < params.x_maxgeom &&
 		point.x > params.x_mingeom &&
 		point.y < params.y_maxgeom &&
@@ -18,7 +18,6 @@ inline bool is_point_within_geometry(const rr_float3& point) {
 
 template<typename rr_floatn>
 void whole_step(
-	const rr_uint ntotal,
 	const rr_uint timestep,
 	const heap_darray<rr_float>& drho,	// density change
 	const heap_darray<rr_floatn>& a,	// acceleration
@@ -33,7 +32,7 @@ void whole_step(
 	rr_float r_dt = params.dt;
 	rr_float v_dt = timestep ? params.dt : params.dt * 0.5f;
 
-	for (rr_uint i = 0; i < ntotal; i++) {
+	for (rr_uint i = 0; i < params.ntotal; i++) {
 		if (density_is_using_continuity()) {
 			rho(i) = rho(i) + drho(i) * v_dt;
 		}
@@ -46,7 +45,7 @@ void whole_step(
 			}
 
 			if (params.consistency_treatment == CONSISTENCY_FIX) {
-				rr_float2 new_r = r(i) + v(i) * r_dt;
+				rr_floatn new_r = r(i) + v(i) * r_dt;
 				if (is_point_within_geometry(new_r)) {
 					r(i) = new_r;
 				}
@@ -62,7 +61,6 @@ void whole_step(
 }
 
 void whole_step(
-	const rr_uint ntotal,
 	const rr_uint timestep,
 	const heap_darray<rr_float>& drho,	// density change
 	const vheap_darray_floatn& a_var,	// acceleration
@@ -78,14 +76,14 @@ void whole_step(
 		auto& v = v_var.get_flt2();
 		const auto& a = a_var.get_flt2();
 		const auto& av = av_var.get_flt2();
-		whole_step(ntotal, timestep, drho, a, av, itype, rho, v, r);
+		whole_step(timestep, drho, a, av, itype, rho, v, r);
 	}
 	else if (params.dim == 3) {
 		auto& r = r_var.get_flt3();
 		auto& v = v_var.get_flt3();
 		const auto& a = a_var.get_flt3();
 		const auto& av = av_var.get_flt3();
-		whole_step(ntotal, timestep, drho, a, av, itype, rho, v, r);
+		whole_step(timestep, drho, a, av, itype, rho, v, r);
 	}
 	else {
 		assert(0);

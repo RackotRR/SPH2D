@@ -7,7 +7,6 @@ add_library(RRSPH_FIO
   "src/RRSPHFIO_CLI.cpp" 
   "src/LazyGrid.cpp" 
   "src/TimeLayer.cpp" 
-  "src/Square.cpp" 
   "src/Directories.cpp" 
   "src/Grid.cpp"
   "src/ExperimentLayers.cpp"

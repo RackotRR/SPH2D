@@ -2,7 +2,6 @@
 #include "CommonIncl.h"
 
 void predict_half_step(
-	const rr_uint ntotal,
 	const heap_darray<rr_int>& itype, // material type 
 	const heap_darray<rr_float>& rho, // density
 	const heap_darray<rr_float>& drho,	// density change

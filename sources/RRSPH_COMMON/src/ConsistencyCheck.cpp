@@ -59,11 +59,11 @@ void consistency_check_error(
 	message += fmt::format("\t k: {}\n", k);
 	message += fmt::format("\t total_error_particles: {}", err_particles_count);
 
+	printlog(message)();
 	if (params.consistency_treatment == CONSISTENCY_STOP) {
 		throw std::runtime_error{ message };
 	}
 	else {
-		printlog(message)();
 		std::cerr << what << std::endl;
 	}
 }

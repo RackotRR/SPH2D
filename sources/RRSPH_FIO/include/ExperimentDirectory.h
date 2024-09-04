@@ -23,11 +23,13 @@ namespace sphfio {
             have_particle_params,
             have_simulation_params,
             have_pic_gen_params,
-            have_loading_params
+            have_loading_params,
+            dimensions_2D, // have particle params with dim = 2
+            dimensions_3D, // have particle params with dim = 3
         };
         using properties_t = std::vector<Property>;
     public:
-        ExperimentDirectory() = default;
+        ExperimentDirectory();
         ExperimentDirectory(std::filesystem::path directory);
 
         bool can_be_used_to_start_from() const;

@@ -3,13 +3,7 @@ project(RRSPH_OMP VERSION 1.4.0)
 configure_file(RRSPHOMPVersion.h.in "${PROJECT_SOURCE_DIR}/include/RRSPHOMPVersion.h")
 
 add_library(RRSPH_OMP_SHARED     
-    src/ArtificialViscosity.cpp
-    src/AverageVelocity.cpp
-    src/Density.cpp
-    src/ExternalForce.cpp
     src/GridFind.cpp
-    src/InternalForce.cpp
-    src/Kernel.cpp
     src/UpdateAcceleration.cpp
     src/TimeIntegration.cpp
     src/PredictHalfStep.cpp
@@ -19,6 +13,8 @@ add_library(RRSPH_OMP_SHARED
 target_include_directories(RRSPH_OMP_SHARED PUBLIC include)
 target_compile_definitions(RRSPH_OMP_SHARED PUBLIC RRSPH_OMP)
 target_compile_definitions(RRSPH_OMP_SHARED PUBLIC LOGGING_LEVEL=2)
+target_compile_definitions(RRSPH_OMP_SHARED PUBLIC DO_ON_CPU=1)
+target_compile_definitions(RRSPH_OMP_SHARED PUBLIC DO_ON_GPU=0)
 target_link_libraries(RRSPH_OMP_SHARED PUBLIC
     RR
     RRSPH_PARAMS

@@ -5,6 +5,7 @@
 #include "Params.h"
 
 #include "ExperimentDirectory.h"
+#include "ExperimentDirectories.h"
 
 #include "Grid.h"
 #include "Directories.h"
@@ -13,22 +14,54 @@ namespace sphfio {
 
 	struct Square {
 		Square() = default;
-		Square(const ParamsPtr& params);
+		Square(const ParamsPtr& params) : 
+			origin{ 
+				params->x_mingeom,
+				params->y_mingeom,
+				params->z_mingeom, // equals 0 in 2D
+			},
+			size{
+				params->x_maxgeom - params->x_mingeom,
+				params->y_maxgeom - params->y_mingeom,
+				params->z_maxgeom - params->z_mingeom, // equals 0 in 2D
+			}
+		{
+		}
 
-		bool contains(rr_float x, rr_float y) const;
-		bool contains(rr_float2 r) const;
+		inline bool contains2D(const rr_float2& r) const {
+			return origin.x >= r.x && origin.x + size.x >= r.x &&
+				origin.y >= r.y && origin.y + size.y >= r.y;
+		}
+		inline bool contains3D(const rr_float3& r) const {
+			return contains2D({r.x, r.y}) && 
+				origin.z >= r.z && origin.z + size.z >= r.z;
+		}
 
-		rr_float origin_x;
-		rr_float origin_y;
-		rr_float size_x;
-		rr_float size_y;
+		template<typename rr_floatn>
+		bool contains(rr_floatn r) const {
+			if constexpr (is_using_float3<rr_floatn>()) {
+				return contains3D(r);
+			}
+			else {
+				return contains2D(r);
+			}
+		}
+
+		rr_float3 origin{};
+		rr_float3 size{};
 	};
 
+	/**
+	 * @brief user interface for ExperimentDirectory selection with specific properties
+	*/
+	ExperimentDirectory::Ptr CLI(
+		const ExperimentDirectory::properties_t& properties,
+		std::filesystem::path experiments_directory = std::filesystem::current_path());
 
 	class SPHFIO {
 	public:
 		/**
-		 * @brief user interface for ExperimentDirectory selection
+		 * @brief user interface for ExperimentDirectory selection with default settings
 		*/
 		SPHFIO();
 
