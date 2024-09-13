@@ -54,7 +54,28 @@ public:
 		shared_darray<rr_float> p,
 		rr_uint itimestep,
 		rr_float time);
+
+	static void print(
+		shared_vheap_darray_floatn r,
+		shared_darray<rr_int> itype,
+		shared_vheap_darray_floatn v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		const std::filesystem::path& path);
+	static void print_dump(
+		shared_vheap_darray_floatn r,
+		shared_darray<rr_int> itype,
+		shared_vheap_darray_floatn v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		const std::filesystem::path& path);
 private:
+	static std::vector<std::string> make_csv_header(
+		bool r,
+		bool itype,
+		bool v,
+		bool rho,
+		bool p);
 	RRSPHOutput() = default;
 	RRSPHOutput(const RRSPHOutput&) = delete;
 	RRSPHOutput& operator=(const RRSPHOutput&) = delete;
