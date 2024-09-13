@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_CL VERSION 1.3.2)
+project(SPH2D_CL VERSION 1.3.3)
 configure_file(SPH2DCLVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DCLVersion.h")
 
 # OpenCL

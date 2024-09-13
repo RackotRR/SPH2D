@@ -177,7 +177,7 @@ void SPH2DOutput::dump(
 
 	std::string t = format_save_time(time, params.dump_time);
 	thread_pool.add_thread(
-		std::thread(&SPH2DOutput::print_dump, this,
+		std::thread(&SPH2DOutput::print_dump,
 			r,
 			itype,
 			v,
@@ -207,7 +207,7 @@ void SPH2DOutput::crash_dump(
 
 	std::string t = format_time_digits(time, save_time_decimal_digits);
 	thread_pool.add_thread(
-		std::thread(&SPH2DOutput::print_dump, this,
+		std::thread(&SPH2DOutput::print_dump,
 			r,
 			itype,
 			v,
@@ -237,7 +237,7 @@ void SPH2DOutput::output(
 
 	std::string t = format_time_digits(time, save_time_decimal_digits);
 	thread_pool.add_thread(
-		std::thread(&SPH2DOutput::print, this,
+		std::thread(&SPH2DOutput::print,
 			r,
 			itype,
 			v,

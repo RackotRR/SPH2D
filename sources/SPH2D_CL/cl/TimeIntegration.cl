@@ -86,9 +86,7 @@ __kernel void predict_half_step(
 	rho_predict[i] = rho[i] + drho[i] * dt * 0.5f;
 #endif
 
-	if (itype[i] > 0) {
-		v_predict[i] = v[i] + a[i] * dt * 0.5f;
-	}
+	v_predict[i] = v[i] + a[i] * dt * 0.5f;
 }
 
 static bool is_point_within_geometry(rr_float2 point) {

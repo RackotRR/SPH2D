@@ -38,3 +38,4 @@
 //       - fix average_velocity impact from boundaries
 //       - fix never ending simulations (dt -> 0)
 //       - add artificial pressure support
+// 1.3.3 - fix continuity density doesn't affect boundary particles

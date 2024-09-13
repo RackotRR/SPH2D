@@ -34,9 +34,7 @@ void predict_half_step(
 			rho_predict(i) = rho(i) + drho(i) * params.dt * 0.5f;
 		}
 
-		if (itype(i) > 0) {
-			v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
-		}
+		v_predict(i) = v(i) + a(i) * params.dt * 0.5f;
 	}
 }
 

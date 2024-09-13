@@ -54,27 +54,28 @@ public:
 		shared_darray<rr_float> p,
 		rr_uint itimestep,
 		rr_float time);
+
+	static void print(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		const std::filesystem::path& path);
+	static void print_dump(
+		shared_darray<rr_float2> r,
+		shared_darray<rr_int> itype,
+		shared_darray<rr_float2> v,
+		shared_darray<rr_float> rho,
+		shared_darray<rr_float> p,
+		const std::filesystem::path& path);
 private:
-	std::vector<std::string> make_csv_header(
+	static std::vector<std::string> make_csv_header(
 		bool r,
 		bool itype,
 		bool v,
 		bool rho,
 		bool p);
-	void print_dump(
-		shared_darray<rr_float2> r,
-		shared_darray<rr_int> itype,
-		shared_darray<rr_float2> v,
-		shared_darray<rr_float> rho,
-		shared_darray<rr_float> p,
-		const std::filesystem::path& path);
-	void print(
-		shared_darray<rr_float2> r,
-		shared_darray<rr_int> itype,
-		shared_darray<rr_float2> v,
-		shared_darray<rr_float> rho,
-		shared_darray<rr_float> p,
-		const std::filesystem::path& path);
 
 	SPH2DOutput() = default;
 	SPH2DOutput(const SPH2DOutput&) = delete;

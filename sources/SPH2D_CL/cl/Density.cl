@@ -76,7 +76,7 @@ __kernel void con_density(
 
     drho[j] = drho_temp;
 
-#if params_density_skf == DENSITY_CONTINUITY_DELTA
+#if params_density_treatment == DENSITY_CONTINUITY_DELTA
     con_delta_density(j,
     r,
     neighbours,

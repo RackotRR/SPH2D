@@ -227,6 +227,7 @@
 //        - SPH2D_COMMON: move experiment and layers selection into SPH2D_PARAMS
 //        - SPH2D_COMMON: fix saving first time layer as 0.0 second of simulation
 //        - SPH2D_COMMON: fix first time layer rewriting
+// 3.0.15 - SPH2D: fix continuity density doesn't affect boundary particles
 // TODO:
 // 3.1.0  - RRSPH2D: move SPH2D_FIO2 into subproject RRSPHFIO
 //        - RRSPH2D: move filesystem features from SPH2D_PARAMS into RRSPHFIO
