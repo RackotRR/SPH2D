@@ -45,6 +45,9 @@
 // 1.2.8 - move experiment and layers selection into SPH2D_PARAMS
 //       - fix saving first time layer as 0.0 second of simulation
 //       - fix first time layer rewriting
+// 1.2.9 - add unit tests for EOS, GridUtils and SmoothingKernel modules
+//       - fix neighbouring search in boundary situations
+//       - fix wendland and desbrun kernel gradient on zero distance
 // TODO:
 // 1.2 - add confirmation for deletion (suffix 'f' to skip confirmation)
 //     - add experiment copy at dump (suffix 'c' to copy dump and params into another directory)

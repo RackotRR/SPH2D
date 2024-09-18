@@ -3,8 +3,11 @@
 #define SPH2D_SMOOTHING_KERNEL_H
 
 
-#ifndef KERNEL_INCLUDE
+#ifndef params_hsml
 #define params_hsml params.hsml
+#endif
+
+#ifndef params_pi
 #define params_pi params.pi
 #endif
 
@@ -40,7 +43,7 @@ inline rr_float cubic_kernel_w(rr_float dist) {
 	if (q <= 1) {
 		return cubic_kernel_q1(q);
 	}
-	else if (q <= 2) {
+	else if (q < 2) {
 		return cubic_kernel_q2(q);
 	}
 	else {
@@ -106,7 +109,7 @@ inline rr_float2 wendland_kernel_q2_grad(rr_float q, rr_float dist, rr_float2 di
 }
 inline rr_float wendland_kernel_w(rr_float dist) {
 	rr_float q = get_kernel_q(dist);
-	if (q <= 2) {
+	if (q < 2) {
 		return wendland_kernel_q2(q);
 	}
 	else {
@@ -115,7 +118,10 @@ inline rr_float wendland_kernel_w(rr_float dist) {
 }
 inline rr_float2 wendland_kernel_dwdr(rr_float dist, rr_float2 diff) {
 	rr_float q = get_kernel_q(dist);
-	if (q <= 2) {
+	if (q < 1.e-6f) { // division by zero threshold
+		return 0.f;
+	}
+	else if (q < 2) {
 		return wendland_kernel_q2_grad(q, dist, diff);
 	}
 	else {
@@ -151,17 +157,14 @@ inline rr_float desbrun_kernel_w(rr_float dist) {
 }
 inline rr_float2 desbrun_kernel_dwdr(rr_float dist, rr_float2 diff) {
 	rr_float q = get_kernel_q(dist);
-	if (q <= 2) {
+	if (q < 1.e-6f) { // division by zero threshold
+		return 0.f;
+	}
+	else if (q <= 2) {
 		return desbrun_kernel_q2_grad(q, dist, diff);
 	}
 	else {
 		return 0.f;
 	}
 }
-
-
-#ifndef KERNEL_INCLUDE
-#undef params_hsml
-#undef params_pi
-#endif
 #endif // !SPH2D_SMOOTHING_KERNEL_H

@@ -5,17 +5,17 @@
 #define maxu(a, b) ((a) > (b) ? (a) : (b))
 #define minu(a, b) ((a) < (b) ? (a) : (b))
 
+#define GRID_INVALID_CELL UINT_MAX
+#define GRID_MAX_CELL_COORD ((1 << 16) - 1)
+
 #ifdef KERNEL_INCLUDE
 
-#define grid_cell_size (params_cell_scale_k * params_hsml)
-#define GRID_INVALID_CELL UINT_MAX
+#define grid_cell_size() (params_cell_scale_k * params_hsml)
 
 #else
 
 #include <climits>
 #include "Params.h"
-
-constexpr rr_uint GRID_INVALID_CELL = UINT_MAX;
 
 inline rr_float grid_cell_size() {
     return params.cell_scale_k * params.hsml;
@@ -39,7 +39,7 @@ inline rr_uint get_cell_idx_by_cell_xy(rr_uint x, rr_uint y) {
 
 inline rr_uint get_cell_x_from_coordinate(rr_float x) {
 #ifdef KERNEL_INCLUDE
-    return (rr_uint)((x - params_x_mingeom) / grid_cell_size);
+    return (rr_uint)((x - params_x_mingeom) / grid_cell_size());
 #else 
     return (rr_uint)((x - params.x_mingeom) / grid_cell_size());
 #endif // KERNEL_INCLUDE
@@ -47,7 +47,7 @@ inline rr_uint get_cell_x_from_coordinate(rr_float x) {
 
 inline rr_uint get_cell_y_from_coordinate(rr_float y) {
 #ifdef KERNEL_INCLUDE
-    return (rr_uint)((y - params_y_mingeom) / grid_cell_size);
+    return (rr_uint)((y - params_y_mingeom) / grid_cell_size());
 #else 
     return (rr_uint)((y - params.y_mingeom) / grid_cell_size());
 #endif // KERNEL_INCLUDE
@@ -71,27 +71,65 @@ inline rr_uint get_cell_y(rr_uint idx) {
     return uninterleave_bits(idx >> 1);
 }
 
-inline void get_neighbouring_cells(rr_uint idx, rr_uint cells[9]) {
-    rr_uint x = get_cell_x(idx);
-    rr_uint y = get_cell_y(idx);
+inline rr_uint inc_cell_coord(rr_uint r) {
+    return r == GRID_MAX_CELL_COORD ? GRID_INVALID_CELL : r + 1;
+}
+inline rr_uint dec_cell_coord(rr_uint r) {
+    return r == 0 ? GRID_INVALID_CELL : r - 1;
+}
+inline rr_uint get_cell_idx_by_cell_xy_validated(rr_uint x, rr_uint y) {
+    if (x == GRID_INVALID_CELL || y == GRID_INVALID_CELL) {
+        return GRID_INVALID_CELL;
+    }
+    else {
+        return get_cell_idx_by_cell_xy(x, y);
+    }
+}
 
-    cells[0] = idx;
-    rr_uint top = get_cell_idx_by_cell_xy(x, maxu(y, y + 1));
-    cells[1] = (top == idx) ? GRID_INVALID_CELL : top;
-    rr_uint bottom = get_cell_idx_by_cell_xy(x, minu(y, y - 1));
-    cells[2] = (bottom == idx) ? GRID_INVALID_CELL : bottom;
-    rr_uint left = get_cell_idx_by_cell_xy(minu(x, x - 1), y);
-    cells[3] = (left == idx) ? GRID_INVALID_CELL : left;
-    rr_uint right = get_cell_idx_by_cell_xy(maxu(x, x + 1), y);
-    cells[4] = (right == idx) ? GRID_INVALID_CELL : right;
-    rr_uint top_left = get_cell_idx_by_cell_xy(minu(x, x - 1), maxu(y, y + 1));
-    cells[5] = (top_left == left || top_left == top || top_left == idx) ? GRID_INVALID_CELL : top_left;
-    rr_uint top_right = get_cell_idx_by_cell_xy(maxu(x, x + 1), maxu(y, y + 1));
-    cells[6] = (top_right == right || top_right == top || top_right == idx) ? GRID_INVALID_CELL : top_right;
-    rr_uint bottom_left = get_cell_idx_by_cell_xy(minu(x, x - 1), minu(y, y - 1));
-    cells[7] = (bottom_left == left || bottom_left == bottom || bottom_left == idx) ? GRID_INVALID_CELL : bottom_left;
-    rr_uint bottom_right = get_cell_idx_by_cell_xy(maxu(x, x + 1), minu(y, y - 1));
-    cells[8] = (bottom_right == right || bottom_right == bottom || bottom_right == idx) ? GRID_INVALID_CELL : bottom_right;
+inline void get_neighbouring_cells(rr_uint idx, rr_uint cells[9]) {
+    if (idx == GRID_INVALID_CELL) {
+        for (int i = 0; i < 9; ++i) {
+            cells[i] = GRID_INVALID_CELL;
+        }
+    }
+    else {
+        rr_uint x = get_cell_x(idx);
+        rr_uint y = get_cell_y(idx);
+
+        rr_uint x_inc = inc_cell_coord(x);
+        rr_uint y_inc = inc_cell_coord(y);
+        rr_uint x_dec = dec_cell_coord(x);
+        rr_uint y_dec = dec_cell_coord(y);
+
+        rr_uint i = 0;
+
+        // center
+        cells[i++] = idx;
+
+        // top
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x, y_inc);
+
+        // bottom
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x, y_dec);
+
+        // right
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x_inc, y);
+
+        // left
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x_dec, y);
+
+        // top right
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x_inc, y_inc);
+
+        // top left
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x_dec, y_inc);
+
+        // bottom right
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x_inc, y_dec);
+
+        // bottom left
+        cells[i++] = get_cell_idx_by_cell_xy_validated(x_dec, y_dec);
+    }
 }
 
 #endif // !SPH2D_GRID_UTILS_H
