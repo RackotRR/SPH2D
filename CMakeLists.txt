@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(RRSPH2D VERSION 3.0.16)
+project(RRSPH2D VERSION 3.0.17)
 configure_file(${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h.in ${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h)
 
 enable_testing()

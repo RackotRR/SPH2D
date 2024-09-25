@@ -1,22 +1,24 @@
 #include <gtest/gtest.h>
 
-#define params_hsml 1.2f
-#ifdef KERNEL_INCLUDE
-#define params_cell_scale_k 2
-#define params_x_mingeom 0.f
-#define params_y_mingeom 0.f
-#define params_pi 3.14159265358979323846f
-#endif
-
+// KERNEL params
+#include "Params.h"
+#define params_hsml params.hsml
+#define params_cell_scale_k params.cell_scale_k
+#define params_x_mingeom params.x_mingeom
+#define params_y_mingeom params.y_mingeom
+#define params_pi params.pi
 #include "testSPH.h"
 #include "SmoothingKernel.h"
 
 class TestSKF : public ::testing::Test {};
-static const rr_float hsml = params_hsml;
+static const rr_float hsml = 1.2;
 
 // values are cached, so fill these only
 static void init_params() {
     params.hsml = hsml;
+    params.cell_scale_k = 2;
+    params.x_mingeom = 0;
+    params.y_mingeom = 0;
 }
 
 TEST_F(TestSKF, kernel_q_values)

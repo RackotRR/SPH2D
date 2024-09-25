@@ -48,6 +48,8 @@
 // 1.2.9 - add unit tests for EOS, GridUtils and SmoothingKernel modules
 //       - fix neighbouring search in boundary situations
 //       - fix wendland and desbrun kernel gradient on zero distance
+// 1.2.10 - add unit tests for SPH2D_OMP and SPH2D_CL modules
+//        - fix infinite cycles on intlog2 function
 // TODO:
 // 1.2 - add confirmation for deletion (suffix 'f' to skip confirmation)
 //     - add experiment copy at dump (suffix 'c' to copy dump and params into another directory)

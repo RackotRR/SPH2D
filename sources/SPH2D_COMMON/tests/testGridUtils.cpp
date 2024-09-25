@@ -1,28 +1,36 @@
 #include <gtest/gtest.h>
 
-#define params_hsml 0.5f
-#define params_cell_scale_k 2
-#define params_x_mingeom 0.f
-#define params_y_mingeom 0.f
+// GridUtils params
+#include "Params.h"
+#define params_hsml params.hsml
+#define params_cell_scale_k params.cell_scale_k
+#define params_x_mingeom params.x_mingeom
+#define params_y_mingeom params.y_mingeom
+#define params_pi params.pi
 #include "testSPH.h"
 #include "GridUtils.h"
+
+#define test_params_hsml 0.5f
+#define test_params_cell_scale_k 2
+#define test_params_x_mingeom 0.f
+#define test_params_y_mingeom 0.f
 
 class TestGridUtils : public ::testing::Test {};
 
 TEST_F(TestGridUtils, cell_size)
 {
-    params.hsml = params_hsml;
-    params.cell_scale_k = params_cell_scale_k;
+    params.hsml = test_params_hsml;
+    params.cell_scale_k = test_params_cell_scale_k;
 
     EXPECT_FLOAT_EQ(params.hsml * params.cell_scale_k, grid_cell_size());
 }
 
 TEST_F(TestGridUtils, cell_coord_from_particle_coord)
 {
-    params.hsml = params_hsml;
-    params.cell_scale_k = params_cell_scale_k;
-    params.x_mingeom = params_x_mingeom;
-    params.y_mingeom = params_y_mingeom;
+    params.hsml = test_params_hsml;
+    params.cell_scale_k = test_params_cell_scale_k;
+    params.x_mingeom = test_params_x_mingeom;
+    params.y_mingeom = test_params_y_mingeom;
 
     // input coordination should be greater than params.x_mingeom
     EXPECT_EQ(get_cell_x_from_coordinate(0), 0);
@@ -103,10 +111,10 @@ TEST_F(TestGridUtils, cell_idx_from_cell_xy)
 
 TEST_F(TestGridUtils, cell_idx) 
 {
-    params.hsml = params_hsml;
-    params.cell_scale_k = params_cell_scale_k;
-    params.x_mingeom = params_x_mingeom;
-    params.y_mingeom = params_y_mingeom;
+    params.hsml = test_params_hsml;
+    params.cell_scale_k = test_params_cell_scale_k;
+    params.x_mingeom = test_params_x_mingeom;
+    params.y_mingeom = test_params_y_mingeom;
 
     EXPECT_EQ(get_cell_idx(rr_float2{ 41.f, 467.f }), 173643);
     EXPECT_EQ(get_cell_idx(rr_float2{ 334.f, 500.f }), 244340);
@@ -122,10 +130,10 @@ TEST_F(TestGridUtils, cell_idx)
 
 TEST_F(TestGridUtils, neighbouring_cells)
 {
-    params.hsml = params_hsml;
-    params.cell_scale_k = params_cell_scale_k;
-    params.x_mingeom = params_x_mingeom;
-    params.y_mingeom = params_y_mingeom;
+    params.hsml = test_params_hsml;
+    params.cell_scale_k = test_params_cell_scale_k;
+    params.x_mingeom = test_params_x_mingeom;
+    params.y_mingeom = test_params_y_mingeom;
 
     rr_float2 r;
     rr_uint cell_idx;

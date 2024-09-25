@@ -1,0 +1,14 @@
+{
+    "delta": 0.009999999776482582,
+    "depth": 2.0,
+    "nfluid": 20000,
+    "ntotal": 23030,
+    "nvirt": 3030,
+    "nwm_particles_end": 23030,
+    "nwm_particles_start": 23030,
+    "rho0": 1000.0,
+    "x_maxgeom": 4.5,
+    "x_mingeom": -1.0,
+    "y_maxgeom": 3.5,
+    "y_mingeom": -1.0
+}

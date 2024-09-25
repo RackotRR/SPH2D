@@ -41,12 +41,7 @@ static rr_float get_cell_scale_k(std::vector<rr_uint> skf) {
 	return *max;
 }
 
-rr_uint countCells(
-	rr_float hsml,
-	rr_float x_mingeom,
-	rr_float y_mingeom,
-	rr_float x_maxgeom,
-	rr_float y_maxgeom)
+static rr_uint countCells()
 {
 	rr_uint x_id = get_cell_x_from_coordinate(params.x_maxgeom);
 	rr_uint y_id = get_cell_x_from_coordinate(params.y_maxgeom);
@@ -83,12 +78,7 @@ void fillInSPH2DParams() {
 
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
 
-	params.max_cells = countCells(
-		params.hsml,
-		params.x_mingeom,
-		params.y_mingeom,
-		params.x_maxgeom,
-		params.y_maxgeom);
+	params.max_cells = countCells();
 
 	params.mass = params.rho0 * params.delta * params.delta;
 
@@ -181,6 +171,7 @@ void fileInput(
 	const std::filesystem::path& initial_dump_path,
 	const std::filesystem::path& experiment_directory)
 {
+	params.experiment_name = experiment_directory.stem().string();
 	SPH2DOutput::instance().initialize(experiment_directory);
 
 	auto particle_params = load_particle_params(experiment_directory);
@@ -188,7 +179,7 @@ void fileInput(
 	apply_particle_params(params, particle_params);
 	apply_model_params(params, model_params);
 	
-	printlog()("Experiment name: ")(experiment_directory.stem().string())();
+	printlog()("Experiment name: ")(params.experiment_name)();
 	printlog(fmt::format("SPH2D v{}.{}.{}", 
 		SPH2D_VERSION_MAJOR, 
 		SPH2D_VERSION_MINOR, 

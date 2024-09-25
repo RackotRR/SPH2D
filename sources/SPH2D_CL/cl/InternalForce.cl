@@ -102,7 +102,7 @@ __kernel void find_internal_changes_pij_d_rhoij(
         rr_float2 dwdri = intf_dwdr[at(n, j)];
 
         rr_float p_ij = p[i] + p[j];
-        rr_float rho_ij = rho[i] + rho[j];
+        rr_float rho_ij = rho[i] * rho[j];
         rr_float pressure_factor = p_ij / rho_ij;
 
 #ifdef params_artificial_pressure

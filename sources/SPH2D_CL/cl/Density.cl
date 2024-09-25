@@ -2,6 +2,7 @@
 #include "SmoothingKernel.cl"
 #include "EOS.cl"
 
+#if params_density_treatment == DENSITY_SUMMATION
 __kernel void sum_density(
     __global const rr_uint* neighbours,
     __global const rr_float* w,
@@ -24,7 +25,9 @@ __kernel void sum_density(
 
     rho[j] = rho_temp;
 }
+#endif
 
+#if params_density_treatment == DENSITY_CONTINUITY_DELTA
 inline void con_delta_density(
     rr_uint j,
     __global const rr_float2* r,
@@ -49,7 +52,9 @@ inline void con_delta_density(
 
     drho[j] += 2 * params_density_delta_sph_coef * params_hsml * eos_art_c * delta_rho * params_mass;
 }
+#endif
 
+#if (params_density_treatment == DENSITY_CONTINUITY) || (params_density_treatment == DENSITY_CONTINUITY_DELTA)
 __kernel void con_density(
     __global const rr_float2* r,
     __global const rr_float2* v,
@@ -85,3 +90,4 @@ __kernel void con_density(
     drho);
 #endif
 }
+#endif

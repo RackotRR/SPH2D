@@ -13,64 +13,39 @@
 
 namespace {
     RRKernel predict_half_step_kernel;
-    RRKernel find_neighbours_kernel;
-    RRKernel calculate_kernels_w_kernel;
-    RRKernel calculate_kernels_dwdr_kernel;
-    RRKernel sum_density_kernel;
-    RRKernel con_density_kernel;
-    RRKernel find_stress_tensor_kernel;
-    RRKernel update_internal_state_kernel;
-    RRKernel find_internal_changes_kernel;
-    RRKernel external_force_kernel;
-    RRKernel artificial_viscosity_kernel;
-    RRKernel average_velocity_kernel;
     RRKernel update_acceleration_kernel;
     RRKernel whole_step_kernel;
     RRKernel nwm_dynamic_boundaries_kernel;
     RRKernel nwm_disappear_wall_kernel;
-    RRKernel fill_in_grid_kernel;
-    RRKernel sort_kernel;
-    RRKernel binary_search_kernel;
     RRKernel dt_correction_optimize;
 
-    constexpr cl_mem_flags HOST_INPUT = CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY;
+    clProgramAdapter<decltype(&cl_grid_find)> grid_find_adapter;
+    clProgramAdapter<decltype(&cl_sum_density)> sum_density_adapter;
+    clProgramAdapter<decltype(&cl_con_density)> con_density_adapter;
+    clProgramAdapter<decltype(&cl_calculate_kernels)> skf_adapter;
+    clProgramAdapter<decltype(&cl_internal_force)> intf_adapter;
+    clProgramAdapter<decltype(&cl_external_force)> external_force_adapter;
+    clProgramAdapter<decltype(&cl_artificial_viscosity)> art_visc_adapter;
+    clProgramAdapter<decltype(&cl_average_velocity)> average_velocity_adapter;
+
     constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 }
 
 void makePrograms() {
     printlog()(__func__)();
 
-    cl::Program density_program = makeProgram("Density.cl");
-    cl::Program grid_find_program = makeProgram("GridFind.cl");
-    cl::Program internal_force_program = makeProgram("InternalForce.cl");
-    cl::Program external_force_program = makeProgram("ExternalForce.cl");
-    cl::Program artificial_viscosity_program = makeProgram("ArtificialViscosity.cl");
-    cl::Program average_velocity_program = makeProgram("AverageVelocity.cl");
+    grid_find_adapter = clProgramAdapter{ makeProgram("GridFind.cl"), cl_grid_find };
+    sum_density_adapter = clProgramAdapter{ makeProgram("Density.cl"), cl_sum_density };
+    con_density_adapter = clProgramAdapter{ makeProgram("Density.cl"), cl_con_density };
+    skf_adapter = clProgramAdapter{ makeProgram("SmoothingKernel.cl"), cl_calculate_kernels };
+    intf_adapter = clProgramAdapter{ makeProgram("InternalForce.cl"), cl_internal_force };
+    external_force_adapter = clProgramAdapter{ makeProgram("ExternalForce.cl"), cl_external_force };
+    art_visc_adapter = clProgramAdapter{ makeProgram("ArtificialViscosity.cl"), cl_artificial_viscosity };
+    average_velocity_adapter = clProgramAdapter{ makeProgram("AverageVelocity.cl"), cl_average_velocity };
+
     cl::Program time_integration_program = makeProgram("TimeIntegration.cl");
-    cl::Program smoothing_kernel_program = makeProgram("SmoothingKernel.cl");
 
     predict_half_step_kernel = RRKernel(time_integration_program, "predict_half_step");
-    calculate_kernels_w_kernel = RRKernel(smoothing_kernel_program, "calculate_kernels_w");
-    calculate_kernels_dwdr_kernel = RRKernel(smoothing_kernel_program, "calculate_kernels_dwdr");
-    fill_in_grid_kernel = RRKernel(grid_find_program, "fill_in_grid");
-    sort_kernel = RRKernel(grid_find_program, "bitonic_sort_step");
-    binary_search_kernel = RRKernel(grid_find_program, "binary_search");
-    find_neighbours_kernel = RRKernel(grid_find_program, "find_neighbours");
-    sum_density_kernel = RRKernel(density_program, "sum_density");
-    con_density_kernel = RRKernel(density_program, "con_density");
-    find_stress_tensor_kernel = RRKernel(internal_force_program, "find_stress_tensor");
-    update_internal_state_kernel = RRKernel(internal_force_program, "update_internal_state");
-
-    if (params.intf_sph_approximation == INTF_SPH_APPROXIMATION_1) {
-        find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pij_d_rhoij");
-    }
-    else {
-        find_internal_changes_kernel = RRKernel(internal_force_program, "find_internal_changes_pidrho2i_pjdrho2j");
-    }
-
-    external_force_kernel = RRKernel(external_force_program, "external_force");
-    artificial_viscosity_kernel = RRKernel(artificial_viscosity_program, "artificial_viscosity");
-    average_velocity_kernel = RRKernel(average_velocity_program, "average_velocity");
     update_acceleration_kernel = RRKernel(time_integration_program, "update_acceleration");
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
@@ -149,11 +124,17 @@ static shared_darray<T> load_array(const cl::Buffer& buffer) {
     return arr_ptr;
 }
 
-static void cl_grid_find(
+void cl_grid_find(
+    const KernelsTable& kernels,
     cl::Buffer& r_,
     cl::Buffer& itype_,
     cl::Buffer& neighbours_)
 {
+    auto& fill_in_grid_kernel = kernels.at("fill_in_grid");
+    auto& sort_kernel = kernels.at("bitonic_sort_step");
+    auto& binary_search_kernel = kernels.at("binary_search");
+    auto& find_neighbours_kernel = kernels.at("find_neighbours");
+
     // bitonic sort passes
     static rr_uint passes = intlog2(params.maxn);
     static auto grid_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.maxn);
@@ -190,13 +171,55 @@ static void cl_grid_find(
     ).execute(params.maxn, params.local_threads);
 }
 
-static void cl_calculate_kernels(
+void cl_sum_density(
+    const KernelsTable& kernels,
+    cl::Buffer& neighbours_,
+    cl::Buffer& w_,
+    cl::Buffer& rho_
+)
+{
+    auto& sum_density_kernel = kernels.at("sum_density");
+
+    printlog_debug("sum density")();
+    sum_density_kernel(
+        neighbours_, w_,
+        rho_
+    ).execute(params.maxn, params.local_threads);
+}
+
+void cl_con_density(
+    const KernelsTable& kernels,
+    cl::Buffer& r_,
+    cl::Buffer& v_,
+    cl::Buffer& neighbours_,
+    cl::Buffer& dwdr_,
+    cl::Buffer& rho_,
+    cl::Buffer& drho_
+)
+{
+    auto& con_density_kernel = kernels.at("con_density");
+
+    printlog_debug("con density")();
+    con_density_kernel(
+        r_,
+        v_,
+        neighbours_, dwdr_,
+        rho_,
+        drho_
+    ).execute(params.maxn, params.local_threads);
+}
+
+void cl_calculate_kernels(
+    const KernelsTable& kernels,
     cl::Buffer& r_,
     cl::Buffer& itype_,
     cl::Buffer& neighbours_,
     std::unordered_map<rr_uint, cl::Buffer>& smoothing_kernels_w,
     std::unordered_map<rr_uint, cl::Buffer>& smoothing_kernels_dwdr)
 {
+    auto& calculate_kernels_w_kernel = kernels.at("calculate_kernels_w");
+    auto& calculate_kernels_dwdr_kernel = kernels.at("calculate_kernels_dwdr");
+
     for (auto& [skf, w] : smoothing_kernels_w) {
         printlog_debug("calculate_kernels_w_kernel: ")(skf)();
         calculate_kernels_w_kernel(
@@ -211,7 +234,17 @@ static void cl_calculate_kernels(
     }
 }
 
-static void cl_internal_force(
+static const char* cl_get_intf_sph_approximation_func() {
+    if (params.intf_sph_approximation == INTF_SPH_APPROXIMATION_1) {
+        return "find_internal_changes_pij_d_rhoij";
+    }
+    else {
+        return "find_internal_changes_pidrho2i_pjdrho2j";
+    }
+}
+
+void cl_internal_force(
+    const KernelsTable& kernels,
     cl::Buffer& v_predict_,
     cl::Buffer& rho_predict_,
     cl::Buffer& neighbours_,
@@ -220,6 +253,10 @@ static void cl_internal_force(
     cl::Buffer& p_,
     cl::Buffer& indvxdt_)
 {
+    auto& find_stress_tensor_kernel = kernels.at("find_stress_tensor");
+    auto& update_internal_state_kernel = kernels.at("update_internal_state");
+    auto& find_internal_changes_kernel = kernels.at(cl_get_intf_sph_approximation_func());
+        
     static auto txx_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     static auto txy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
     static auto tyy_ = makeBuffer<rr_float>(DEVICE_ONLY, params.maxn);
@@ -254,7 +291,8 @@ static void cl_internal_force(
     }
 }
 
-static void cl_artificial_viscosity(
+void cl_artificial_viscosity(
+    const KernelsTable& kernels,
     cl::Buffer& r_,
     cl::Buffer& v_predict_,
     cl::Buffer& rho_predict_,
@@ -264,6 +302,7 @@ static void cl_artificial_viscosity(
     cl::Buffer& arvmu_) 
 {
     printlog_debug("artificial viscosity")();
+    auto& artificial_viscosity_kernel = kernels.at("artificial_viscosity");
 
     if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
         artificial_viscosity_kernel(
@@ -279,6 +318,42 @@ static void cl_artificial_viscosity(
             arvdvxdt_
         ).execute(params.maxn, params.local_threads);
     }
+}
+
+void cl_external_force(
+    const KernelsTable& kernels,
+    cl::Buffer& r_,
+    cl::Buffer& neighbours_,
+    cl::Buffer& itype_,
+    cl::Buffer& exdvxdt_)
+{
+    auto& external_force_kernel = kernels.at("external_force");
+
+    printlog_debug("external force")();
+    external_force_kernel(
+        r_, neighbours_, itype_,
+        exdvxdt_
+    ).execute(params.maxn, params.local_threads);
+}
+
+void cl_average_velocity(
+    const KernelsTable& kernels,
+    cl::Buffer& r_,
+    cl::Buffer& itype_,
+    cl::Buffer& v_predict_,
+    cl::Buffer& rho_,
+    cl::Buffer& neighbours_,
+    cl::Buffer& w_,
+    cl::Buffer& av_)
+{
+    auto& average_velocity_kernel = kernels.at("average_velocity");
+
+    printlog_debug("average velocity")();
+    average_velocity_kernel(
+        r_, itype_, v_predict_, rho_,
+        neighbours_, w_,
+        av_
+    ).execute(params.maxn, params.local_threads);
 }
 
 static void cl_update_acceleration(
@@ -480,59 +555,54 @@ void cl_time_integration(
             ).execute(params.maxn, params.local_threads);
         }
 
-        cl_grid_find(
-            r_, itype_, 
+        grid_find_adapter(
+            r_, itype_,
             neighbours_);
 
-        cl_calculate_kernels(
-            r_, itype_, neighbours_, 
+        skf_adapter(
+            r_, itype_, neighbours_,
             smoothing_kernels_w, smoothing_kernels_dwdr);
 
         if (density_is_using_continuity()) {
-            printlog_debug("con density")();
-            con_density_kernel(
+            con_density_adapter(
                 r_,
                 v_predict_,
                 neighbours_, smoothing_kernels_dwdr[params.density_skf],
                 rho_predict_,
                 drho_
-            ).execute(params.maxn, params.local_threads);
+            );
         }
         else {
-            printlog_debug("sum density")();
-            sum_density_kernel(
+            sum_density_adapter(
                 neighbours_, smoothing_kernels_w[params.density_skf],
                 rho_
-            ).execute(params.maxn, params.local_threads);
+            );
         }
 
-        cl_internal_force(
+        intf_adapter(
             v_predict_, conditional_rho(), neighbours_, 
             *p_arficial_pressure_w_,
             smoothing_kernels_dwdr[params.intf_skf],
             p_, indvxdt_);
 
-        printlog_debug("external force")();
-        external_force_kernel(
+        external_force_adapter(
             r_, neighbours_, itype_,
-            exdvxdt_
-        ).execute(params.maxn, params.local_threads);
+            exdvxdt_);
 
         if (params.artificial_viscosity) {
-            cl_artificial_viscosity(
+            art_visc_adapter(
                 r_, v_predict_, conditional_rho(),
                 neighbours_, smoothing_kernels_dwdr[params.artificial_viscosity_skf],
                 arvdvxdt_, arvmu_);
         }
 
         if (params.average_velocity) {
-            printlog_debug("average velocity")();
-            average_velocity_kernel(
-                r_, itype_, v_predict_, 
+            average_velocity_adapter(
+                r_, itype_, v_predict_,
                 conditional_rho(),
                 neighbours_, smoothing_kernels_w[params.average_velocity_skf],
                 av_
-            ).execute(params.maxn, params.local_threads);
+            );
         }
 
         cl_update_acceleration(

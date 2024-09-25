@@ -69,7 +69,7 @@ public:
     }
 
     template<typename ...Args>
-    auto operator() (Args&&... args) {
+    auto operator() (Args&&... args) const {
         return RRKernelFuctor{ kernel, std::forward<Args>(args)... };
     }
 private:

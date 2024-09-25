@@ -22,10 +22,3 @@ void cli(
 	heap_darray<rr_int>& itype,	// particle material type 
 	rr_uint& ntotal, // total particle number
 	rr_uint& nfluid); // total fluid particles
-
-rr_uint countCells(
-	rr_float hsml,
-	rr_float x_mingeom,
-	rr_float y_mingeom,
-	rr_float x_maxgeom,
-	rr_float y_maxgeom);
