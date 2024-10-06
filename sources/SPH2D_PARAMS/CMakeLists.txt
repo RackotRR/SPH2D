@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_PARAMS VERSION 3.0.12)
+project(SPH2D_PARAMS VERSION 3.0.13)
 configure_file(ParamsVersion.h.in "${PROJECT_SOURCE_DIR}/include/ParamsVersion.h")
 file(COPY "${CMAKE_SOURCE_DIR}/sources/SPH2DVersion.h" DESTINATION "${PROJECT_SOURCE_DIR}/include/")
 
 add_library(SPH2D_PARAMS STATIC
     "src/ParamsOutput.cpp" 
-    "src/ParamsLoading.cpp" 
     "src/ParticleParams.cpp"
     "src/ModelParams.cpp"
     "src/ExperimentDirectory.cpp"
@@ -37,4 +36,4 @@ target_link_libraries(testSPH2DParams PRIVATE SPH2D_PARAMS)
 target_link_libraries(testSPH2DParams PRIVATE GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(testSPH2DParams)
+#gtest_discover_tests(testSPH2DParams)

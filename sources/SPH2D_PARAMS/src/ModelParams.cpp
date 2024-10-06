@@ -7,6 +7,7 @@
 
 #include "Params.h"
 #include "ModelParams.h"
+#include "Version.h"
 
 void check_optional_params(const ModelParams& model_params) {
     RR::Logger::printlog(__func__)();
@@ -101,9 +102,6 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     RR::Logger::printlog(__func__)();
     #define move_param(param) move_param_impl(experiment_params.param, model_params.param)
 
-    move_param(params_generator_version_major);
-    move_param(params_generator_version_minor);
-
     move_param(density_treatment);
     move_param(density_normalization);
     move_param(density_skf);
@@ -165,6 +163,10 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(save_density);
 }
 
+static nlohmann::json backward_compatibility_model_params(nlohmann::json json) {
+    return json;
+}
+
 ModelParams load_model_params(const std::filesystem::path& experiment_directory) {
     RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / ModelParams::filename;
@@ -189,6 +191,12 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
 	if (json.contains(#param)) json.at(#param).get_to(model_params.param); \
 	} while (false)
 
+#define load_default_value(param, value) \
+	do { \
+	if (json.contains(#param)) json.at(#param).get_to(model_params.param); \
+    else model_params.param = (value); \
+	} while (false)
+
 #define load_optional(param) \
 	do { \
 	    if (json.contains(#param)) { \
@@ -197,8 +205,24 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
         } \
 	} while (false)
 
-    load(params_generator_version_major);
-    load(params_generator_version_minor);
+    load_default_value(params_target_version_major, 0);
+    load_default_value(params_target_version_minor, 0);
+    load_default_value(params_target_version_patch, 0);
+
+    ParamsVersion current_version{
+        SPH2D_PARAMS_VERSION_MAJOR,
+        SPH2D_PARAMS_VERSION_MINOR,
+        SPH2D_PARAMS_VERSION_PATCH
+    };
+    ParamsVersion target_version{
+        model_params.params_target_version_major,
+        model_params.params_target_version_minor,
+        model_params.params_target_version_patch,
+    };
+
+    if (target_version < current_version) {
+        json = backward_compatibility_model_params(json);
+    }
 
     load_default(density_treatment);
     load_default(density_normalization);
@@ -279,8 +303,9 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
         if (model_params.param.has_value()) json[#param] = model_params.param.value(); \
     } while (false)
 
-    print_param(params_generator_version_major);
-    print_param(params_generator_version_minor);
+    print_param(params_target_version_major);
+    print_param(params_target_version_minor);
+    print_param(params_target_version_patch);
 
     print_param(density_treatment);
     print_param(density_normalization);

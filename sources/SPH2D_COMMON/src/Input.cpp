@@ -199,6 +199,9 @@ void fileInput(
 		SPH2D_COMMON_VERSION_PATCH))();
 	printlog()(__func__)();
 
+	fillInSPH2DParams();
+	params.start_simulation_time = std::stod(initial_dump_path.stem().string());
+
 	ntotal = params.ntotal;
 	nfluid = params.nfluid;
 
@@ -207,9 +210,6 @@ void fileInput(
 	rho = heap_darray<rr_float>(params.maxn);
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
-
-	params.start_simulation_time = std::stod(initial_dump_path.stem().string());
-	fillInSPH2DParams();
 
 	std::cout << "read data...";
 	csv::CSVReader reader(initial_dump_path.string());

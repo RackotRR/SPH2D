@@ -18,9 +18,9 @@ custom_add_subdir(SPH2D_Drawer)
 custom_add_subdir(SPH2D_PicGen)
 
 if (WIN32)
-    set(SPH2DParamsGeneratorPath ${CMAKE_SOURCE_DIR}/tools/SPH2DParamsGenerator)
+    set(SPH2DParamsGeneratorPath ${CMAKE_SOURCE_DIR}/tools/SPH2DParamsGenerator/SPH2DParamsGenerator/bin)
     if (EXISTS ${SPH2DParamsGeneratorPath})
-        install(DIRECTORY "${SPH2DParamsGeneratorPath}/SPH2DParamsGenerator/bin/Release/" DESTINATION "SPH2D/SPH2DParamsGenerator")
+        install(DIRECTORY "${SPH2DParamsGeneratorPath}/Release/" DESTINATION "SPH2D/SPH2DParamsGenerator")
     endif()
 endif()
 

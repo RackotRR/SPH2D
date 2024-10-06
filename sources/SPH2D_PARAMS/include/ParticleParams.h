@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include "ParamsVersion.h"
 #include "Types.h"
 
 using opt_uint = std::optional<rr_uint>;
@@ -8,6 +9,10 @@ using opt_bool = std::optional<bool>;
 
 struct ParticleParams {
     static constexpr const char* filename = "ParticleParams.json";
+
+    rr_uint params_target_version_major{ SPH2D_PARAMS_VERSION_MAJOR };
+    rr_uint params_target_version_minor{ SPH2D_PARAMS_VERSION_MINOR };
+    rr_uint params_target_version_patch{ SPH2D_PARAMS_VERSION_PATCH };
 
     rr_float x_mingeom;
     rr_float x_maxgeom;
