@@ -8,10 +8,8 @@
 struct ExperimentParams {
 	rr_uint params_version_major{ RRSPH_PARAMS_VERSION_MAJOR };
 	rr_uint params_version_minor{ RRSPH_PARAMS_VERSION_MINOR };
-
-	rr_uint params_generator_version_major{};
-	rr_uint params_generator_version_minor{};
-
+	rr_uint params_version_patch{ RRSPH_PARAMS_VERSION_PATCH };
+	
 	rr_uint RRSPH_version_major{ RRSPH_VERSION_MAJOR };
 	rr_uint RRSPH_version_minor{ RRSPH_VERSION_MINOR };
 	rr_uint RRSPH_version_patch{ RRSPH_VERSION_PATCH };
@@ -19,9 +17,9 @@ struct ExperimentParams {
 	// dimension of the problem (1, 2, 3)
 	rr_uint dim{ 2 };
 
-	rr_uint maxn{ 1 << 20 }; // maximum number of particles
-	rr_uint max_neighbours{ 64 };
-	rr_uint max_cells{ max_neighbours * maxn }; // maximum number of cells in grid
+	rr_uint maxn{}; // maximum number of particles
+	rr_uint max_neighbours{};
+	rr_uint max_cells{}; // maximum number of cells in grid
 
 	rr_float x_maxgeom{};
 	rr_float x_mingeom{};

@@ -7,6 +7,7 @@
 
 #include "ParticleParams.h"
 #include "Params.h"
+#include "Version.h"
 
 template<typename T>
 void move_param_impl(T& params_param, const T& model_param) {
@@ -43,6 +44,10 @@ void apply_particle_params(ExperimentParams& experiment_params, const ParticlePa
     move_param(depth);
 }
 
+static nlohmann::json backward_compatibility_particle_params(nlohmann::json json) {
+    return json;
+}
+
 ParticleParams load_particle_params(const std::filesystem::path& experiment_directory) {
     RR::Logger::printlog(__func__)();
     auto params_path = experiment_directory / ParticleParams::filename;
@@ -75,6 +80,25 @@ ParticleParams load_particle_params(const std::filesystem::path& experiment_dire
             json.at(#param).get_to(particle_params.param.value()); \
         } \
 	} while (false)
+
+    load_default(params_target_version_major, 0);
+    load_default(params_target_version_minor, 0);
+    load_default(params_target_version_patch, 0);
+
+    ParamsVersion current_version{
+        RRSPH_PARAMS_VERSION_MAJOR,
+        RRSPH_PARAMS_VERSION_MINOR,
+        RRSPH_PARAMS_VERSION_PATCH
+    };
+    ParamsVersion target_version{
+        particle_params.params_target_version_major,
+        particle_params.params_target_version_minor,
+        particle_params.params_target_version_patch,
+    };
+
+    if (target_version < current_version) {
+        json = backward_compatibility_particle_params(json);
+    }
 
     load_default(dim, 2);
 
@@ -139,6 +163,10 @@ void params_make_particles_json(const std::filesystem::path& experiment_director
     do { \
         if (particle_params.param.has_value()) json[#param] = particle_params.param.value(); \
     } while (false)
+
+    print_param(params_target_version_major);
+    print_param(params_target_version_minor);
+    print_param(params_target_version_patch);
 
     print_param(dim);
 

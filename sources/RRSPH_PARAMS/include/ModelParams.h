@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include "ParamsVersion.h"
 #include "Types.h"
 #include "ParamsEnumeration.h"
 
@@ -10,8 +11,9 @@ using opt_bool = std::optional<bool>;
 struct ModelParams {
     static constexpr const char* filename = "ModelParams.json";
 
-    rr_uint params_generator_version_major;
-    rr_uint params_generator_version_minor;
+    rr_uint params_target_version_major{ RRSPH_PARAMS_VERSION_MAJOR };
+    rr_uint params_target_version_minor{ RRSPH_PARAMS_VERSION_MINOR };
+    rr_uint params_target_version_patch{ RRSPH_PARAMS_VERSION_PATCH };
 
     rr_uint density_treatment{ DENSITY_CONTINUITY };
     rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };

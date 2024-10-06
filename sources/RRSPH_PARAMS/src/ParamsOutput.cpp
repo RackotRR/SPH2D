@@ -24,8 +24,7 @@ namespace ParamsGeneration {
 #define set(param) set_param(#param, params.param);
 			set(params_version_major);
 			set(params_version_minor);
-			set(params_generator_version_major);
-			set(params_generator_version_minor);
+			set(params_version_patch);
 			set(RRSPH_version_major);
 			set(RRSPH_version_minor);
 			set(RRSPH_version_patch);

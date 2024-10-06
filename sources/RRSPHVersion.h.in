@@ -235,6 +235,9 @@
 //        - SPH2D_COMMON: fix infinite cycles on intlog2 function
 //        - SPH2D_CL: fix SPH approximation as pij_d_rhoij
 //        - SPH2D_CL: add clProgramAdapter for specific module usage
+// 3.0.18 - SPH2D_PARAMS: add support for backward compatibility
+//        - SPH2D_PARAMS: add params_target_version parameters
+//        - SPH2D: fix 2^20 particles limit
 //  3.1.0 - rename RRSPH2D -> RRSPH
 //        - rename SPH2D_COMMON -> RRSPH_COMMON
 //        - rename SPH2D_PARAMS -> RRSPH_PARAMS

@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include "ParamsVersion.h"
 #include "Types.h"
 
 using opt_uint = std::optional<rr_uint>;
@@ -8,6 +9,10 @@ using opt_bool = std::optional<bool>;
 
 struct ParticleParams {
     static constexpr const char* filename = "ParticleParams.json";
+
+    rr_uint params_target_version_major{ RRSPH_PARAMS_VERSION_MAJOR };
+    rr_uint params_target_version_minor{ RRSPH_PARAMS_VERSION_MINOR };
+    rr_uint params_target_version_patch{ RRSPH_PARAMS_VERSION_PATCH };
 
     rr_uint dim{ 2 };
 
