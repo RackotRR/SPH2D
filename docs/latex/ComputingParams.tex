@@ -1,0 +1,69 @@
+\subsection{Computing Params}
+
+\subsubsection{Software version}
+\begin{itemize}
+    \item \verb|SPH2D_version_major|
+    \item \verb|SPH2D_version_minor|
+    \item \verb|SPH2D_version_patch|
+\end{itemize}
+
+\subsubsection{Params module version}
+\begin{itemize}
+    \item \verb|params_version_major|
+    \item \verb|params_version_minor|
+    \item \verb|params_version_patch|
+\end{itemize}
+
+\subsubsection{Common module version}
+\begin{itemize}
+    \item \verb|SPH2D_common_version_major|
+    \item \verb|SPH2D_common_version_minor|
+    \item \verb|SPH2D_common_version_patch|
+\end{itemize}
+
+\subsubsection{Computing module version}
+\begin{itemize}
+    \item \verb|SPH2D_specific_version_major|
+    \item \verb|SPH2D_specific_version_minor|
+    \item \verb|SPH2D_specific_version_patch|
+    \item \verb|SPH2D_specific_version_name|
+\end{itemize}
+
+\subsubsection{Computed constants}
+\begin{itemize}
+    \item \verb|mass|. Mass of the particle $m$:
+    \begin{equation}
+        m = \rho_{0} \delta_{0}^{\text{dim}}.
+    \end{equation}
+
+    \item \verb|hsml|. Smoothing length $h$:
+    \begin{equation}
+        h = \delta_{0} h_{k}.
+    \end{equation}
+
+    \item \verb|cell_scale_k|. Size of grid cell in terms of $h$. Equals to 3 if any kernel is gauss. Equals to 2 otherwise.
+
+    \item \verb|maxn|. Maximum count of particles in simulation:
+    \begin{equation}
+        \text{maxn} = 2^{1 + 
+        \lfloor\log_{2}\text{ntotal}\rfloor}
+    \end{equation}
+
+    \item \verb|max_cells|. Count of grid cells to be processed.
+
+    \item \verb|start_simulation_time|
+\end{itemize}
+
+\subsubsection{Numerical Waves Maker}
+\begin{itemize}
+    \item \verb|nwm_wave_number|. Generated wave number $k$.
+    \item \verb|nwm_freq|. Generated wave angular frequency $\omega$.
+    \item \verb|nwm_piston_magnitude|. If nwm is dynamic, piston magnitude $S_{0}$ computed by eq.~\ref{eq:pistonS0}.
+\end{itemize}
+
+\subsubsection{Particle type}\label{sec:parttype}
+\begin{itemize}
+    \item \verb|TYPE_WATER|. Fluid particles type identifier in output.
+    \item \verb|TYPE_BOUNDARY|. Water particles type identifier in output.
+    \item \verb|TYPE_NON_EXISTENT|. Identifier of particles that are not exist.
+\end{itemize}

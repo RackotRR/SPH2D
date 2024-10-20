@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[
+  a4paper, mag=1000,
+  left=3.0cm, right=1cm, top=2cm, bottom=2cm, headsep=0.7cm, footskip=1cm
+]{geometry}
+
+\title{RRSPH v3.0.19}
+\author{Asrankulov Alexander}
+\date{October 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Experiment}
+
+\subsection{Experiment directory}\
+
+Experiment directory is a directory with parameters files and particles data. 
+You should provide specifically prepared directory to solver.
+
+Minimal experiment directory to start an experiment is presented below:
+\begin{verbatim}
+\---experiment_00
+    |   ModelParams.json
+    |   ParticleParams.json
+    |   
+    \---dump
+            0.csv
+\end{verbatim}
+
+Any RRSPH simulation program started from parent directory will produce the following output:
+\begin{verbatim}
+Found experiments:
+[-1] Change search directory
+[0] experiment_00: (0/1) data/dump layers
+Type experiment id you want to load:
+>
+\end{verbatim}
+You should type '0' and press 'Enter' in order to start simulation with specified parameters and initial state.
+
+Experiment directories with 'ParticleParams.json' and initial state ('dump/0.csv') are usually generated with scripts. Mathematical model's 'ModelParams.json' is user-provided: manually or by SPH2DParamsGenerator app.
+
+\subsection{RRSPH package}
+
+\subsubsection{SPH2D simulation}\
+
+There are two simulation programs:
+\begin{itemize}
+    \item SPH2D\_OMP. SPH 2D solver running on CPU with OpenMP or single-threaded.
+    \item SPH2D\_CL. SPH 2D solver running on GPU with OpenCL runtime. It's executable file is distributed with CL source code in separate directory:
+
+    \begin{verbatim}
+        |   SPH2D_CL.exe
+        |
+        +---cl
+        |       ArtificialViscosity.cl
+        |       AverageVelocity.cl
+        |       clErrorCodes.txt
+        |       clparams.h
+        |       common.h
+        |       Density.cl
+        |       EOS.cl
+        |       ExternalForce.cl
+        |       GridFind.cl
+        |       GridUtils.h
+        |       InternalForce.cl
+        |       ParamsEnumeration.h
+        |       SmoothingKernel.cl
+        |       SmoothingKernel.h
+        |       TimeIntegration.cl
+        |   
+        \---experiment_00
+            |   ModelParams.json
+            |   ParticleParams.json
+            |   SPH2DParams.json
+            |   
+            \---dump
+                    0.csv
+    \end{verbatim}
+\end{itemize}
+
+\subsubsection{SPH2D Post-processing}
+
+There's several post-processing programs:
+\begin{itemize}
+    \item WaterProfile. This app can be used to compute water profiles in space and time.
+    \item FuncAtPoint. This app can be used to extract field variable at specified point in space by SPH smoothing.
+    \item PartToGridConverter. This app can be used to convert SPH particles output into grid to process as mesh algorithm's output.
+\end{itemize}
+
+\section{Parameters Scheme}
+\input{ModelParams.tex}
+\input{ParticleParams.tex}
+\input{ComputingParams.tex}
+\input{LoadingParams.tex}
+\input{HeightTestingParams.tex}
+\end{document}

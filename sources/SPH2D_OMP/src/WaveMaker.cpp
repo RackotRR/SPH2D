@@ -43,26 +43,41 @@ void dynamic_boundaries(
 {
 	printlog_debug(__func__)();
 
+	// TODO: move check into initialization
 	if (params.nwm_particles_start < nfluid || 
 		params.nwm_particles_end < nfluid || 
-		params.nwm_particles_end < params.nwm_particles_start) 
+		params.nwm_particles_end < params.nwm_particles_start ||
+		params.nwm_particles_end > params.ntotal) 
 	{
-		printlog_debug("Wrong disappearing wall parameters:")();
+		printlog_debug("Wrong dynamic boundaries parameters:")();
 		printlog_debug("nwm_particles_start: ")(params.nwm_particles_start)();
 		printlog_debug("nwm_particles_end: ")(params.nwm_particles_end)();
 		return;
 	}
 
-	rr_float phase = -params.nwm_freq * params.nwm_time_start;
-	rr_float v_x = params.nwm_piston_magnitude * params.nwm_freq * cos(params.nwm_freq * time + phase);
+	rr_float generator_phase = -params.nwm_freq * params.nwm_time_start;
+
+	rr_float delta = generator_phase;
+	rr_float omega = params.nwm_freq;
+	rr_float H = params.nwm_wave_magnitude;
+	rr_float kd = params.nwm_wave_number * params.depth;
+	rr_float m1 = 2 * sqr(sinh(kd)) / (sinh(kd) * cosh(kd) + kd);
+	rr_float S0 = H / m1;
+	rr_float e2_1 = sqr(H) / (32 * params.depth);
+	rr_float e2_2 = 3 * cosh(kd) / cube(sinh(kd)) - 2 / m1;
+	rr_float e2_coef = e2_1 + e2_2;
+
+	rr_float vx_first_order = 0.5 * S0 * omega * cos(omega * time + delta);
+	rr_float vx_second_order = 2 * omega * e2_coef * cos(2 * omega * time + 2 * delta);
+	rr_float vx = vx_first_order + vx_second_order;
 
 	for (rr_uint i = params.nwm_particles_start; i < params.nwm_particles_end; i++) {
-		r(i).x = r(i).x + v_x * params.dt;
-		v(i).x = v_x;
+		r(i).x = r(i).x + vx * params.dt;
+		v(i).x = vx;
 	}
 
 	printlog_trace("r.x: ")(r(params.nwm_particles_start).x)();
-	printlog_trace("v.x: ")(v_x)();
+	printlog_trace("v.x: ")(vx)();
 }
 
 void disappear_wall(

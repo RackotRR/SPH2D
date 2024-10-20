@@ -154,10 +154,25 @@ __kernel void nwm_dynamic_boundaries(
 	if (i >= params_ntotal || i < params_nfluid) return;
 
 #define generator_phase (-params_nwm_freq * params_nwm_time_start)
-	rr_float v_x = params_nwm_piston_magnitude * params_nwm_freq * cos(params_nwm_freq * time + generator_phase);
 
-	r[i].x = r[i].x + v_x * dt;
-	v[i].x = v_x;
+	// second-order wave generation of regular waves (Madsen, 1971)
+
+#define nwm_delta generator_phase
+#define nwm_omega params_nwm_freq
+#define nwm_H  params_nwm_wave_magnitude
+#define nwm_kd (params_nwm_wave_number * params_depth)
+#define nwm_m1 (2 * sqr(sinh(nwm_kd)) / (sinh(nwm_kd) * cosh(nwm_kd) + nwm_kd))
+#define nwm_S0 (nwm_H / nwm_m1)
+#define nwm_e2_1 (sqr(nwm_H) / (32 * params_depth))
+#define nwm_e2_2 (3 * cosh(nwm_kd) / cube(sinh(nwm_kd)) - 2 / nwm_m1)
+#define nwm_e2_coef (nwm_e2_1 * nwm_e2_2)
+
+	rr_float vx_first_order = 0.5f * nwm_S0 * nwm_omega * cos(nwm_omega * time + nwm_delta);
+	rr_float vx_second_order = 2 * nwm_omega * nwm_e2_coef * cos(2 * nwm_omega * time + 2 * nwm_delta);
+	rr_float vx = vx_first_order + vx_second_order;
+
+	r[i].x = r[i].x + vx * dt;
+	v[i].x = vx;
 }
 
 __kernel void nwm_disappear_wall(

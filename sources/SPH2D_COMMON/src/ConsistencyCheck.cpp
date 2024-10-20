@@ -9,7 +9,8 @@ bool check_finite(
 	shared_darray<rr_int> itype,
 	shared_darray<rr_float2> v,
 	shared_darray<rr_float> rho,
-	shared_darray<rr_float> p)
+	shared_darray<rr_float> p,
+	rr_uint consistency_treatment)
 {
 	printlog_debug(__func__)();
 	assert(r.get());
@@ -48,7 +49,7 @@ bool check_finite(
 			p->at(i), 
 			i);
 
-		if (params.consistency_treatment == CONSISTENCY_STOP) {
+		if (consistency_treatment == CONSISTENCY_STOP) {
 			throw std::runtime_error{ message };
 		}
 		else {
@@ -63,7 +64,8 @@ bool check_finite(
 
 bool check_particles_are_within_boundaries(
 	shared_darray<rr_float2> r,
-	shared_darray<rr_int> itype)
+	shared_darray<rr_int> itype,
+	rr_uint consistency_treatment)
 {
 	printlog_debug(__func__)();
 	assert(r.get());
@@ -100,7 +102,7 @@ bool check_particles_are_within_boundaries(
 			params.y_maxgeom,
 			outside_k);
 
-		if (params.consistency_treatment == CONSISTENCY_STOP) {
+		if (consistency_treatment == CONSISTENCY_STOP) {
 			throw std::runtime_error{ message };
 		}
 		else {
@@ -109,4 +111,72 @@ bool check_particles_are_within_boundaries(
 		}
 	}
 	return count_outside_boundaries == 0;
+}
+
+
+bool check_particles_have_same_position(
+	shared_darray<rr_float2> r,
+	shared_darray<rr_int> itype,
+	rr_uint consistency_treatment)
+{
+	printlog_debug(__func__)();
+	assert(r.get());
+
+	rr_int count_same_position = 0;
+	rr_iter any_same_position_k1 = 0;
+	rr_iter any_same_position_k2 = 0;
+	
+	constexpr rr_float min_length_coef = 0.1;
+	rr_float min_length_sqr = sqr(min_length_coef * params.hsml);
+
+#pragma omp parallel for reduction(+: count_same_position)
+	for (rr_iter k = 0; k < params.ntotal; ++k) {
+		for (rr_iter other = k + 1; other < params.ntotal; ++other) {
+			if (itype->at(k) == params.TYPE_NON_EXISTENT ||
+				itype->at(other) == params.TYPE_NON_EXISTENT)
+			{
+				continue;
+			}
+
+			if (length_sqr(r->at(k) - r->at(other)) < min_length_sqr) {
+				++count_same_position;
+
+#pragma omp critical
+				{
+					any_same_position_k1 = k;
+					any_same_position_k2 = other;
+				}
+			}
+		}
+	}
+
+
+	if (count_same_position > 0) {
+		std::string message = fmt::format(
+			"encounter particles with same position: \n"
+			"\t r1: ({}; {})\n"
+			"\t r2: ({}; {})\n"
+			"\t type1: {}\n"
+			"\t type2: {}\n"
+			"\t k1: {}\n"
+			"\t k2: {}\n"
+			"total pairs of particles with same positions: {}\n",
+			r->at(any_same_position_k1).x,
+			r->at(any_same_position_k1).y,
+			r->at(any_same_position_k2).x,
+			r->at(any_same_position_k2).y,
+			itype->at(any_same_position_k1),
+			itype->at(any_same_position_k2),
+			any_same_position_k1,
+			any_same_position_k2,
+			count_same_position);
+
+		if (consistency_treatment == CONSISTENCY_STOP) {
+			throw std::runtime_error{ message };
+		}
+		else {
+			printlog(message)();
+		}
+	}
+	return count_same_position == 0;
 }

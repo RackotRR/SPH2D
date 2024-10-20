@@ -39,3 +39,4 @@
 //       - fix never ending simulations (dt -> 0)
 //       - add artificial pressure support
 // 1.3.3 - fix continuity density doesn't affect boundary particles
+// 1.3.4 - replace first-order dynamic NWM with second-order one

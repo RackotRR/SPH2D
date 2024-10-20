@@ -157,10 +157,7 @@ inline rr_float desbrun_kernel_w(rr_float dist) {
 }
 inline rr_float2 desbrun_kernel_dwdr(rr_float dist, rr_float2 diff) {
 	rr_float q = get_kernel_q(dist);
-	if (q < 1.e-6f) { // division by zero threshold
-		return 0.f;
-	}
-	else if (q <= 2) {
+	if (q <= 2) {
 		return desbrun_kernel_q2_grad(q, dist, diff);
 	}
 	else {

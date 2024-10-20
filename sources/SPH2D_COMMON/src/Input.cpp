@@ -12,6 +12,7 @@
 #include "GridUtils.h"
 #include "ParamsIO.h"
 #include "SPH2DCOMMONVersion.h"
+#include "ConsistencyCheck.h"
 
 static rr_uint get_cell_scale_k(rr_uint skf) {
     switch (skf) {
@@ -211,7 +212,7 @@ void fileInput(
 	p = heap_darray<rr_float>(params.maxn);
 	itype = heap_darray<rr_int>(params.maxn);
 
-	std::cout << "read data...";
+	std::cout << "read data..." << std::endl;
 	csv::CSVReader reader(initial_dump_path.string());
 
 	size_t j = 0;
@@ -232,6 +233,36 @@ void fileInput(
 
 	particle_params.depth = params.depth = find_depth(nfluid, r);
 	postFillInModelParams(model_params);
+
+	{
+		std::cout << "check particles consistency..." << std::endl;
+		auto shared_r = make_shared_darray_copy(r);
+		auto shared_itype = make_shared_darray_copy(itype);
+		auto shared_v = make_shared_darray_copy(v);
+		auto shared_rho = make_shared_darray_copy(rho);
+		auto shared_p = make_shared_darray_copy(p);
+
+		check_finite(
+			shared_r,
+			shared_itype,
+			shared_v,
+			shared_rho,
+			shared_p,
+			params.consistency_treatment
+		);
+
+		check_particles_are_within_boundaries(
+			shared_r,
+			shared_itype,
+			params.consistency_treatment
+		);
+
+		check_particles_have_same_position(
+			shared_r,
+			shared_itype,
+			params.consistency_treatment
+		);
+	}
 
 	std::cout << "...success" << std::endl;
 

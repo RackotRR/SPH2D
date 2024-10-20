@@ -25,7 +25,7 @@
     "eos_sound_vel_coef": 2.0,
     "eos_sound_vel_method": 0,
     "intf_hsml_coef": 2.0,
-    "intf_skf": 4,
+    "intf_skf": 1,
     "intf_sph_approximation": 2,
     "local_threads": 256,
     "max_neighbours": 128,

@@ -186,7 +186,10 @@ TEST_F(TestSKF, desbrun_dwdr_values)
     init_params();
 
     // value from SPH2D v3.0.15
-    EXPECT_TRUE(desbrun_kernel_dwdr<6>(rr_float2{ 0.0, 0.0 }, rr_float2{ 0.0, 0.0 }));
+    rr_float2 dwdr_at_0 = desbrun_kernel_dwdr(0.0, rr_float2{ 0.0, 0.0 });
+    EXPECT_TRUE(std::isnan(dwdr_at_0.x));
+    EXPECT_TRUE(std::isnan(dwdr_at_0.y));
+
     EXPECT_TRUE(desbrun_kernel_dwdr<6>(rr_float2{ 0.5 * hsml, -1.0 * hsml }, rr_float2{ -0.060075355435702416, 0.12015071087140483 }));
     EXPECT_TRUE(desbrun_kernel_dwdr<6>(rr_float2{ -0.5 * hsml, 1.0 * hsml }, rr_float2{ 0.060075355435702416, -0.12015071087140483 }));
     EXPECT_TRUE(desbrun_kernel_dwdr<6>(rr_float2{ 1.5 * hsml, -1.2 * hsml }, rr_float2{ -0.0008429451737288357, 0.0006743561389830686 }));

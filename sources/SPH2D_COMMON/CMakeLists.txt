@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_COMMON VERSION 1.2.10)
+project(SPH2D_COMMON VERSION 1.2.11)
 configure_file(SPH2DCOMMONVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DCOMMONVersion.h")
 
 add_library(SPH2D_COMMON STATIC

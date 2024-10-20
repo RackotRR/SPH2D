@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SPH2D_OMP VERSION 1.3.3)
+project(SPH2D_OMP VERSION 1.3.4)
 configure_file(SPH2DOMPVersion.h.in "${PROJECT_SOURCE_DIR}/include/SPH2DOMPVersion.h")
 
 add_library(SPH2D_OMP_SHARED     

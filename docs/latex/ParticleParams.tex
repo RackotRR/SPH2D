@@ -1,0 +1,52 @@
+\subsection{Particle Params}
+
+\subsubsection{Target version}
+
+\begin{itemize}
+    \item \verb|params_target_version_major|
+    \item \verb|params_target_version_minor|
+    \item \verb|params_target_version_patch|
+\end{itemize}
+
+\subsubsection{Particle count}
+
+\begin{itemize}
+    \item \verb|nfluid|. Fluid particles count.
+    \item \verb|nvirt|. Boundary (virtual) particles count.
+    \item \verb|ntotal|. Total particles count (fluid + boundary).
+\end{itemize}
+
+\subsubsection{Geometry}
+These parameters describe simulation domain area.
+
+\begin{itemize}
+    \item \verb|x_mingeom|. Left side of the domain.
+    \item \verb|x_maxgeom|. Right side of the domain.
+    \item \verb|y_mingeom|. Bottom of the domain.
+    \item \verb|y_maxgeom|. Top of the domain.
+\end{itemize}
+
+\subsubsection{Particles parameters}
+
+\begin{itemize}
+    \item \verb|delta|. Initial distance between particles $\delta_{0}$.
+    \item \verb|rho0|. Reference density of particles $\rho_{0}$.
+    
+    Optional parameter. Default value is $\rho_{0} = 1000$.
+\end{itemize}
+
+\subsubsection{Extra parameters}
+
+\begin{itemize}
+    \item \verb|depth|. Reference depth of the fluid $d$.
+    
+    Optional parameter. By default $d = \max\limits_{i}y_{i}$ on the start.
+\end{itemize}
+
+\subsubsection{Numerical Waves Maker}
+If \verb|nwm| is piston or disappearing wall, affected boundary particles are from the contiguous block characterized by two indices: [start; end).
+
+\begin{itemize}
+    \item \verb|nwm_particles_start|. Index of the first particle in moving or disappearing block.
+    \item \verb|nwm_particles_end|. Index of the next to the last particle in moving or disappearing block.
+\end{itemize}

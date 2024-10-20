@@ -1,0 +1,20 @@
+\subsection{Loading Params}\
+
+It could be useful to load just a part of output data.
+%
+Any post processing program will load files with respect to 'LoadingParams.json'. 
+%
+Computing programs can't start experiment where 'LoadingParams.json' exists.
+
+\begin{itemize}
+    \item \verb|every_layers|. Load every $n^{\text{th}}$ layer.
+
+    Optional parameter. Default value is 1.
+    \item \verb|from|. Skip all layers before $t_{\text{from}}$ second. 
+
+    Optional parameter. Default value is 0.
+    
+    \item \verb|to|. Skip all layers after $t_{\text{to}}$ second.
+
+    Optional parameter. Default value is $t_{\text{max}}$.
+\end{itemize}

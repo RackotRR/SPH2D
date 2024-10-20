@@ -290,7 +290,7 @@ void SPH2DOutput::update_step(rr_float time, rr_uint itimestep) {
 
 		if (should_check) {
 			try {
-				check_particles_are_within_boundaries(r_temp, itype_temp);
+				check_particles_are_within_boundaries(r_temp, itype_temp, params.consistency_treatment);
 			}
 			catch (...) {
 				if (!v_temp) v_temp = load_v();
