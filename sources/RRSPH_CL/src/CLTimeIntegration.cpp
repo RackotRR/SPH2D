@@ -336,11 +336,23 @@ static void cl_update_nwm(
     rr_float time,
     cl::Buffer& r_,
     cl::Buffer& v_,
-    cl::Buffer& itype_,
-    heap_darray<rr_int>& itype)
+    cl::Buffer& itype_)
 {
     if (params.nwm && time >= params.nwm_time_start) {
         printlog_debug("update boundaries: ")(params.nwm)();
+
+        // TODO: move check into initialization
+        if (params.nwm_particles_start < params.nfluid ||
+            params.nwm_particles_end < params.nfluid ||
+            params.nwm_particles_end < params.nwm_particles_start ||
+            params.nwm_particles_end > params.ntotal)
+        {
+            printlog_debug("Wrong NWM parameters:")();
+            printlog_debug("nwm_particles_start: ")(params.nwm_particles_start)();
+            printlog_debug("nwm_particles_end: ")(params.nwm_particles_end)();
+            return;
+        }
+
         switch (params.nwm) {
         case 2:
             nwm_dynamic_boundaries_kernel(
@@ -352,7 +364,6 @@ static void cl_update_nwm(
                 itype_
             ).execute(params.maxn, params.local_threads);
             params.nwm = false;
-            cl::copy(itype_, itype.begin(), itype.end());
             break;
         default:
             break;
@@ -504,7 +515,7 @@ void cl_time_integration(
 
         cl_update_nwm(time,
             r_, v_, 
-            itype_, itype);
+            itype_);
 
         static RR::Timer step_timer;
         step_timer.start();

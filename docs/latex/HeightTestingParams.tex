@@ -1,0 +1,82 @@
+\subsection{Height Testing Params}
+
+\subsubsection{Common part}
+\begin{itemize}
+    \item \verb|mode|. Mode of height testing. Possible values are: 
+    \begin{itemize}
+        \item "space",
+        \item "time".
+    \end{itemize}
+    
+    \item \verb|y0|. $y_{0}$ in eq. \ref{eq:sp0} and \ref{eq:tp0}.
+    
+    Optional parameter. Default value is 0.
+    \item \verb|y_k|. $y_{k}$ in eq. \ref{eq:sp0} and \ref{eq:tp0}.
+    \item \verb|search_n|. Smoothing factor $s_{n}$: for a given point $x_{i}$ program will search particles with $\max y$ in interval $[x_{i} - hs_{n}; x_{i} + hs_{n}]$, where $h$ is smoothing length.
+    \item \verb|particles_type|. Type of particles to consider. See section~\ref{sec:parttype}.
+
+    Optional parameter. Default value is null (all particles are considered).
+\end{itemize}
+
+\subsubsection{Space profile}\
+
+Calculate space profile ($y$ values) for a given points of time:
+\begin{equation}
+    y_{i} = \max\limits_{i}(y([x_{i} - hs_{n}; x_{i} + hs_{n}])),
+\end{equation}
+\begin{equation}
+    i = \lceil \frac{1}{\delta_{0}} (\verb|x_maxgeom| - \verb|x_mingeom|) \rceil.
+\end{equation}
+
+Space profile points are transformed by coefficients and terms:
+\begin{equation}\label{eq:sp0}
+    \begin{cases}
+      \begin{tabular}{l}
+          $\Bar{x} = x_{k} (x - x_{0})$, 
+          \\
+          $\Bar{y} = y_{k} (y - y_{0})$.
+      \end{tabular}  
+    \end{cases} 
+\end{equation}
+
+\begin{itemize}
+    \item \verb|t|. Array of points in time to calculate time profile. Each point will be separate output file.
+    \item \verb|x0|. $x_{0}$ in eq.~\ref{eq:sp0}.
+    
+    Optional parameter. Default value is 0.
+    \item \verb|x_k|. $x_{k}$ in eq.~\ref{eq:sp0}.
+    
+    Optional parameter. Default value is 1.
+\end{itemize}
+
+\subsubsection{Time profile}\
+
+Calculate time profile ($y$ values) for a given points in space:
+\begin{equation}
+    y_{i} = \max\limits_{i}(y([x - hs_{n}; x + hs_{n}])),
+\end{equation}
+\begin{equation}
+    i = \lceil \frac{1}{\Delta t} (\verb|simulation_time| - \verb|save_time|) \rceil.
+\end{equation}
+
+Time profile points are transformed by coefficients and terms:
+\begin{equation}\label{eq:tp0}
+    \begin{cases}
+      \begin{tabular}{l}
+          $\Bar{t} = t_{k} (t - t_{0})$, 
+          \\
+          $\Bar{y} = y_{k} (y - y_{0})$.
+      \end{tabular}  
+    \end{cases} 
+\end{equation}
+
+\begin{itemize}
+    \item \verb|x|. Array of points in space to calculate time profile. Each point will be separate output file.
+    
+    \item \verb|t0|. $t_{0}$ in eq.~\ref{eq:tp0}.
+    
+    Optional parameter. Default value is 0.
+    \item \verb|t_k|. $t_{k}$ in eq.~\ref{eq:tp0}.
+
+    Optional parameter. Default value is 1.
+\end{itemize}

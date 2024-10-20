@@ -238,6 +238,10 @@
 // 3.0.18 - SPH2D_PARAMS: add support for backward compatibility
 //        - SPH2D_PARAMS: add params_target_version parameters
 //        - SPH2D: fix 2^20 particles limit
+// 3.0.19 - SPH2D: add documentation files in LaTeX
+//        - SPH2D: replace first-order dynamic NWM with second-order one
+//        - SPH2D_COMMON: add consistency check on input
+//        - SPH2D_COMMON: add check on particles have same initial position
 //  3.1.0 - rename RRSPH2D -> RRSPH
 //        - rename SPH2D_COMMON -> RRSPH_COMMON
 //        - rename SPH2D_PARAMS -> RRSPH_PARAMS

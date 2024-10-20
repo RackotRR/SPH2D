@@ -12,6 +12,4 @@ add_subdirectory(sources)
 # tools
 add_subdirectory(tools)
 
-if (IS_DIRECTORY docs)
-    install(DIRECTORY docs DESTINATION RRSPH)
-endif()
+install(FILES docs/RRSPH.pdf DESTINATION RRSPH/docs)

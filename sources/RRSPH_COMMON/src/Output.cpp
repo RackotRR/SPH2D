@@ -394,7 +394,7 @@ void RRSPHOutput::update_step(rr_float time, rr_uint itimestep) {
 
 		if (should_check) {
 			try {
-				check_particles_are_within_boundaries(r_temp, itype_temp);
+				check_particles_are_within_boundaries(r_temp, itype_temp, params.consistency_treatment);
 			}
 			catch (...) {
 				if (params.use_crash_dump) {

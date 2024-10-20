@@ -18,21 +18,6 @@
 #include <omp.h>
 #endif
 
-static shared_vheap_darray_floatn load_floatn_array(const vheap_darray_floatn& buffer) {
-	auto arr_ptr = std::make_shared<vheap_darray_floatn>(params.maxn);
-	if (params.dim == 3) {
-		auto& arr_internal = arr_ptr->get_flt3();
-		const auto& buffer_internal = buffer.get_flt3();
-		std::copy(buffer_internal.begin(), buffer_internal.end(), arr_internal.begin());
-	}
-	else {
-		auto& arr_internal = arr_ptr->get_flt2();
-		const auto& buffer_internal = buffer.get_flt2();
-		std::copy(buffer_internal.begin(), buffer_internal.end(), arr_internal.begin());
-	}
-	return arr_ptr;
-}
-
 void time_integration(
 	vheap_darray_floatn& r_var,	// coordinates of all particles
 	vheap_darray_floatn& v_var,	// velocities of all particles
@@ -66,9 +51,9 @@ void time_integration(
 	rr_uint itimestep = 0;
 
 	RRSPHOutput::instance().setup_output(
-		std::bind(load_floatn_array, std::cref(r_var)),
+		std::bind(make_shared_vheap_darray_floatn, std::cref(r_var)),
 		std::bind(make_shared_darray_copy<rr_int>, std::cref(itype)),
-		std::bind(load_floatn_array, std::cref(v_var)),
+		std::bind(make_shared_vheap_darray_floatn, std::cref(v_var)),
 		std::bind(make_shared_darray_copy<rr_float>, std::cref(p)),
 		std::bind(make_shared_darray_copy<rr_float>, std::cref(rho)));
 

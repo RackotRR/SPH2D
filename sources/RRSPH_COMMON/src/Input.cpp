@@ -208,7 +208,7 @@ void loadArrays(
 	heap_darray<rr_float>& p,
 	heap_darray<rr_int>& itype)
 {
-	std::cout << "read data...";
+	std::cout << "read data..." << std::endl;
 	csv::CSVReader reader(initial_dump_path.string());
 	size_t j = 0;
 
@@ -288,8 +288,35 @@ void fileInput(
 		exit(-1);
 	}
 
-	if (!check_particles_are_within_boundaries(r_var, itype)) {
-		throw std::runtime_error{ "failed consistency check on input" };
+	{
+		std::cout << "check particles consistency..." << std::endl;
+		auto shared_r = make_shared_vheap_darray_floatn(r_var);
+		auto shared_itype = make_shared_darray_copy(itype);
+		auto shared_v = make_shared_vheap_darray_floatn(v_var);
+		auto shared_rho = make_shared_darray_copy(rho);
+		auto shared_p = make_shared_darray_copy(p);
+
+		check_finite(
+			shared_r,
+			shared_itype,
+			shared_v,
+			shared_rho,
+			shared_p,
+			params.consistency_treatment
+		);
+
+		check_particles_are_within_boundaries(
+			shared_r,
+			shared_itype,
+			params.consistency_treatment
+		);
+
+		check_particles_have_same_position(
+			shared_r,
+			shared_itype,
+			params.consistency_treatment
+		);
+		std::cout << "... success" << std::endl;
 	}
 
 	postFillInModelParams(model_params);

@@ -6,7 +6,18 @@
 #include "ConsistencyCheck.h"
 
 template<typename rr_floatn>
+std::string format_floatn(rr_floatn v) {
+	if constexpr (is_using_float3<rr_floatn>()) {
+		return fmt::format("({}; {}; {})", v.x, v.y, v.z);
+	}
+	else {
+		return fmt::format("({}; {})", v.x, v.y);
+	}
+}
+
+template<typename rr_floatn>
 void consistency_check_error(
+	rr_uint consistency_treatment,
 	std::string what,
 	rr_int err_particles_count,
 	rr_floatn r,
@@ -19,33 +30,21 @@ void consistency_check_error(
 	std::string message = what + "\n";
 	message += fmt::format("\t type: {}\n", itype);
 
-	std::string m_r;
+	std::string m_r = fmt::format("\t r: {}", format_floatn(r));
 	std::string m_bounds;
 	std::string m_xbounds = fmt::format("{} .. {}", params.x_mingeom, params.x_maxgeom);
 	std::string m_ybounds = fmt::format("{} .. {}", params.y_mingeom, params.y_maxgeom);
 	if constexpr (is_using_float3<rr_floatn>()) {
-		m_r = fmt::format("\t r: ({}; {}; {})", r.x, r.y, r.z);
 		std::string m_zbounds = fmt::format("{} .. {}", params.z_mingeom, params.z_maxgeom);
 		m_bounds = fmt::format("({}; {}; {})\n", m_xbounds, m_ybounds, m_zbounds);
 	}
 	else {
-		m_r = fmt::format("\t r: ({}; {})", r.x, r.y);
 		m_bounds = fmt::format("({}; {})\n", m_xbounds, m_ybounds);
 	}
 	message += m_r + " // " + m_bounds;
 
 	if (v.has_value()) {
-		std::string m_v;
-		if constexpr (is_using_float3<rr_floatn>()) {
-			auto& value_v = v.value();
-			m_v = fmt::format("({}; {}; {})", value_v.x, value_v.y, value_v.z);
-		}
-		else {
-			auto& value_v = v.value();
-			m_v = fmt::format("({}; {})", value_v.x, value_v.y);
-		}
-
-		message += fmt::format("\t v: {}\n", m_v);
+		message += fmt::format("\t v: {}\n", format_floatn(v.value()));
 	}
 
 	if (rho.has_value()) {
@@ -60,7 +59,7 @@ void consistency_check_error(
 	message += fmt::format("\t total_error_particles: {}", err_particles_count);
 
 	printlog(message)();
-	if (params.consistency_treatment == CONSISTENCY_STOP) {
+	if (consistency_treatment == CONSISTENCY_STOP) {
 		throw std::runtime_error{ message };
 	}
 	else {
@@ -81,7 +80,8 @@ bool check_finite(
 	shared_darray<rr_int> itype,
 	heap_darray<rr_floatn>& v,
 	shared_darray<rr_float> rho,
-	shared_darray<rr_float> p)
+	shared_darray<rr_float> p,
+	rr_uint consistency_treatment)
 {
 	printlog_debug(__func__)();
 
@@ -104,6 +104,7 @@ bool check_finite(
 
 	if (infinite_count > 0) {
 		consistency_check_error<rr_floatn>(
+			consistency_treatment,
 			"Encounter not finite value",
 			infinite_count,
 			r.at(i),
@@ -122,7 +123,8 @@ bool check_finite(
 	shared_darray<rr_int> itype,
 	shared_vheap_darray_floatn v_var,
 	shared_darray<rr_float> rho,
-	shared_darray<rr_float> p)
+	shared_darray<rr_float> p,
+	rr_uint consistency_treatment)
 {
 	assert(r_var.get());
 	assert(itype.get());
@@ -133,12 +135,12 @@ bool check_finite(
 	if (params.dim == 3) {
 		auto& r = r_var->get_flt3();
 		auto& v = v_var->get_flt3();
-		return check_finite(r, itype, v, rho, p);
+		return check_finite(r, itype, v, rho, p, consistency_treatment);
 	}
 	else {
 		auto& r = r_var->get_flt2();
 		auto& v = v_var->get_flt2();
-		return check_finite(r, itype, v, rho, p);
+		return check_finite(r, itype, v, rho, p, consistency_treatment);
 	}
 }
 
@@ -160,7 +162,8 @@ static bool check_particle_is_within_boundaries(rr_float3 r) {
 template<typename rr_floatn>
 bool check_particles_are_within_boundaries(
 	const heap_darray<rr_floatn>& r,
-	const heap_darray<rr_int>& itype)
+	const heap_darray<rr_int>& itype,
+	rr_uint consistency_treatment)
 {
 	printlog_debug(__func__)();
 
@@ -178,6 +181,7 @@ bool check_particles_are_within_boundaries(
 
 	if (count_outside_boundaries > 0) {
 		consistency_check_error<rr_floatn>(
+			consistency_treatment,
 			"Encounter particle outside boundaries",
 			count_outside_boundaries,
 			r(outside_k),
@@ -192,21 +196,103 @@ bool check_particles_are_within_boundaries(
 
 bool check_particles_are_within_boundaries(
 	const vheap_darray_floatn& r_var,
-	const heap_darray<rr_int>& itype)
+	const heap_darray<rr_int>& itype,
+	rr_uint consistency_treatment)
 {
 	if (params.dim == 3) {
 		auto& r = r_var.get_flt3();
-		return check_particles_are_within_boundaries(r, itype);
+		return check_particles_are_within_boundaries(r, itype, consistency_treatment);
 	}
 	else {
 		auto& r = r_var.get_flt2();
-		return check_particles_are_within_boundaries(r, itype);
+		return check_particles_are_within_boundaries(r, itype, consistency_treatment);
 	}
 }
 
 bool check_particles_are_within_boundaries(
 	shared_vheap_darray_floatn r_var,
-	shared_darray<rr_int> itype)
+	shared_darray<rr_int> itype,
+	rr_uint consistency_treatment)
 {
-	return check_particles_are_within_boundaries(*r_var, *itype);
+	return check_particles_are_within_boundaries(*r_var, *itype, consistency_treatment);
+}
+
+template<typename rr_floatn>
+bool check_particles_have_same_position(
+	const heap_darray<rr_floatn>& r,
+	const heap_darray<rr_int>& itype,
+	rr_uint consistency_treatment)
+{
+	printlog_debug(__func__)();
+
+	rr_int count_same_position = 0;
+	rr_iter any_same_position_k1 = 0;
+	rr_iter any_same_position_k2 = 0;
+
+	constexpr rr_float min_length_coef = 0.1;
+	rr_float min_length_sqr = sqr(min_length_coef * params.hsml);
+
+#pragma omp parallel for reduction(+: count_same_position)
+	for (rr_iter k = 0; k < params.ntotal; ++k) {
+		for (rr_iter other = k + 1; other < params.ntotal; ++other) {
+			if (itype.at(k) == params.TYPE_NON_EXISTENT ||
+				itype.at(other) == params.TYPE_NON_EXISTENT)
+			{
+				continue;
+			}
+
+			if (length_sqr(r.at(k) - r.at(other)) < min_length_sqr) {
+				++count_same_position;
+
+#pragma omp critical
+				{
+					any_same_position_k1 = k;
+					any_same_position_k2 = other;
+				}
+			}
+		}
+	}
+
+
+	if (count_same_position > 0) {
+		std::string message = fmt::format(
+			"encounter particles with same position: \n"
+			"\t r1: {}\n"
+			"\t r2: {}\n"
+			"\t type1: {}\n"
+			"\t type2: {}\n"
+			"\t k1: {}\n"
+			"\t k2: {}\n"
+			"total pairs of particles with same positions: {}\n",
+			format_floatn(r.at(any_same_position_k1)),
+			format_floatn(r.at(any_same_position_k2)),
+			itype.at(any_same_position_k1),
+			itype.at(any_same_position_k2),
+			any_same_position_k1,
+			any_same_position_k2,
+			count_same_position);
+
+		if (consistency_treatment == CONSISTENCY_STOP) {
+			throw std::runtime_error{ message };
+		}
+		else {
+			printlog(message)();
+		}
+	}
+	return count_same_position == 0;
+}
+
+bool check_particles_have_same_position(
+	shared_vheap_darray_floatn r_var,
+	shared_darray<rr_int> itype,
+	rr_uint consistency_treatment)
+{
+	if (params.dim == 3) {
+		auto& r = r_var->get_flt3();
+		return check_particles_have_same_position(r, *itype, consistency_treatment);
+	}
+	else {
+		auto& r = r_var->get_flt2();
+		return check_particles_have_same_position(r, *itype, consistency_treatment);
+	}
 }

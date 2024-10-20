@@ -41,6 +41,15 @@ public:
 	const flt3& get_flt3() const {
 		return std::get<flt3>(data);
 	}
+
+	size_t size() const {
+		return std::visit(
+			[](auto&& arr) {
+				return arr.size();
+			},
+			data
+		);
+	}
 };
 
 
@@ -80,6 +89,30 @@ public:
 	const flt3& get_flt3() const {
 		return std::get<flt3>(data);
 	}
+
+	size_t size() const {
+		return std::visit(
+			[](auto&& arr) {
+				return arr.size();
+			},
+			data
+		);
+	}
 };
 
 using shared_vheap_darray_floatn = std::shared_ptr<vheap_darray_floatn>;
+
+inline shared_vheap_darray_floatn make_shared_vheap_darray_floatn(const vheap_darray_floatn& buffer) {
+	auto arr_ptr = std::make_shared<vheap_darray_floatn>(buffer.size());
+	if (vheap_darray_floatn::dimensions == 3) {
+		auto& arr_internal = arr_ptr->get_flt3();
+		const auto& buffer_internal = buffer.get_flt3();
+		std::copy(buffer_internal.begin(), buffer_internal.end(), arr_internal.begin());
+	}
+	else {
+		auto& arr_internal = arr_ptr->get_flt2();
+		const auto& buffer_internal = buffer.get_flt2();
+		std::copy(buffer_internal.begin(), buffer_internal.end(), arr_internal.begin());
+	}
+	return arr_ptr;
+}

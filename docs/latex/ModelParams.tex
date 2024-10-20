@@ -1,0 +1,517 @@
+
+\subsection{Model Params}
+
+\subsubsection{Target version}
+
+\begin{itemize}
+    \item \verb|params_target_version_major|
+    \item \verb|params_target_version_minor|
+    \item \verb|params_target_version_patch|
+\end{itemize}
+
+\subsubsection{Smoothing kernel function}
+\label{sec:skf}
+
+Possible values:
+
+\begin{itemize}
+    \item 1: \verb|SKF_CUBIC|.
+    \begin{equation}
+        W(q) = \kappa_{\text{cubic}}
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\frac{2}{3} - q^{2} + \frac{1}{2} q^{3}$
+              &
+              $q \leq 1$, 
+              
+              \\
+              
+              $\frac{1}{6} \left(2 - q\right)^{3}$
+              &
+              $1 < q \leq 2$,
+              \\
+              
+              0
+              &
+              $q > 2$.
+          \end{tabular}  
+        \end{cases} 
+    \end{equation}
+
+    \item 2: \verb|SKF_GAUSS|.
+    \begin{equation}
+        W(q) = \kappa_{\text{gauss}}
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\displaystyle{\frac{1}{h^{2}\pi}e^{q^{-2}}}$
+              &
+              $q \leq 3$, 
+              
+              \\
+              
+              0
+              &
+              $q > 3$.
+          \end{tabular}  
+        \end{cases} 
+    \end{equation}
+
+    \item 3: \verb|SKF_WENDLAND|.
+    \begin{equation}
+        W(q) = \kappa_{\text{wendland}}
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\displaystyle{\left(
+              1 - \frac{q}{2}
+              \right)^4
+              (2q + 1)}$
+              &
+              $q \leq 2$, 
+              
+              \\
+              
+              0
+              &
+              $q > 2$.
+          \end{tabular}  
+        \end{cases} 
+    \end{equation}
+    
+    \item 3: \verb|SKF_DESBRUN|.
+    \begin{equation}
+        W(q) = \kappa_{\text{desbrun}}
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\displaystyle{\left(2 - q
+              \right)^3}$
+              &
+              $q \leq 2$, 
+              
+              \\
+              
+              0
+              &
+              $q > 2$.
+          \end{tabular}  
+        \end{cases} 
+    \end{equation}
+\end{itemize}
+
+
+\subsubsection{Density}
+
+\begin{itemize}
+    \item \verb|density_treatment|. Density integration function. Possible values of enumeration:
+    \begin{itemize}
+        \item 0: \verb|DENSITY_SUMMATION|. Use SPH summation over kernel:
+        \begin{equation}
+            \rho_{j} = \sum\limits_{i} m_{i} W_{ji}.
+        \end{equation}
+
+        \item 1: \verb|DENSITY_CONTINUITY|. Use integration of continuity equation:
+        \begin{equation}
+            \frac{D\rho_{j}}{Dt} = \sum\limits_{i} m_{i} \vec{v_{ji}} \cdot \vec{\nabla}_{j} W_{ji}.
+        \end{equation}
+
+        \item 2: \verb|DENSITY_CONTINUITY_DELTA|. Use integration of continuity equation with density diffussion:
+        \begin{equation}\label{eq:CSPM}
+             \frac{D\rho_{j}}{Dt} = \sum\limits_{i} m_{i} \vec{v}_{ji} \cdot \vec{\nabla}_{j} W_{ji} + 
+             2\delta_{\text{density}} h c
+             \sum\limits_{i}m_{i} \frac{(\rho_{i} - \rho_{j})}{\rho_{i}} \frac{\vec{r}_{ji}}{|\vec{r}_{ji}|^2} \cdot \vec{\nabla}_{j} W_{ji}.
+        \end{equation}
+    \end{itemize}
+
+    \item \verb|density_normalization|. Enable boundary deficiency correction:
+    \begin{equation}
+        \rho_{j} = \frac{
+        \sum\limits_{i}m_{i}W_{ji}
+        }{
+        \sum\limits_{i}
+        \left(\frac{m_{i}}{\rho_{i}}\right) W_{ji}
+        }
+    \end{equation}
+
+    Optional. Available if \verb|density_treatment == 0|.
+    \item \verb|density_skf|. See section~\ref{sec:skf}.
+    \item \verb|density_delta_sph_coef|. $\delta_{\text{density}}$ parameter in eq.~\ref{eq:CSPM}.
+    
+    Mandatory if \verb|density_treatment == 2|.
+\end{itemize}
+
+\subsubsection{Equation of state}
+
+\begin{itemize}
+    \item \verb|eos_sound_vel_method|. Method for sound velocity choosing. Possible values of enumeration:
+
+    \begin{itemize}
+        \item 0: \verb|EOS_SOUND_VEL_DAM_BREAK|. Use dam break assumption:
+        \begin{equation}\label{eq:cdam}
+            c = \sqrt{200gdc_{k}}.
+        \end{equation}
+
+        \item 1: \verb|EOS_SOUND_VEL_SPECIFIC|. Use custom sound velocity.
+        \begin{equation}\label{eq:ccustom}
+            c = c_{\text{user}}.
+        \end{equation}
+    \end{itemize}
+
+    \item  \verb|eos_sound_vel_coef|. $c_{k}$ parameter in eq.~\ref{eq:cdam}.
+
+    Mandatory if \verb|eos_sound_vel_method == 0|.
+    
+    \item \verb|eos_sound_vel|. User-provided sound velocity $c_{\text{user}}$ in eq.~\ref{eq:ccustom}.
+    
+    Mandatory if \verb|eos_sound_vel_method == 1|.
+\end{itemize}
+
+\subsubsection{Internal Forces}
+
+\begin{itemize}
+    \item \verb|intf_sph_approximation|. SPH momentum equation form. Possible values of enumeration:
+    \begin{itemize}
+        \item 1: \verb|INTF_SPH_APPROXIMATION_1|. SPH momentum equation form:
+        \begin{equation}
+            \frac{D\vec{v}_j}{D t} = 
+            -\sum\limits_{i} m_{i} 
+            \left(
+            \frac{p_{i} + p_{j}}{\rho_{i} \rho_{j}}
+            \right) \vec{\nabla_{j}} W_{ji}.
+        \end{equation}
+        
+        \item 2: \verb|INTF_SPH_APPROXIMATION_2|. SPH momentum equation form:
+        \begin{equation}
+            \frac{D\vec{v}_j}{D t} = 
+            -\sum\limits_{i} m_{i} 
+            \left(
+            \frac{p_{j}}{\rho_{j}^{2}} + 
+            \frac{p_{i}}{\rho_{i}^{2}}
+            \right) \vec{\nabla_{j}} W_{ji}.
+        \end{equation}
+    \end{itemize}
+
+    \item \verb|intf_hsml_coef|. $h_{k}$ in smoothing kernel length equation:
+    \begin{equation}
+        h = \delta_{0} \cdot h_{k},
+    \end{equation}
+    where $\delta_{0}$ is initial distance between particles.
+
+    \item \verb|intf_skf|. See section~\ref{sec:skf}.
+\end{itemize}
+
+\subsubsection{Artificial Pressure}
+
+\begin{itemize}
+    \item \verb|artificial_pressure|. Enable additional factor in momentum equation for tensile instability correction:
+    \begin{equation}\label{eq:artpress0}
+        \frac{D\vec{v}_j}{D t} = 
+        -\sum\limits_{i} m_{i} 
+        \left(
+        \frac{p_{j}}{\rho_{j}^{2}} + 
+        \frac{p_{i}}{\rho_{i}^{2}} +
+        R\Tilde{W}_{ji}^{n}
+        \right) \vec{\nabla_{j}} W_{ji},
+    \end{equation}
+    where $R\Tilde{W}_{ji}^{n}$ is artificial pressure term. SPH approximation function could be of both types.
+    
+    \begin{equation}
+        R = R_{i} + R_{j},
+    \end{equation}
+
+    where any indexed $R_{x}$ is:
+    \begin{equation}\label{eq:artpress1}
+        R_{x} = 
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\displaystyle{
+              \frac{\epsilon|p_{x}|}{\rho_{x}^{2}}
+              }$
+              &
+              $p_{x} < 0$, 
+              
+              \\
+              
+              0
+              &
+              $p_{x} \geq 0$,
+          \end{tabular}  
+        \end{cases} 
+    \end{equation}
+    where $\epsilon$ is artificial pressure coefficient.
+    
+    \begin{equation}
+        \Tilde{W}_{ji} = \frac{W(\vec{r}_{ji}, h)}{W(\delta_{0}, h)},
+    \end{equation}
+    where $\delta_{0}$ is initial distance between particles.
+
+    \item \verb|artificial_pressure_skf|. See section \ref{sec:skf}.
+    \item \verb|artificial_pressure_index|. Term $n$ in eq.~\ref{eq:artpress0}.
+    \item \verb|artificial_pressure_coef|. Term $\epsilon$ in eq.~\ref{eq:artpress1}.
+\end{itemize}
+
+\subsubsection{Artificial Viscosity}
+\begin{itemize}
+    \item \verb|artificial_viscosity|. Enable additional factor in momentum equation for stability correction:
+    \begin{equation}
+        \frac{D\vec{v}_j}{D t} = 
+        -\sum\limits_{i} m_{i} 
+        \left(
+        \frac{p_{j}}{\rho_{j}^{2}} + 
+        \frac{p_{i}}{\rho_{i}^{2}} +
+        \Pi_{ji}
+        \right) \vec{\nabla_{j}} W_{ji},
+    \end{equation}
+    where $\Pi_{ji}$ is artificial viscosity term. SPH approximation function could be of both types.
+    $\Pi_{ji}$ is:
+    \begin{equation}\label{eq:artvisc}
+        \Pi_{ji} = 
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\displaystyle{
+              \frac{-\alpha_{\Pi}c_{ji}\phi_{ji} + \beta_{\Pi}\phi_{ji}^{2}}{\rho_{ji}^{2}}
+              }$
+              &
+              $\vec{v}_{ji} \cdot \vec{r}_{ji} < 0$, 
+              
+              \\
+              
+              0
+              &
+              $\vec{v}_{ji} \cdot \vec{r}_{ji} \geq 0$,
+          \end{tabular}  
+        \end{cases} 
+    \end{equation}
+
+    \begin{equation}
+        \phi_{ji} = 
+        \frac
+        {h_{ji}\vec{v}_{ji} \cdot \vec{r}_{ji}}
+        {|\vec{r}_{ji}|^2 + (\epsilon_{\Pi} h_{ji})^2 },
+    \end{equation}
+
+    \begin{equation}
+        \begin{tabular}{l l l}
+              $\displaystyle{
+              \rho_{ji} = \frac{\rho_{j} + \rho_{i}}{2}
+              }$,
+              &
+              $\displaystyle{
+              c_{ji} = \frac{c_{j} + c_{i}}{2}
+              }$, 
+              &
+              $\displaystyle{
+              h_{ji} = \frac{h_{j} + h_{i}}{2}
+              }$,
+          \end{tabular}  
+    \end{equation}
+    
+    \begin{equation}
+        \begin{tabular}{l l}
+              $\displaystyle{
+              \vec{v}_{ji} = \vec{v}_{j} - \vec{v}_{i}
+              }$,
+              &
+              $\displaystyle{
+              \vec{r}_{ji} = \vec{r}_{j} - \vec{r}_{i}
+              }$.
+          \end{tabular}  
+    \end{equation}
+
+    \item \verb|artificial_viscosity_skf|. See section~\ref{sec:skf}.
+    \item \verb|artificial_shear_visc|. Term $\alpha_{\Pi}$ in eq.~\ref{eq:artvisc}.
+    \item \verb|artificial_bulk_visc|. Term $\beta_{\Pi}$ in eq.~\ref{eq:artvisc}.
+\end{itemize}
+
+\subsubsection{Average Velocity}
+\begin{itemize}
+    \item \verb|average_velocity|. Enable XSPH velocity smoothing factor:
+    \begin{equation}
+        \frac{D\vec{r}_j}{Dt} = \vec{v}_{j} + \vec{v}_{j\;\text{avg}},
+    \end{equation}
+    where $v_{avg}$ is:
+    \begin{equation}\label{eq:xsph}
+        \vec{v}_{j\;\text{avg}} = -\varepsilon_{\text{avg}}
+        \sum\limits_{i}\frac{m_{i}}{\rho_{i}}\vec{v}_{ji}W_{ji}.
+    \end{equation}
+
+    \item \verb|average_velocity_skf|. See section~\ref{sec:skf}.
+    \item \verb|average_velocity_coef|. Term $\varepsilon_{\text{avg}}$ in eq.~\ref{eq:xsph}.
+\end{itemize}
+
+\subsubsection{Time Integration}
+\begin{itemize}
+    \item \verb|simulation_time|. Total simulation time to stop experiment.
+    \item \verb|dt_correction_method|. Method of $\Delta t$ choosing. Possible values of enumeration:
+    \begin{itemize}
+        \item 0: \verb|DT_CORRECTION_CONST_VALUE|. Use user-provided constant value.
+        \begin{equation}\label{eq:dtcvalue}
+            \Delta t_{\tau} = \Delta t_{\text{user}}.
+        \end{equation}
+        \item 1: \verb|DT_CORRECTION_CONST_CFL|. $\Delta t$ is computed before experiment start with CFL condition:
+        \begin{equation}\label{eq:dtccfl}
+            \Delta t_{\tau} = \Delta t_{0} = 
+            \text{CFL} \frac{h}{c (1 + 1.2\alpha_{\Pi})}
+        \end{equation}
+        \item 2: \verb|DT_CORRECTION_DYNAMIC|. $\Delta t$ is computed on every step with CFL condition:
+        \begin{equation}\label{eq:dtdcfl}
+            \Delta t_{\tau} = \text{CFL}\min(\Delta t_{f}, \Delta t_{\phi}),
+        \end{equation}
+        \begin{equation}
+            \Delta t_{f} = \min\limits_{i}
+            \left(
+            \sqrt{\frac{h}{a_{i}}}
+            \right),
+        \end{equation}
+        \begin{equation}
+            \Delta t_{\phi} = \min\limits_{i}
+            \left(
+            \frac{h}{c + \phi}
+            \right).
+        \end{equation}
+    \end{itemize}
+
+    \item \verb|dt|. Term $\Delta t_{\text{user}}$ in eq.~\ref{eq:dtcvalue}.
+    \item \verb|CFL_coef|. Term CFL in eq.~\ref{eq:dtccfl} and eq.~\ref{eq:dtdcfl}.
+\end{itemize}
+
+\subsubsection{Boundary Treatment}
+\begin{itemize}
+    \item \verb|boundary_treatment|. Selects method for boundaries. Possible values of enumeration:
+    \begin{itemize}
+        \item 0: \verb|SBT_DYNAMIC|. Boundary particles are the same as fluid but have constant positions.
+        \item 1: \verb|SBT_REPULSIVE|. Boundary particles are dynamic with additional term in momentum equation:
+        
+        \begin{equation}
+        \frac{D\vec{v}_j}{D t} = 
+        -\sum\limits_{i} 
+        \left[
+        m_{i} 
+        \left(
+        \frac{p_{j}}{\rho_{j}^{2}} + 
+        \frac{p_{i}}{\rho_{i}^{2}}
+        \right) \vec{\nabla_{j}} W_{ji}
+        + \vec{\Upsilon}_{ji}
+        \right],
+        \end{equation}
+        
+        where $\vec{\Upsilon}_{ji}$ is computed if $j$ is fluid particle and $i$ is boundary particle:
+        
+        \begin{equation}
+        \vec{\Upsilon}_{ji} = 
+        \frac{\vec{r}_{ji}}{|\vec{r}_{ji}|}
+        \begin{cases}
+          \begin{tabular}{l l}
+              $\displaystyle{
+              D\left[
+              \left(
+                \frac{r_{0}}{|\vec{r}_{ji}|}
+              \right)^{\alpha_{1}}
+              -
+              \left(
+                \frac{r_{0}}{|\vec{r}_{ji}|}
+              \right)^{\alpha_{2}}
+              \right]
+              }$
+              &
+              $|\vec{r_{ji}}| \leq r_{0}$, 
+              
+              \\
+              
+              0
+              &
+              $|\vec{r_{ji}}| > r_{0}$.
+          \end{tabular}  
+        \end{cases} 
+        \end{equation}
+        Equation parameters are considered built-in:
+        \begin{equation}
+          \begin{tabular}{l}
+            $r_{0} = 2h$,
+            \\
+            $D = 5gd$,
+            \\
+            $\alpha_{1} = 12$,
+            \\
+            $\alpha_{2} = 4$,
+          \end{tabular}  
+        \end{equation}
+        where $d$ is initial water depth.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Numerical Waves Maker}
+\begin{itemize}
+    \item \verb|nwm|. Waves maker method. Possible values of enumeration:
+    \begin{itemize}
+        \item 0: \verb|NWM_NO_WAVES|. No waves generator.
+        \item 2: \verb|NWM_METHOD_DYNAMIC|. First order waves generator. Piston-type wavemaker. 
+
+        Makes waves with surface displacement of type:
+        \begin{equation}
+            \eta(x, t) = \frac{H}{2}cos(\omega t - kx + \delta),
+        \end{equation}
+        where $H$ is wave height, $x$ is distance and $\delta$ is the initial phase.
+        $\omega = 2\pi/T$ is the angular frequency and $k=2\pi/L$ is the wave number with $T$ equal to the wave period and $L$ the wave length.
+
+        Piston displacement equation is:
+        \begin{equation}
+            e_{1}(t) = \frac{S_{0}}{2} sin(\omega t + \delta),
+        \end{equation}
+        where $S_{0}$ is piston magnitude:
+        \begin{equation}\label{eq:pistonS0}
+            S_{0} = H \frac
+            {\sinh{kd}\cosh{kd} + kd}
+            {2\sinh{kd}^2},
+        \end{equation}
+        where $d$ is depth.
+        
+        \item 4: \verb|NWM_METHOD_WALL_DISAPPEAR|.
+    \end{itemize}
+    Methods \verb|NWM_METHOD_DYNAMIC| and \verb|NWM_METHOD_WALL_DISAPPEAR| require ParticleParams to provide\\ \verb|nwm_particles_start| and \verb|nwm_particles_end|.
+
+    \item \verb|nwm_time_start|. Simulation time when NWM starts to generate waves.
+    
+    Optional parameter.
+    \item \verb|nwm_wave_length|. Wave length $L$ to be generated.
+    
+    Mandatory when \verb|nwm == NWM_METHOD_DYNAMIC|.
+    \item \verb|nwm_wave_magnitude|. Wave height $H$ to be generated.
+    
+    Mandatory when \verb|nwm == NWM_METHOD_DYNAMIC|.
+\end{itemize}
+
+\subsubsection{Output Control}
+\begin{itemize}
+    \item \verb|save_time|. Program will produce output for further processing every \verb|save_time| seconds of simulation. See 'data' directory of experiment.
+    \item \verb|save_velocity|. Enable velocity saving in output.
+    \item \verb|save_pressure|. Enable pressure saving in output.
+    \item \verb|save_density|. Enable density saving in output.
+\end{itemize}
+
+\subsubsection{Dump Control}
+\begin{itemize}
+    \item \verb|use_dump|. Enable dump dump creation.
+    \item \verb|dump_time|. Program will produce dump every \verb|dump_time| seconds of simulation. You can use that point in time to start from later. See 'dump' directory of experiment.
+\end{itemize}
+
+\subsubsection{Time Estimation}
+\begin{itemize}
+    \item \verb|use_custom_time_estimate_step|. Enables user-set time estimation step. Program will print amount of time left for simulation to finish every $k$ steps. If not set, program will print time estimation with every output.
+    \item \verb|step_time_estimate|. Term $k$ in previous statement.
+\end{itemize}
+
+\subsubsection{Consistency Control}
+\begin{itemize}
+    \item \verb|consistency_check|. Enable consistency control: check if variables are NaN or infinite; check particles are outside of simulation domain.
+    \item \verb|consistency_treatment|. Selects method for consistency control. Possible values of enumeration:
+    \begin{itemize}
+        \item 0: \verb|CONSISTENCY_PRINT|. Prints warning message on inconsistent value of variables and continues simulation. Simulation with such values of variables is undefined.
+        \item 1: \verb|CONSISTENCY_STOP|. Prints error message and stop simulation process.
+        \item 2: \verb|CONSISTENCY_FIX|. Fixes particles leaving simulation domain (mark them as non-existing). Prints error message and stop simulation process on NaN or infinite values of variables.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Optimization}
+\begin{itemize}
+    \item \verb|max_neighbours|. Maximum number of neighbours for particle. Affects on allocated memory for grid of neighbours.
+    \item \verb|local_threads|. Local threads number for OpenCL kernels and OpenMP parallel sections.
+\end{itemize}
