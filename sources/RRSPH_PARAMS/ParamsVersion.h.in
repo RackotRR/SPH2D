@@ -124,6 +124,7 @@
 //          - fix SPH2DParams particle type definition
 //   3.0.13 - add support for backward compatibility
 //          - add params_target_version parameters
+//   3.0.14 - add Railegh method solitary NWM option
 //    3.1.0 - rename SPH2D_PARAMS -> RRSPH_PARAMS
 //          - rename SPH2DParams -> ComputingParams
 //          - rename SPH2D_version -> RRSPH_version

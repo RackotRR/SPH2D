@@ -202,21 +202,28 @@ __kernel void nwm_dynamic_boundaries(
 
 #define generator_phase (-params_nwm_freq * params_nwm_time_start)
 
-	// second-order wave generation of regular waves (Madsen, 1971)
-
 #define nwm_delta generator_phase
 #define nwm_omega params_nwm_freq
 #define nwm_H  params_nwm_wave_magnitude
 #define nwm_kd (params_nwm_wave_number * params_depth)
 #define nwm_m1 (2 * sqr(sinh(nwm_kd)) / (sinh(nwm_kd) * cosh(nwm_kd) + nwm_kd))
 #define nwm_S0 (nwm_H / nwm_m1)
+
 #define nwm_e2_1 (sqr(nwm_H) / (32 * params_depth))
 #define nwm_e2_2 (3 * cosh(nwm_kd) / cube(sinh(nwm_kd)) - 2 / nwm_m1)
 #define nwm_e2_coef (nwm_e2_1 * nwm_e2_2)
 
-	rr_float vx_first_order = 0.5f * nwm_S0 * nwm_omega * cos(nwm_omega * time + nwm_delta);
-	rr_float vx_second_order = 2 * nwm_omega * nwm_e2_coef * cos(2 * nwm_omega * time + 2 * nwm_delta);
+#define vx_first_order (0.5f * nwm_S0 * nwm_omega * cos(nwm_omega * time + nwm_delta))
+#define vx_second_order (2 * nwm_omega * nwm_e2_coef * cos(2 * nwm_omega * time + 2 * nwm_delta))
+
+#if params_nwm == NWM_METHOD_DYNAMIC_1
+	rr_float vx = vx_first_order;
+#elif params_nwm == NWM_METHOD_DYNAMIC_2
+	// second-order wave generation of regular waves (Madsen, 1971)
 	rr_float vx = vx_first_order + vx_second_order;
+#else
+	rr_float vx = 0;
+#endif
 
 	r[i].x = r[i].x + vx * dt;
 	v[i].x = vx;
@@ -230,4 +237,42 @@ __kernel void nwm_disappear_wall(
 	if (i >= params_ntotal || i < params_nfluid) return;
 
 	itype[i] = params_TYPE_NON_EXISTENT;
+}
+
+__kernel void nwm_solitary_rayleigh(
+	__global rr_float2* v,
+	__global rr_float2* r,
+	rr_float time,
+	rr_float dt)
+{
+	size_t i = get_global_id(0) + params_nwm_particles_start;
+	if (i >= params_nwm_particles_end) return;
+	if (i >= params_ntotal || i < params_nfluid) return;
+
+	// solitary waves generation, Rayleigh approximation (Dominguez, 2019)
+
+	rr_float H = params_nwm_wave_magnitude;
+	rr_float h = params_depth;
+	rr_float g = params_g;
+
+	rr_float k = sqrt(3 * H / (4 * sqr(h) * (H + h)));
+	rr_float c = sqrt(g * (H + h));
+	rr_float Tf = 2 / (k * c) * (3.8 + H / h);
+
+	rr_float t = time - params_nwm_time_start;
+	rr_float tau = k * c * (time - Tf);
+	rr_float u = tanh(tau);
+
+	rr_float top_left = k * H * (h + H - H * sqr(u));
+	rr_float top_right = 2 * k * sqr(H * u);
+	rr_float top = top_left + top_right;
+	rr_float bottom = sqr(k * (h + H - H * sqr(u)));
+	rr_float dxdu = top / bottom;
+
+	rr_float dudtau = 1 - sqr(tanh(tau));
+	rr_float dtaudt = k * c;
+
+	rr_float dxdt = dxdu * dudtau * dtaudt;
+	r[i].x = r[i].x + dxdt * dt;
+	v[i].x = dxdt;
 }

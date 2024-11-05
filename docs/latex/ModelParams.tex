@@ -110,7 +110,7 @@ Possible values:
 
         \item 1: \verb|DENSITY_CONTINUITY|. Use integration of continuity equation:
         \begin{equation}
-            \frac{D\rho_{j}}{Dt} = \sum\limits_{i} m_{i} \vec{v_{ji}} \cdot \vec{\nabla}_{j} W_{ji}.
+            \frac{D\rho_{j}}{Dt} = \sum\limits_{i} m_{i} \vec{v}_{ji} \cdot \vec{\nabla}_{j} W_{ji}.
         \end{equation}
 
         \item 2: \verb|DENSITY_CONTINUITY_DELTA|. Use integration of continuity equation with density diffussion:
@@ -139,6 +139,17 @@ Possible values:
 \end{itemize}
 
 \subsubsection{Equation of state}
+
+In order to simulate water artificial equation of state is used:
+\begin{equation}
+    p = \frac{c_{0}^{2}\rho_{0}}{\gamma}
+    \left[
+    \left(
+    \frac{\rho}{\rho_{0}}
+    \right) ^ {\gamma}
+    -1
+    \right].
+\end{equation}
 
 \begin{itemize}
     \item \verb|eos_sound_vel_method|. Method for sound velocity choosing. Possible values of enumeration:
@@ -175,7 +186,7 @@ Possible values:
             -\sum\limits_{i} m_{i} 
             \left(
             \frac{p_{i} + p_{j}}{\rho_{i} \rho_{j}}
-            \right) \vec{\nabla_{j}} W_{ji}.
+            \right) \vec{\nabla}_{j} W_{ji}.
         \end{equation}
         
         \item 2: \verb|INTF_SPH_APPROXIMATION_2|. SPH momentum equation form:
@@ -185,7 +196,7 @@ Possible values:
             \left(
             \frac{p_{j}}{\rho_{j}^{2}} + 
             \frac{p_{i}}{\rho_{i}^{2}}
-            \right) \vec{\nabla_{j}} W_{ji}.
+            \right) \vec{\nabla}_{j} W_{ji}.
         \end{equation}
     \end{itemize}
 
@@ -209,7 +220,7 @@ Possible values:
         \frac{p_{j}}{\rho_{j}^{2}} + 
         \frac{p_{i}}{\rho_{i}^{2}} +
         R\Tilde{W}_{ji}^{n}
-        \right) \vec{\nabla_{j}} W_{ji},
+        \right) \vec{\nabla}_{j} W_{ji},
     \end{equation}
     where $R\Tilde{W}_{ji}^{n}$ is artificial pressure term. SPH approximation function could be of both types.
     
@@ -258,7 +269,7 @@ Possible values:
         \frac{p_{j}}{\rho_{j}^{2}} + 
         \frac{p_{i}}{\rho_{i}^{2}} +
         \Pi_{ji}
-        \right) \vec{\nabla_{j}} W_{ji},
+        \right) \vec{\nabla}_{j} W_{ji},
     \end{equation}
     where $\Pi_{ji}$ is artificial viscosity term. SPH approximation function could be of both types.
     $\Pi_{ji}$ is:
@@ -388,7 +399,7 @@ Possible values:
         \left(
         \frac{p_{j}}{\rho_{j}^{2}} + 
         \frac{p_{i}}{\rho_{i}^{2}}
-        \right) \vec{\nabla_{j}} W_{ji}
+        \right) \vec{\nabla}_{j} W_{ji}
         + \vec{\Upsilon}_{ji}
         \right],
         \end{equation}
@@ -412,13 +423,13 @@ Possible values:
               \right]
               }$
               &
-              $|\vec{r_{ji}}| \leq r_{0}$, 
+              $|\vec{r}_{ji}| \leq r_{0}$, 
               
               \\
               
               0
               &
-              $|\vec{r_{ji}}| > r_{0}$.
+              $|\vec{r}_{ji}| > r_{0}$.
           \end{tabular}  
         \end{cases} 
         \end{equation}
@@ -443,7 +454,7 @@ Possible values:
     \item \verb|nwm|. Waves maker method. Possible values of enumeration:
     \begin{itemize}
         \item 0: \verb|NWM_NO_WAVES|. No waves generator.
-        \item 2: \verb|NWM_METHOD_DYNAMIC|. First order waves generator. Piston-type wavemaker. 
+        \item 2: \verb|NWM_METHOD_DYNAMIC_1|. First order waves generator. Piston-type wavemaker. 
 
         Makes waves with surface displacement of type:
         \begin{equation}
@@ -453,30 +464,100 @@ Possible values:
         $\omega = 2\pi/T$ is the angular frequency and $k=2\pi/L$ is the wave number with $T$ equal to the wave period and $L$ the wave length.
 
         Piston displacement equation is:
-        \begin{equation}
-            e_{1}(t) = \frac{S_{0}}{2} sin(\omega t + \delta),
+        \begin{equation}\label{eq:NWMD1}
+            e(t) = e_{1}(t) = \frac{S_{0}}{2} sin(\omega t + \delta),
         \end{equation}
         where $S_{0}$ is piston magnitude:
-        \begin{equation}\label{eq:pistonS0}
-            S_{0} = H \frac
-            {\sinh{kd}\cosh{kd} + kd}
-            {2\sinh{kd}^2},
+        \begin{equation}
+            S_{0} = \frac{H}{m_{1}},
+        \end{equation}
+        where $m_{1}$:
+        \begin{equation}
+            m_{1} = \frac
+            {2\sinh^{2}(kd)}
+            {\sinh(kd)\cosh(kd) + kd},
         \end{equation}
         where $d$ is depth.
+
+        \item 3: \verb|NWM_METHOD_DYNAMIC_2|. Second order waves generator. Piston-type wavemaker.
+
+        Piston displacement equation extends eq.~\ref{eq:NWMD1} with second-order term:
+        \begin{equation}
+            e(t) = e_{1}(t) + e_{2}(t),
+        \end{equation}
+        where $e_{2}$ is:
+        \begin{equation}
+            e_{2}(t) = \left[
+            \left(
+            \frac{H^{2}}{32d}
+            \right)
+            \cdot
+            \left(
+            \frac{3\cosh(kd)}{\sinh^{3}(kd)} - \frac{2}{m_{1}}
+            \right)
+            \right]
+            \sin(2\omega t + 2\delta).
+        \end{equation}
         
         \item 4: \verb|NWM_METHOD_WALL_DISAPPEAR|.
+        \item 5: \verb|NWM_METHOD_SOLITARY_RAYLEIGH|.
+
+        Solitary wave generator. 
+        Piston-type wavemaker. 
+        Can be used to generate only one solitary wave.
+
+        Piston displacement equation is (origin of the wave-maker movement considered to be $x_{0}=0$):
+        \begin{equation}
+            x_{s}(t)=e(t)=\frac{H}{k}
+            \frac{\tanh(kc(t-T_{f}))}
+            {d+H\left[1-\tanh^{2}(kc(t-T_{f}))\right]},
+        \end{equation}
+
+        where wave celerity is:
+        \begin{equation}
+            c=\sqrt{g(H+d)},
+        \end{equation}
+
+        generation time:
+        \begin{equation}
+            T_{f} = \frac{2}{kc}
+            \left(
+            3.8+\frac{H}{d}
+            \right),
+        \end{equation}
+
+        outskirt coefficient (describes the way free-surface elevation tends towards the mean level at infinity):
+        \begin{equation}
+            k=\sqrt{\frac{3H}{4d^{2}(H+d)}}.
+        \end{equation}
+
+        Theoretical free-surface elevation will be as follows:
+        \begin{equation}
+            \eta(x_{s},t)=H \sech^{2}
+            \left[
+            k \left(
+            c\left(t - \frac{T_{f}}{2} \right)
+            +
+            2\sqrt{\frac{H(H+d)}{3}} - x_{s}
+            \right)
+            \right].
+        \end{equation}
     \end{itemize}
-    Methods \verb|NWM_METHOD_DYNAMIC| and \verb|NWM_METHOD_WALL_DISAPPEAR| require ParticleParams to provide\\ \verb|nwm_particles_start| and \verb|nwm_particles_end|.
+    Methods piston-based methods as well as wall disappear require ParticleParams to provide next options:
+    \begin{enumerate}
+        \item \verb|nwm_particles_start|,
+        \item \verb|nwm_particles_end|.
+    \end{enumerate}
 
     \item \verb|nwm_time_start|. Simulation time when NWM starts to generate waves.
     
     Optional parameter.
     \item \verb|nwm_wave_length|. Wave length $L$ to be generated.
     
-    Mandatory when \verb|nwm == NWM_METHOD_DYNAMIC|.
+    Mandatory when \verb|nwm| is \verb|NWM_METHOD_DYNAMIC|.
     \item \verb|nwm_wave_magnitude|. Wave height $H$ to be generated.
     
-    Mandatory when \verb|nwm == NWM_METHOD_DYNAMIC|.
+    Mandatory when \verb|nwm| is \verb|NWM_METHOD_DYNAMIC| or \verb|NWM_METHOD_SOLITARY_RAYLEIGH|.
 \end{itemize}
 
 \subsubsection{Output Control}

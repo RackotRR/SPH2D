@@ -68,12 +68,12 @@ void check_optional_params(const ModelParams& model_params) {
     case NWM_METHOD_WALL_DISAPPEAR:
     case NWM_NO_WAVES:
         break;
-    case NWM_METHOD_IMPULSE:
-    case NWM_METHOD_RZM:
-        throw_not_implemented(nwm);
-        break;
-    case NWM_METHOD_DYNAMIC:
+    case NWM_METHOD_DYNAMIC_1:
+    case NWM_METHOD_DYNAMIC_2:
         need_param(nwm_wave_length);
+        need_param(nwm_wave_magnitude);
+        break;
+    case NWM_METHOD_SOLITARY_RAYLEIGH:
         need_param(nwm_wave_magnitude);
         break;
     default:

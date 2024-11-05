@@ -17,6 +17,7 @@ namespace {
     RRKernel whole_step_kernel;
     RRKernel nwm_dynamic_boundaries_kernel;
     RRKernel nwm_disappear_wall_kernel;
+    RRKernel nwm_solitary_rayleigh;
     RRKernel dt_correction_optimize;
 
     clProgramAdapter<decltype(&cl_grid_find)> grid_find_adapter;
@@ -48,6 +49,7 @@ void makePrograms() {
     whole_step_kernel = RRKernel(time_integration_program, "whole_step");
     nwm_dynamic_boundaries_kernel = RRKernel(time_integration_program, "nwm_dynamic_boundaries");
     nwm_disappear_wall_kernel = RRKernel(time_integration_program, "nwm_disappear_wall");
+    nwm_solitary_rayleigh = RRKernel(time_integration_program, "nwm_solitary_rayleigh");
 
     if (params.dt_correction_method == DT_CORRECTION_DYNAMIC) {
         dt_correction_optimize = RRKernel(time_integration_program, "dt_correction_optimize");
@@ -354,16 +356,22 @@ static void cl_update_nwm(
         }
 
         switch (params.nwm) {
-        case 2:
+        case NWM_METHOD_DYNAMIC_1:
+        case NWM_METHOD_DYNAMIC_2:
             nwm_dynamic_boundaries_kernel(
                 v_, r_, time, params.dt
             ).execute(params.maxn, params.local_threads);
             break;
-        case 4:
+        case NWM_METHOD_WALL_DISAPPEAR:
             nwm_disappear_wall_kernel(
                 itype_
             ).execute(params.maxn, params.local_threads);
             params.nwm = false;
+            break;
+        case NWM_METHOD_SOLITARY_RAYLEIGH:
+            nwm_solitary_rayleigh(
+                v_, r_, time, params.dt
+            ).execute(params.maxn, params.local_threads);
             break;
         default:
             break;

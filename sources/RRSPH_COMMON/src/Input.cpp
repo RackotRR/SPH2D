@@ -123,7 +123,8 @@ static void postFillInModelParams(ModelParams& model_params)
 	}
 
 	switch (params.nwm) {
-	case NWM_METHOD_DYNAMIC: 
+	case NWM_METHOD_DYNAMIC_1:
+	case NWM_METHOD_DYNAMIC_2:
 		{
 			params.nwm_wave_number = 2. * params.pi / params.nwm_wave_length;
 			rr_float kd = params.nwm_wave_number * params.depth;

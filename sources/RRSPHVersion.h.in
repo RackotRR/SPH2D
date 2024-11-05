@@ -242,6 +242,10 @@
 //        - SPH2D: replace first-order dynamic NWM with second-order one
 //        - SPH2D_COMMON: add consistency check on input
 //        - SPH2D_COMMON: add check on particles have same initial position
+// 3.0.20 - SPH2D: add support for Rayleigh method solitary waves generation
+//        - SPH2D: support both first- and second- order dynamic NWM
+//        - SPH2D_PARAMS: add Rayleigh method solitary NWM option
+//        - SPH2D_PARAMS: add second-order dynamic NWM option
 //  3.1.0 - rename RRSPH2D -> RRSPH
 //        - rename SPH2D_COMMON -> RRSPH_COMMON
 //        - rename SPH2D_PARAMS -> RRSPH_PARAMS
