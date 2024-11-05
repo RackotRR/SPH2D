@@ -122,6 +122,7 @@
 //          - add ExperimentDirectories unit tests
 //          - add UISelector modules for ExperimentDirectories and ExperimentLayers
 //          - fix SPH2DParams particle type definition
+//   3.0.13 - add Railegh method solitary NWM option
 // TODO:
 //    3.1   - add repulsive SBT parameters
 //          - fix null piston_magnitude param 
