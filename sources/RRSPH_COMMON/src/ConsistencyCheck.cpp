@@ -124,9 +124,9 @@ bool check_finite(
 	shared_darray<rr_float> rho,
 	shared_darray<rr_float> p)
 {
-	assert(r.get());
+	assert(r_var.get());
 	assert(itype.get());
-	assert(v.get());
+	assert(v_var.get());
 	assert(rho.get());
 	assert(p.get());
 
@@ -163,8 +163,6 @@ bool check_particles_are_within_boundaries(
 	const heap_darray<rr_int>& itype)
 {
 	printlog_debug(__func__)();
-	assert(r.get());
-	assert(itype.get());
 
 	rr_int count_outside_boundaries = 0;
 	rr_iter outside_k = 0;

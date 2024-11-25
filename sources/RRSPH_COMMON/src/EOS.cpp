@@ -20,24 +20,25 @@ rr_float eos_art_c() {
 }
 
 
-// EOS parameters
-static rr_float rho0() {
-    static rr_float rho = params.mass / powun(params.delta, params.dim);
-    return rho;
-}
 static constexpr rr_uint gamma_eos = 7;
 
 static rr_float B() {
-    static rr_float b = eos_art_c_sqr() * rho0() / gamma_eos;
+    static rr_float b = eos_art_c_sqr() * params.rho0 / gamma_eos;
     return b;
 }
 
 // artificial equation of state for the artificial compressibility
 rr_float eos_art_p(const rr_float rho) {
     // artificial EOS, Form (Monaghan, 1994)
-    return B() * (powun(rho / rho0(), gamma_eos) - 1.f);
+    return B() * (powun(rho / params.rho0, gamma_eos) - 1.f);
 }
 
 rr_float eos_art_rho(rr_float p) {
-    return rho0() * pow(fabs(p) / B() + 1.f, 1.f / gamma_eos);
+    rr_float val = p / B() + 1.f;
+    if (val >= 0) {
+        return params.rho0 * pow(val, 1.f / gamma_eos);
+    }
+    else {
+        return NAN;
+    }
 }

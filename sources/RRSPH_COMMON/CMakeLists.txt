@@ -24,3 +24,16 @@ target_link_libraries(RRSPH_COMMON PUBLIC
 )
 target_compile_definitions(RRSPH_COMMON PUBLIC DO_ON_CPU=1)
 target_compile_definitions(RRSPH_COMMON PUBLIC DO_ON_GPU=0)
+
+# tests for RRSPH_COMMON with RRSPH_OMP_SHARED lib
+add_executable(test_RRSPH_COMMON_OMP
+    "tests/testEOS.cpp"
+    "tests/testSmoothingKernel.cpp"
+    "tests/testGridUtils.cpp"
+)
+target_link_libraries(test_RRSPH_COMMON_OMP PRIVATE RRSPH_OMP_SHARED)
+target_link_libraries(test_RRSPH_COMMON_OMP PRIVATE GTest::gtest_main)
+
+# google test
+include(GoogleTest)
+gtest_discover_tests(test_RRSPH_COMMON_OMP)

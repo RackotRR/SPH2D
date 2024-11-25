@@ -5,10 +5,12 @@
 #define maxu(a, b) ((a) > (b) ? (a) : (b))
 #define minu(a, b) ((a) < (b) ? (a) : (b))
 
+#define GRID_INVALID_CELL UINT_MAX
+#define GRID_MAX_CELL_COORD2 ((1 << 16) - 1)
+
 #if DO_ON_GPU
 
 #define grid_cell_size_value (params_cell_scale_k * params_hsml)
-#define GRID_INVALID_CELL UINT_MAX
 
 #if params_dim == 3
 #define neighbour_cells_count 27
@@ -20,8 +22,6 @@
 
 #include <climits>
 #include "Params.h"
-
-constexpr rr_uint GRID_INVALID_CELL = UINT_MAX;
 
 inline rr_uint get_neighbour_cells_count() {
     if (params.dim == 3) {
@@ -157,68 +157,93 @@ inline rr_uint3 get_cell_coord3(rr_uint idx) {
     return m3D_d_magicbits(idx);
 }
 
-inline rr_uint get_shifted_coord(rr_uint base, rr_int shift) {
-    switch (shift) {
-    case -1:return minu(base, base - 1);
-    case 1: return maxu(base, base + 1);
-    default:return base;
+inline rr_uint inc_cell_coord(rr_uint r) {
+    return r == GRID_MAX_CELL_COORD2 ? GRID_INVALID_CELL : r + 1;
+}
+inline rr_uint dec_cell_coord(rr_uint r) {
+    return r == 0 ? GRID_INVALID_CELL : r - 1;
+}
+inline rr_uint get_cell_idx_by_cell_xy_validated(rr_uint x, rr_uint y) {
+    if (x == GRID_INVALID_CELL || y == GRID_INVALID_CELL) {
+        return GRID_INVALID_CELL;
+    }
+    else {
+        rr_uint2 cell_coord;
+        cell_coord.x = x;
+        cell_coord.y = y;
+        return m2D_e_magicbits(cell_coord);
+    }
+}
+inline rr_uint get_cell_idx_by_cell_xyz_validated(rr_uint x, rr_uint y, rr_uint z) {
+    if (x == GRID_INVALID_CELL || y == GRID_INVALID_CELL || z == GRID_INVALID_CELL) {
+        return GRID_INVALID_CELL;
+    }
+    else {
+        rr_uint3 cell_coord;
+        cell_coord.x = x;
+        cell_coord.y = y;
+        cell_coord.z = z;
+        return m3D_e_magicbits(cell_coord);
     }
 }
 
 inline void get_neighbouring_cells2(rr_uint idx, rr_uint* cells) {
-    rr_uint2 neighbour_cell_coord;
-    rr_uint2 cell_coord = get_cell_coord2(idx);
-    rr_uint i = 0;
-
-
-    for (rr_int x = -1; x <= 1; ++x) {
-        neighbour_cell_coord.x = get_shifted_coord(cell_coord.x, x);
-        if (x && neighbour_cell_coord.x == cell_coord.x) {
+    if (idx == GRID_INVALID_CELL) {
+        for (rr_uint i = 0; i < 9; ++i) {
             cells[i] = GRID_INVALID_CELL;
-            continue;
         }
+    }
+    else {
+        rr_uint2 cell_coord = get_cell_coord2(idx);
 
-        for (rr_int y = -1; y <= 1; ++y) {
-            neighbour_cell_coord.y = get_shifted_coord(cell_coord.y, y);
-            if (y && neighbour_cell_coord.y == cell_coord.y) {
-                cells[i] = GRID_INVALID_CELL;
-                continue;
+        rr_uint x_coords[3];
+        x_coords[0] = dec_cell_coord(cell_coord.x);
+        x_coords[1] = cell_coord.x;
+        x_coords[2] = inc_cell_coord(cell_coord.x);
+
+        rr_uint y_coords[3];
+        y_coords[0] = dec_cell_coord(cell_coord.y);
+        y_coords[1] = cell_coord.y;
+        y_coords[2] = inc_cell_coord(cell_coord.y);
+
+        rr_uint i = 0;
+        for (rr_uint x = 0; x < 3; ++x) {
+            for (rr_uint y = 0; y < 3; ++y) {
+                cells[i++] = get_cell_idx_by_cell_xy_validated(x_coords[x], y_coords[y]);
             }
-
-            cells[i] = get_cell_idx_by_cell_coord2(neighbour_cell_coord);
-            ++i;
         }
     }
 }
 inline void get_neighbouring_cells3(rr_uint idx, rr_uint* cells) {
-    rr_uint3 neighbour_cell_coord;
-    rr_uint3 cell_coord = get_cell_coord3(idx);
-    rr_uint i = 0;
-
-
-    for (rr_int x = -1; x <= 1; ++x) {
-        neighbour_cell_coord.x = get_shifted_coord(cell_coord.x, x);
-        if (x && neighbour_cell_coord.x == cell_coord.x) {
+    if (idx == GRID_INVALID_CELL) {
+        for (rr_uint i = 0; i < 27; ++i) {
             cells[i] = GRID_INVALID_CELL;
-            continue;
         }
+    }
+    else {
+        rr_uint3 cell_coord = get_cell_coord3(idx);
 
-        for (rr_int y = -1; y <= 1; ++y) {
-            neighbour_cell_coord.y = get_shifted_coord(cell_coord.y, y);
-            if (y && neighbour_cell_coord.y == cell_coord.y) {
-                cells[i] = GRID_INVALID_CELL;
-                continue;
-            }
+        rr_uint x_coords[3];
+        x_coords[0] = dec_cell_coord(cell_coord.x);
+        x_coords[1] = cell_coord.x;
+        x_coords[2] = inc_cell_coord(cell_coord.x);
 
-            for (rr_int z = -1; z <= 1; ++z) {
-                neighbour_cell_coord.z = get_shifted_coord(cell_coord.z, z);
-                if (z && neighbour_cell_coord.z == cell_coord.z) {
-                    cells[i] = GRID_INVALID_CELL;
-                    continue;
+        rr_uint y_coords[3];
+        y_coords[0] = dec_cell_coord(cell_coord.y);
+        y_coords[1] = cell_coord.y;
+        y_coords[2] = inc_cell_coord(cell_coord.y);
+
+        rr_uint z_coords[3];
+        z_coords[0] = dec_cell_coord(cell_coord.z);
+        z_coords[1] = cell_coord.z;
+        z_coords[2] = inc_cell_coord(cell_coord.z);
+
+        rr_uint i = 0;
+        for (rr_uint x = 0; x < 3; ++x) {
+            for (rr_uint y = 0; y < 3; ++y) {
+                for (rr_uint z = 0; z < 3; ++z) {
+                    cells[i++] = get_cell_idx_by_cell_xyz_validated(x_coords[x], y_coords[y], z_coords[z]);
                 }
-
-                cells[i] = get_cell_idx_by_cell_coord3(neighbour_cell_coord);
-                ++i;
             }
         }
     }
