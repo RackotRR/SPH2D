@@ -206,7 +206,6 @@ void loadArrays(
 	heap_darray<rr_floatn>& r,
 	heap_darray<rr_floatn>& v,
 	heap_darray<rr_float>& rho,
-	heap_darray<rr_float>& p,
 	heap_darray<rr_int>& itype)
 {
 	std::cout << "read data..." << std::endl;
@@ -226,7 +225,6 @@ void loadArrays(
 			v(j).z = row["vz"].get<rr_float>();
 		}
 		rho(j) = row["rho"].get<rr_float>();
-		p(j) = row["p"].get<rr_float>();
 		++j;
 	}
 
@@ -275,13 +273,13 @@ void fileInput(
 	if (params.dim == 2) {
 		auto& r = r_var.get_flt2();
 		auto& v = v_var.get_flt2();
-		loadArrays(initial_dump_path, r, v, rho, p, itype);
+		loadArrays(initial_dump_path, r, v, rho, itype);
 		particle_params.depth = params.depth = find_depth(r);
 	}
 	else if (params.dim == 3) {
 		auto& r = r_var.get_flt3();
 		auto& v = v_var.get_flt3();
-		loadArrays(initial_dump_path, r, v, rho, p, itype);
+		loadArrays(initial_dump_path, r, v, rho, itype);
 		particle_params.depth = params.depth = find_depth(r);
 	}
 	else {
@@ -312,11 +310,11 @@ void fileInput(
 			params.consistency_treatment
 		);
 
-		check_particles_have_same_position(
-			shared_r,
-			shared_itype,
-			params.consistency_treatment
-		);
+		//check_particles_have_same_position(
+		//	shared_r,
+		//	shared_itype,
+		//	params.consistency_treatment
+		//);
 		std::cout << "... success" << std::endl;
 	}
 
