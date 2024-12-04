@@ -246,10 +246,14 @@
 //        - SPH2D: support both first- and second- order dynamic NWM
 //        - SPH2D_PARAMS: add Rayleigh method solitary NWM option
 //        - SPH2D_PARAMS: add second-order dynamic NWM option
+// 3.0.21 - SPH2D_COMMON: no need to provide pressure to start simulation
+//        - SPH2D_COMMON: disable check on particles have same initial position
 // TODO:
 // 3.1.0  - RRSPH2D: move SPH2D_FIO2 into subproject RRSPHFIO
 //        - RRSPH2D: move filesystem features from SPH2D_PARAMS into RRSPHFIO
 //        - RRSPH2D: move filesystem featrues from SPH2D_COMMON into RRSPHFIO
+//        - SPH2D_COMMON: particles check position with grid find
+//        - SPH2D_FIO: fix experiment open without save field variables params
 // 3.2.0  - RRSPH2D: add RRMetaParams subproject
 // 3.x.x - RRSPH2D: add files prefix of subproject
 //       - RRSPH2D: add subprojects version info for every SPH2D release

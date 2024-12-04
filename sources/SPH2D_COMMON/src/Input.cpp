@@ -224,7 +224,6 @@ void fileInput(
 		v(j).x = row["vx"].get<float>();
 		v(j).y = row["vy"].get<float>();
 		rho(j) = row["rho"].get<float>();
-		p(j) = row["p"].get<float>();
 		++j;
 	}
 
@@ -258,11 +257,11 @@ void fileInput(
 			params.consistency_treatment
 		);
 
-		check_particles_have_same_position(
-			shared_r,
-			shared_itype,
-			params.consistency_treatment
-		);
+		//check_particles_have_same_position(
+		//	shared_r,
+		//	shared_itype,
+		//	params.consistency_treatment
+		//);
 	}
 
 	std::cout << "...success" << std::endl;
