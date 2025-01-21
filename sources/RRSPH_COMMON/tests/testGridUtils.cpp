@@ -7,6 +7,11 @@
 #include "testSPH.h"
 #include "GridUtils.h"
 
+#define test_params_hsml 0.5f
+#define test_params_cell_scale_k 2
+#define test_params_x_mingeom 0.f
+#define test_params_y_mingeom 0.f
+
 class TestGridUtils : public ::testing::Test {};
 
 TEST_F(TestGridUtils, cell_size)

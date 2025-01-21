@@ -42,7 +42,7 @@ inline rr_floatn artificial_viscosity_part(
 		rr_float piv = (art_visc_beta * mu_ij - art_visc_alpha * params_eos_sound_vel) * mu_ij / rho_ij;
 
 		rr_floatn dwdr = smoothing_kernel_dwdr_by_coord(r_j, r_i, params_artificial_viscosity_skf);
-		rr_floatn h = -dwdr * piv;
+		rr_floatn h = dwdr * piv;
 
 		a = h * params_mass;
 	}

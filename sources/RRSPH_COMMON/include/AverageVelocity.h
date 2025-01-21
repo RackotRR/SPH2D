@@ -11,6 +11,7 @@
 #if DO_ON_CPU
 #define params_average_velocity_skf params.average_velocity_skf
 #define params_average_velocity_coef params.average_velocity_coef
+#define params_mass params.mass
 #endif
 
 #if DO_ON_CPU

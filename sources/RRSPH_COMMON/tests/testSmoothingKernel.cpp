@@ -9,6 +9,9 @@ static const rr_float hsml = 1.2;
 // values are cached, so fill these only
 static void init_params() {
     params.hsml = hsml;
+    params.cell_scale_k = 2;
+    params.x_mingeom = 0;
+    params.y_mingeom = 0;
 }
 
 TEST_F(TestSKF, kernel_q_values)

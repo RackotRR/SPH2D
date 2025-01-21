@@ -16,6 +16,7 @@ using std::max;
 #define params_artificial_shear_visc params.artificial_shear_visc
 #define params_artificial_bulk_visc params.artificial_bulk_visc
 #define params_dt_correction_method params.dt_correction_method
+#define params_mass params.mass
 #endif
 
 #define art_visc_etq 0.1f // const to avoid singularities
@@ -56,7 +57,7 @@ inline rr_floatn artificial_viscosity_part(
 		rr_float piv = (art_visc_beta * mu_ij - art_visc_alpha * params_eos_sound_vel) * mu_ij / rho_ij;
 
 		rr_floatn dwdr = smoothing_kernel_dwdr_by_coord(r_j, r_i, params_artificial_viscosity_skf);
-		rr_floatn h = -dwdr * piv;
+		rr_floatn h = dwdr * piv;
 
 		a = h * params_mass;
 	}

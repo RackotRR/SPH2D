@@ -48,7 +48,7 @@ __kernel void density_sum(
 
 		rr_uint i;
 		for (rr_iter n = 0;
-			i = neighbours[at(n, j)], i != params.ntotal; // particle near
+			i = neighbours[at(n, j)], i != params_ntotal; // particle near
 			++n)
 		{
 			rr_float w = smoothing_kernel_w_by_coord(r[j], r[i], params_density_skf);
@@ -71,7 +71,7 @@ void density_con(
 	heap_darray<rr_float>& p)	// out, pressure
 {
 #pragma omp parallel for
-	for (rr_iter j = 0; j < params.nfluid; ++j) // current particle
+	for (rr_iter j = 0; j < params_ntotal; ++j) // current particle
 #else
 __kernel void density_con(
 	__global const rr_floatn * r,
@@ -83,7 +83,7 @@ __kernel void density_con(
 	__global rr_float * p)
 {
 	size_t j = get_global_id(0);
-	if (j < params_nfluid)
+	if (j < params_ntotal)
 #endif
 	{
 		rr_float drho_temp = 0;

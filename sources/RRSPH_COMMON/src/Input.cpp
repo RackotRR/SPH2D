@@ -42,7 +42,7 @@ static rr_float get_cell_scale_k(std::vector<rr_uint> skf) {
 	return *max;
 }
 
-rr_uint countCells(rr_float hsml) {
+static rr_uint countCells(rr_float hsml) {
 	rr_uint x_id = get_cell_coord_from_particle_coord(params.x_maxgeom, params.x_mingeom);
 	rr_uint y_id = get_cell_coord_from_particle_coord(params.y_maxgeom, params.y_mingeom);
 	rr_uint z_id;
@@ -93,7 +93,7 @@ rr_float find_depth(const heap_darray<rr_floatn>& r)
 static void fillInComputingParams() {
 	printlog()(__func__)();
 
-	params.hsml = sqrt(params.dim) * params.delta * params.intf_hsml_coef;
+	params.hsml = /*sqrt(params.dim) * */params.delta * params.intf_hsml_coef;
 
 	params.maxn = 1 << (1 + intlog2(params.ntotal));
 
@@ -245,6 +245,7 @@ void fileInput(
 	const std::filesystem::path& initial_dump_path,
 	const std::filesystem::path& experiment_directory)
 {
+	params.experiment_name = experiment_directory.stem().string();
 	RRSPHOutput::instance().initialize(experiment_directory);
 
 	auto particle_params = load_particle_params(experiment_directory);
@@ -252,7 +253,7 @@ void fileInput(
 	apply_particle_params(params, particle_params);
 	apply_model_params(params, model_params);
 	
-	printlog()("Experiment name: ")(experiment_directory.stem().string())();
+	printlog()("Experiment name: ")(params.experiment_name)();
 	printLogVersions();
 
 	params.start_simulation_time = std::stod(initial_dump_path.stem().string());

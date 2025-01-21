@@ -2,7 +2,7 @@
 #define CL_SPH_INTERNAL_FORCE_H
 
 #include "common.h"
-#include "EOS.cl"
+#include "EOS.h"
 
 #ifdef params_artificial_pressure
 inline rr_float calc_art_pressure(
@@ -45,7 +45,7 @@ inline rr_floatn find_internal_changes_pij_d_rhoij_part(
     rr_floatn dwdri = smoothing_kernel_dwdr(dist_ij, diff_ij, params_intf_skf);
 
     rr_float p_ij = p_j + p_i;
-    rr_float rho_ij = rho_j + rho_i;
+    rr_float rho_ij = rho_j * rho_i;
     rr_float pressure_factor = p_ij / rho_ij;
 
 #ifdef params_artificial_pressure

@@ -69,7 +69,7 @@ inline rr_float dot(rr_float2 v1, rr_float2 v2) {
 template<typename T>
 T intlog2(T size) {
 	T passes = 0;
-	while (size != 1) {
+	while (size > 1) {
 		size >>= 1;
 		++passes;
 	}

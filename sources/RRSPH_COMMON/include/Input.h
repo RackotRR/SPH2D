@@ -18,5 +18,3 @@ void cli(
 	heap_darray<rr_float>& rho,	// particle densities
 	heap_darray<rr_float>& p,	// particle pressure
 	heap_darray<rr_int>& itype);// particle material type 
-
-rr_uint countCells(rr_float hsml);

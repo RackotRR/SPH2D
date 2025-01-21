@@ -1,7 +1,28 @@
 #include "GridUtils.h"
 #include "GridFind.h"
 
+#include <vector>
+
 #include <stdexcept>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+static rr_uint get_num_threads() {
+#ifdef _OPENMP
+	return omp_get_max_threads();
+#else
+	return 1;
+#endif
+}
+static rr_uint get_thread_num() {
+#ifdef _OPENMP
+	return omp_get_thread_num();
+#else
+	return 0;
+#endif
+}
 
 template<typename rr_floatn>
 rr_uint get_cell_idx(rr_floatn r) {
@@ -99,9 +120,11 @@ void find_neighbours(
 	printlog_debug(__func__)();
 
 	rr_uint neighbour_cells_count = get_neighbour_cells_count();
-	heap_darray<rr_uint> neighbour_cells{ neighbour_cells_count };
+	heap_darray_md<rr_uint> neighbour_cells{ neighbour_cells_count, get_num_threads() };
 	const rr_float max_dist = sqr(grid_cell_size());
-	
+
+	int asdf = omp_get_max_threads();
+
 	bool err = false;
 
 #pragma omp parallel for
@@ -111,10 +134,11 @@ void find_neighbours(
 		if (itype(j) != params.TYPE_NON_EXISTENT)
 		{
 			rr_uint center_cell_idx = get_cell_idx(r(j));
-			get_neighbouring_cells<rr_floatn>(center_cell_idx, neighbour_cells.data());
+			rr_uint thread_num = omp_get_thread_num();
+			get_neighbouring_cells<rr_floatn>(center_cell_idx, &neighbour_cells(0, thread_num));
 
 			for (rr_uint cell_i = 0; cell_i < neighbour_cells_count; ++cell_i) { // run through neighbouring cells
-				rr_uint cell_idx = neighbour_cells[cell_i];
+				rr_uint cell_idx = neighbour_cells(cell_i, thread_num);
 				if (cell_idx == GRID_INVALID_CELL) continue; // invalid cell
 
 				for (rr_uint grid_i = cell_starts_in_grid(cell_idx); // run through all particles in cell
