@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
-project(WaterProfile VERSION 2.2.7)
+project(WaterProfile VERSION 2.2.8)
 
 add_executable(WaterProfile
-    src/WaterProfile.cpp 
+    src/WaterProfile.cpp
     src/HeightTestingParams.cpp)
  target_include_directories(WaterProfile PRIVATE include)
 target_link_libraries(WaterProfile PRIVATE 

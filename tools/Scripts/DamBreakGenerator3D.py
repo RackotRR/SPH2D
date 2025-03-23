@@ -62,54 +62,42 @@ class particle_type:
     
 
 def fill_in_common_params():
+    global params
     params["dim"] = 3
-
     params["x_fluid_min"] = 0.0
     params["y_fluid_min"] = 0.0    
-    params["x_fluid_max"] = 0.6
-    params["y_fluid_max"] = 0.3
+    params["x_fluid_max"] = 1.2
+    params["y_fluid_max"] = 0.6
     params["z_fluid_min"] = 0.0
-    params["z_fluid_max"] = 0.1
+    params["z_fluid_max"] = 0.3
     
-    params["delta"] = 0.01
+    params["delta"] = 0.02
     params["boundary_delta"] = params["delta"] * 0.5
     
     params["x_fluid_particles"] = int((params["x_fluid_max"] - params["x_fluid_min"]) / params["delta"])
     params["y_fluid_particles"] = int((params["y_fluid_max"] - params["y_fluid_min"]) / params["delta"])
     params["z_fluid_particles"] = int((params["z_fluid_max"] - params["z_fluid_min"]) / params["delta"])
 
-    boundary_separation = params["delta"]
-    
-    # params["boundary_separation"] = boundary_separation
-    # params["x_boundary_left"] = params["x_fluid_min"] - 3 * boundary_separation
-    # params["y_boundary_bottom"] = params["y_fluid_min"] - 3 * boundary_separation
-    # params["x_boundary_right"] = 3.2 + boundary_separation
-    # params["y_boundary_top"] = 2.0 + boundary_separation
-    # params["x_boundary_center"] = params["x_fluid_max"] + 3 * boundary_separation
-    # params["z_boundary_near"] = params["z_fluid_min"] - 3 * boundary_separation
-    # params["z_boundary_far"] = params["z_fluid_max"] + 3 * boundary_separation
-    
-    # params["nwm"] = nwm.wall_disappear
-
+    boundary_separation = 2 * params["delta"]
     params["boundary_separation"] = boundary_separation
-    params["x_boundary_left"] = params["x_fluid_min"] - 3 * boundary_separation
-    params["y_boundary_bottom"] = params["y_fluid_min"] - 3 * boundary_separation
-    params["x_boundary_right"] = 1
-    params["y_boundary_top"] = 1
-    params["x_boundary_center"] = params["x_fluid_max"] + 3 * boundary_separation
-    params["z_boundary_near"] = params["z_fluid_min"] - 3 * boundary_separation
-    params["z_boundary_far"] = params["z_fluid_max"] + 3 * boundary_separation
-    params["boundary_layers_num"] = 3
+    params["x_boundary_left"] = params["x_fluid_min"] - boundary_separation
+    params["y_boundary_bottom"] = params["y_fluid_min"] - boundary_separation
+    params["x_boundary_right"] = 3.2 + boundary_separation
+    params["y_boundary_top"] = 1.0 + boundary_separation
+    params["x_boundary_center"] = params["x_fluid_max"] + boundary_separation
+    params["z_boundary_near"] = params["z_fluid_min"] - boundary_separation
+    params["z_boundary_far"] = 2.0 + boundary_separation
+    params["boundary_layers_num"] = 1
     params["use_chess_order"] = False
 
-    params["nwm"] = nwm.no_waves
+    params["nwm"] = nwm.wall_disappear
 
     params["x_mingeom"] = -1.0
     params["y_mingeom"] = -1.0
     params["z_mingeom"] = -1.0
     params["x_maxgeom"] = 4.2
     params["y_maxgeom"] = 3.0
-    params["z_maxgeom"] = 1.0
+    params["z_maxgeom"] = 3.0
 
     params["depth"] = params["y_fluid_max"] - params["y_fluid_min"]
 
@@ -227,7 +215,7 @@ def generate_virt_particles(fill : bool, r, v, rho, p, itype, start_i):
                     offset_z = -layer * boundary_delta
                     r[0, i] = x_boundary_left + x_i * boundary_delta + offset_x
                     r[1, i] = y_boundary_bottom + y_i * boundary_delta + offset_y
-                    r[2, i] = z_boundary_near + z_i * boundary_delta + offset_z
+                    r[2, i] = z_boundary_near + offset_z
                 i = i + 1
                 
     # far wall
@@ -240,7 +228,7 @@ def generate_virt_particles(fill : bool, r, v, rho, p, itype, start_i):
                     offset_z = layer * boundary_delta
                     r[0, i] = x_boundary_left + x_i * boundary_delta + offset_x
                     r[1, i] = y_boundary_bottom + y_i * boundary_delta + offset_y
-                    r[2, i] = z_boundary_near + z_i * boundary_delta + offset_z
+                    r[2, i] = z_boundary_far + offset_z
                 i = i + 1
 
     # ground

@@ -8,3 +8,9 @@
 [submodule "tools/SPH2DParamsGenerator"]
 	path = tools/SPH2DParamsGenerator
 	url = https://github.com/RackotRR/SPH2DParamsGenerator
+[submodule "3d_party/tl_expected"]
+	path = 3d_party/tl_expected
+	url = https://github.com/TartanLlama/expected.git
+[submodule "3d_party/tl_optional"]
+	path = 3d_party/tl_optional
+	url = https://github.com/TartanLlama/optional.git

@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <fstream>
-#include <iostream>
 #include <filesystem>
 #include <optional>
 #include <memory>
@@ -22,9 +21,9 @@ struct HeightTestingParams {
 	static void generate_default(const std::filesystem::path& experiment_dir);
 	static constexpr const char* filename = "HeightTestingParams.json";
 
-	virtual void print() = 0;
+	virtual void print(std::ostream&) = 0;
 protected:
-	void print_common();
+	void print_common(std::ostream&);
 };
 
 struct SpaceTestingParams : HeightTestingParams {
@@ -35,7 +34,7 @@ struct SpaceTestingParams : HeightTestingParams {
 	double x0 = 0;
 	double x_k = 1;
 
-	void print() override;
+	void print(std::ostream&) override;
 };
 
 struct TimeTestingParams : HeightTestingParams {
@@ -46,5 +45,5 @@ struct TimeTestingParams : HeightTestingParams {
 	double t0 = 0;
 	double t_k = 1;
 
-	void print() override;
+	void print(std::ostream&) override;
 };

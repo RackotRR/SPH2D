@@ -19,3 +19,4 @@
 // 2.2.5 - add particles_type filter
 // 2.2.6 - update install directory
 // 2.2.7 - fix support for 2D testing
+// 2.2.8 - refactoring of HeightTesting module

@@ -1,17 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
-project(FuncAtPoint VERSION 1.1.0)
-configure_file(FuncAtPointVersion.h.in "${PROJECT_SOURCE_DIR}/include/FuncAtPointVersion.h")
 
-add_executable(FuncAtPoint
-    src/FuncAtPoint.cpp
-)
-target_link_libraries(FuncAtPoint PRIVATE 
-    RRSPH_FIO
-    RR
-    fmt::fmt
-    RRSPH_OMP_SHARED
-)
-target_include_directories(FuncAtPoint PUBLIC "include")
+project(FuncAtPoint VERSION 1.2.0)
 
+configure_file(FuncAtPointVersion.h.in "${PROJECT_SOURCE_DIR}/lib/include/fatpVersion.h")
 
-install(TARGETS FuncAtPoint DESTINATION RRSPH)
+add_subdirectory("${PROJECT_SOURCE_DIR}/lib")
+add_subdirectory("${PROJECT_SOURCE_DIR}/app")
+

@@ -128,7 +128,7 @@ int main() {
         HeightTestingParams::Ptr testing_params;
         try {
             testing_params = HeightTestingParams::load(experiment_directory);
-            testing_params->print();
+            testing_params->print(std::cout);
             std::cout << std::endl;
         }
         catch (const std::exception& e) {

@@ -15,4 +15,6 @@ add_library(cxxopts::cxxopts ALIAS cxxopts)
 target_include_directories(cxxopts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cxxopts)
 
 add_subdirectory(fmt EXCLUDE_FROM_ALL)
+add_subdirectory(tl_expected EXCLUDE_FROM_ALL)
+add_subdirectory(tl_optional EXCLUDE_FROM_ALL)
 add_subdirectory(google-test EXCLUDE_FROM_ALL)

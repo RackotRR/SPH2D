@@ -11,9 +11,9 @@ function(custom_add_subdir dirname)
 endfunction(custom_add_subdir dirname)
 
 #custom_add_subdir(PartToGridConverter)
-#custom_add_subdir(FuncAtPoint)
-#custom_add_subdir(WaterProfile)
-#custom_add_subdir(SPH2D_Drawer)
+custom_add_subdir(FuncAtPoint)
+custom_add_subdir(WaterProfile)
+custom_add_subdir(SPH2D_Drawer)
 #custom_add_subdir(SPH2D_PicGen)
 
 if (WIN32)

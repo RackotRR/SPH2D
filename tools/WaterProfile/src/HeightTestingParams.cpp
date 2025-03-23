@@ -1,55 +1,55 @@
 #include "HeightTestingParams.h"
 
-static void print_vec(const std::vector<double>& vec) {
+static void print_vec(const std::vector<double>& vec, std::ostream& stream) {
 	int i = 0;
 	for (double val : vec) {
-		std::cout << val;
+		stream << val;
 		++i;
 		if (i < vec.size()) {
-			std::cout << ", ";
+			stream << ", ";
 		}
 	}
 }
 
-void HeightTestingParams::print_common() {
-	std::cout << "y0: " << y0 << std::endl;
-	std::cout << "y_k: " << y_k << std::endl;
+void HeightTestingParams::print_common(std::ostream& stream) {
+	stream << "y0: " << y0 << std::endl;
+	stream << "y_k: " << y_k << std::endl;
 
-	std::cout << "search_n: " << search_n << std::endl;
+	stream << "search_n: " << search_n << std::endl;
 
 	if (particles_type.has_value()) {
-		std::cout << "particles_type: " << particles_type.value() << std::endl;
+		stream << "particles_type: " << particles_type.value() << std::endl;
 	}
 
 	if (!postfix.empty()) {
-		std::cout << "postfix: " << postfix << std::endl;
+		stream << "postfix: " << postfix << std::endl;
 	}
 }
 
-void SpaceTestingParams::print() {
-    std::cout << "SpaceTesting params:" << std::endl;
+void SpaceTestingParams::print(std::ostream& stream) {
+    stream << "SpaceTesting params:" << std::endl;
 
-	std::cout << "t: ";
-	print_vec(t);
-	std::cout << std::endl;
+	stream << "t: ";
+	print_vec(t, stream);
+	stream << std::endl;
 
-    std::cout << "x0: " << x0 << std::endl;
-    std::cout << "x_k: " << x_k << std::endl;
+    stream << "x0: " << x0 << std::endl;
+    stream << "x_k: " << x_k << std::endl;
 
-	print_common();
+	print_common(stream);
 }
 
-void TimeTestingParams::print() {
-	std::cout << "TimeTesting params:" << std::endl;
+void TimeTestingParams::print(std::ostream& stream) {
+	stream << "TimeTesting params:" << std::endl;
 
-	std::cout << "x: ";
-	print_vec(x);
-	std::cout << std::endl;
+	stream << "x: ";
+	print_vec(x, stream);
+	stream << std::endl;
 
-	std::cout << "t0: " << t0 << std::endl;
-	std::cout << "t_k: " << t_k << std::endl;
+	stream << "t0: " << t0 << std::endl;
+	stream << "t_k: " << t_k << std::endl;
 
-	print_common();
+	print_common(stream);
 }
 
 
