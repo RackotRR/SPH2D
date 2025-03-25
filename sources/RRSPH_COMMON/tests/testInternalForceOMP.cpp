@@ -97,20 +97,10 @@ TEST_F(TestInternalForceOMP, intf2_art_pressure_omp) {
 	test_intf({ INTF_SPH_APPROXIMATION_2, true }, testInternalForceCommon::INTF2_ARTP_FILENAME);
 }
 
-#if 0
+#ifdef GEN_TEST_DATA
 static void prepare_intf(TestConfig config, std::string filename) {
-	init(config);
-
-	heap_darray<rr_float> test_p(params.maxn);
-	heap_darray<rr_float2> test_indvdt(params.maxn);
-	int_force(ntotal,
-		r, v, rho,
-		neighbours,
-		w,
-		dwdr,
-		test_p, test_indvdt);
-
-	testInternalForceCommon::prepare_internal_force(filename, test_indvdt, test_p);
+	auto test_indvdt = calc_intf(config);
+	testInternalForceCommon::prepare_internal_force(filename, test_indvdt);
 }
 
 TEST_F(TestInternalForceOMP, prepare_intf1_no_art_pressure) {

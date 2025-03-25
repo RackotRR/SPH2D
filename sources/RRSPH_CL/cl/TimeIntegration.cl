@@ -1,7 +1,7 @@
 #include "common.h"
 #include "ArtificialViscosity.h"
 #include "AverageVelocity.h"
-#include "ExternalForce.h"
+#include "ExtForce.h"
 #include "InternalForce.h"
 #include "Density.h"
 #include "TimeIntegration.h"
@@ -31,7 +31,7 @@ __kernel void update_acceleration(
 
 	rr_uint i;
 	for (rr_iter n = 0;
-		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		i = neighbours[md_at(n, j)], i != params_ntotal; // particle near
 		++n)
 	{
 		rr_floatn diff_ij = r[i] - r[j];
@@ -125,10 +125,10 @@ __kernel void predict_half_step(
 	if (i >= params_ntotal) return;
 
 #ifdef density_is_using_continuity
-	rho_predict[i] = rho[i] + drho[i] * dt * 0.5f;
+	rho_predict[i] = rho[i] + drho[i] * dt * fp(0.5);
 #endif
 
-	v_predict[i] = v[i] + a[i] * dt * 0.5f;
+	v_predict[i] = v[i] + a[i] * dt * fp(0.5);
 }
 
 static bool is_point_within_geometry(rr_floatn point) {
@@ -159,7 +159,7 @@ __kernel void whole_step(
 	size_t i = get_global_id(0);
 	if (i >= params_ntotal) return;
 
-	rr_float v_dt = timestep == 0 ? dt * 0.5f : dt;
+	rr_float v_dt = timestep == 0 ? dt * fp(0.5) : dt;
 	rr_float r_dt = dt;
 
 #ifdef density_is_using_continuity
@@ -213,7 +213,7 @@ __kernel void nwm_dynamic_boundaries(
 #define nwm_e2_2 (3 * cosh(nwm_kd) / cube(sinh(nwm_kd)) - 2 / nwm_m1)
 #define nwm_e2_coef (nwm_e2_1 * nwm_e2_2)
 
-#define vx_first_order (0.5f * nwm_S0 * nwm_omega * cos(nwm_omega * time + nwm_delta))
+#define vx_first_order (fp(0.5) * nwm_S0 * nwm_omega * cos(nwm_omega * time + nwm_delta))
 #define vx_second_order (2 * nwm_omega * nwm_e2_coef * cos(2 * nwm_omega * time + 2 * nwm_delta))
 
 #if params_nwm == NWM_METHOD_DYNAMIC_1
@@ -257,7 +257,7 @@ __kernel void nwm_solitary_rayleigh(
 
 	rr_float k = sqrt(3 * H / (4 * sqr(h) * (H + h)));
 	rr_float c = sqrt(g * (H + h));
-	rr_float Tf = 2 / (k * c) * (3.8 + H / h);
+	rr_float Tf = 2 / (k * c) * (fp(3.8) + H / h);
 
 	rr_float t = time - params_nwm_time_start;
 	rr_float tau = k * c * (time - Tf);

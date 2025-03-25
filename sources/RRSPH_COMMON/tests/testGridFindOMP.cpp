@@ -33,7 +33,7 @@ TEST_F(TestGridFindOMP, grid_find_omp)
 	testGridFindCommon::check_neighbours(neighbours);
 }
 
-#if 0
+#ifdef GEN_TEST_DATA
 TEST_F(TestGridFindOMP, prepare_grid_find_omp) {
 	init();
 

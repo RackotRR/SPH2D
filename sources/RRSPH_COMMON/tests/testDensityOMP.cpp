@@ -78,13 +78,13 @@ TEST_F(TestDensityOMP, sum_density_omp)
 	testDensityCommon::check_density(
 		testDensityCommon::SUM_DENSITY_FILENAME,
 		test_rho,
-		p,
+		test_p,
 		"rho"
 	);
 }
 
 
-#if 0
+#ifdef GEN_TEST_DATA
 //TEST_F(TestDensityOMP, prepare_con_delta_density)
 //{
 //	init({ DENSITY_CONTINUITY_DELTA, 0.1 });

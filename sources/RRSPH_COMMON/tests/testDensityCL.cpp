@@ -44,33 +44,62 @@ namespace {
 			r_, itype_,
 			neighbours_);
 	}
+
+	static auto calc_con_density() {
+		init(DENSITY_CONTINUITY);
+
+		// init test array
+		heap_darray<rr_float> test_drho(params.maxn);
+		heap_darray<rr_float> test_p(params.maxn);
+		cl::Buffer test_drho_ = makeBufferCopyHost(test_drho);
+		cl::Buffer test_p_ = makeBufferCopyHost(p);
+
+		// run test
+		clProgramAdapter con_density_adapter{ makeProgram("Density.cl"), cl_con_density };
+		con_density_adapter(
+			r_,
+			v_,
+			neighbours_,
+			rho_,
+			test_drho_,
+			test_p_
+		);
+
+		// check result
+		cl::copy(test_drho_, std::begin(test_drho), std::end(test_drho));
+		cl::copy(test_p_, std::begin(test_p), std::end(test_p));
+
+		return std::make_pair(std::move(test_drho), std::move(test_p));
+	}
+
+	static auto calc_sum_density() {
+		init(DENSITY_SUMMATION);
+
+		// init test array
+		heap_darray<rr_float> test_rho(params.maxn);
+		heap_darray<rr_float> test_p(params.maxn);
+		cl::Buffer test_rho_ = makeBufferCopyHost(test_rho);
+		cl::Buffer test_p_ = makeBufferCopyHost(p);
+
+		// run test
+		clProgramAdapter sum_density_adapter{ makeProgram("Density.cl"), cl_sum_density };
+		sum_density_adapter(
+			r_,
+			neighbours_,
+			test_rho_,
+			test_p_
+		);
+
+		// check result
+		cl::copy(test_rho_, std::begin(test_rho), std::end(test_rho));
+		cl::copy(test_p_, std::begin(test_p), std::end(test_p));
+
+		return std::make_pair(std::move(test_rho), std::move(test_p));
+	}
 }
 
-TEST_F(TestDensityCL, con_density_cl)
-{
-	init(DENSITY_CONTINUITY);
-
-	// init test array
-	heap_darray<rr_float> test_drho(params.maxn);
-	heap_darray<rr_float> test_p(params.maxn);
-	cl::Buffer test_drho_ = makeBufferCopyHost(test_drho);
-	cl::Buffer test_p_ = makeBufferCopyHost(p);
-
-	// run test
-	clProgramAdapter con_density_adapter{ makeProgram("Density.cl"), cl_con_density };
-	con_density_adapter(
-		r_,
-		v_,
-		neighbours_,
-		rho_,
-		test_drho_,
-		test_p_
-	);
-
-	// check result
-	cl::copy(test_drho_, std::begin(test_drho), std::end(test_drho));
-	cl::copy(test_p_, std::begin(test_p), std::end(test_p));
-
+TEST_F(TestDensityCL, con_density_cl) {
+	auto [test_drho, test_p] = calc_con_density();
 	testDensityCommon::check_density(
 		testDensityCommon::CON_DENSITY_FILENAME,
 		test_drho,
@@ -78,30 +107,8 @@ TEST_F(TestDensityCL, con_density_cl)
 		"drho"
 	);
 }
-
-TEST_F(TestDensityCL, sum_density_cl)
-{
-	init(DENSITY_SUMMATION);
-
-	// init test array
-	heap_darray<rr_float> test_rho(params.maxn);
-	heap_darray<rr_float> test_p(params.maxn);
-	cl::Buffer test_rho_ = makeBufferCopyHost(test_rho);
-	cl::Buffer test_p_ = makeBufferCopyHost(p);
-
-	// run test
-	clProgramAdapter sum_density_adapter{ makeProgram("Density.cl"), cl_sum_density };
-	sum_density_adapter(
-		r_,
-		neighbours_,
-		test_rho_,
-		test_p_
-	);
-
-	// check result
-	cl::copy(test_rho_, std::begin(test_rho), std::end(test_rho));
-	cl::copy(test_p_, std::begin(test_p), std::end(test_p));
-
+TEST_F(TestDensityCL, sum_density_cl) {
+	auto [test_rho, test_p] = calc_sum_density();
 	testDensityCommon::check_density(
 		testDensityCommon::SUM_DENSITY_FILENAME,
 		test_rho,
@@ -109,3 +116,26 @@ TEST_F(TestDensityCL, sum_density_cl)
 		"rho"
 	);
 }
+
+
+
+#ifdef GEN_TEST_DATA
+TEST_F(TestDensityCL, prepare_con_density_cl) {
+	auto [test_drho, test_p] = calc_con_density();
+	testDensityCommon::prepare_density(
+		testDensityCommon::CON_DENSITY_FILENAME,
+		test_drho,
+		test_p,
+		"drho"
+	);
+}
+TEST_F(TestDensityCL, prepare_sum_density_cl) {
+	auto [test_rho, test_p] = calc_sum_density();
+	testDensityCommon::prepare_density(
+		testDensityCommon::SUM_DENSITY_FILENAME,
+		test_rho,
+		test_p,
+		"rho"
+	);
+}
+#endif // GEN_TEST_DATA

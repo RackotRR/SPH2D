@@ -26,11 +26,10 @@ namespace testInternalForceCommon {
 
 	inline void prepare_internal_force(
 		std::string filename,
-		const heap_darray<rr_float2>& indvdt,
-		const heap_darray<rr_float>& p
+		const heap_darray<rr_float2>& indvdt
 	)
 	{
-		auto row_maker = [&indvdt, &p](rr_iter j) {
+		auto row_maker = [&indvdt](rr_iter j) {
 			return std::vector<std::string>{
 				std::to_string(j),
 				std::to_string(indvdt(j).x),

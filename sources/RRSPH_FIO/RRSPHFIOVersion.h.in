@@ -28,3 +28,4 @@
 //       - fix invalid ExperimentDirectory name with dots
 //       - update filesystem features
 // 2.4.2 - add support for 3D data loading
+// 2.4.3 - fix simulation domain check

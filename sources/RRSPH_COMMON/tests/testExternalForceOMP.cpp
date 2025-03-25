@@ -69,7 +69,7 @@ TEST_F(TestExternalForceOMP, test_sbt_repulsive_omp) {
 }
 
 
-#if 0
+#ifdef GEN_TEST_DATA
 static void prepare_external_forces(std::string filename, rr_uint boundary_treatment) {
 	auto test_exdvdt = calc_external_force(boundary_treatment);
 	testExternalForceCommon::prepare_external_forces(filename, test_exdvdt);

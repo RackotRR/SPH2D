@@ -11,6 +11,8 @@ class TestAverageVelocityCL : public ::testing::Test {};
 namespace {
 	TestExperimentDirectory test_directory{ TestExperimentDirectory::Case::DamBreak };
 
+	constexpr const char* AV_VEL_FILENAME = "average_velocity_target.csv";
+
 	heap_darray<rr_int> itype;
 	vheap_darray_floatn r_var;
 	vheap_darray_floatn v_var;
@@ -46,25 +48,40 @@ namespace {
 			r_, itype_,
 			neighbours_);
 	}
+
+	static auto calc_average_velocity() {
+		init();
+
+		// init test array
+		heap_darray<rr_float2> av_vel(params.maxn);
+		cl::Buffer av_vel_ = makeBufferCopyHost(av_vel);
+
+		// run test
+		auto average_velocity_adapter = clProgramAdapter{ makeProgram("AverageVelocity.cl"), cl_average_velocity };
+		average_velocity_adapter(
+			r_, itype_, v_, rho_,
+			neighbours_,
+			av_vel_
+		);
+
+		// check result
+		cl::copy(av_vel_, std::begin(av_vel), std::end(av_vel));
+
+		return av_vel;
+	}
 }
 
-TEST_F(TestAverageVelocityCL, test_average_velocity_cl)
-{
-	init();
-
-	// init test array
-	heap_darray<rr_float2> av_vel(params.maxn);
-	cl::Buffer av_vel_ = makeBufferCopyHost(av_vel);
-
-	// run test
-	auto average_velocity_adapter = clProgramAdapter{ makeProgram("AverageVelocity.cl"), cl_average_velocity };
-	average_velocity_adapter(
-		r_, itype_, v_, rho_,
-		neighbours_,
-		av_vel_
-	);
-
-	// check result
-	cl::copy(av_vel_, std::begin(av_vel), std::end(av_vel));
-	scalar_array_check<2>("average_velocity_target.csv", "av", av_vel);
+TEST_F(TestAverageVelocityCL, test_average_velocity_cl) {
+	auto av_vel = calc_average_velocity();
+	scalar_array_check<2>(AV_VEL_FILENAME, "av", av_vel);
 }
+
+#ifdef GEN_TEST_DATA
+TEST_F(TestAverageVelocityCL, prepare_average_velocity_cl) {
+	auto av_vel = calc_average_velocity();
+	scalar_array_prepare(
+		AV_VEL_FILENAME,
+		"av",
+		av_vel);
+}
+#endif // GEN_TEST_DATA

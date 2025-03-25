@@ -64,26 +64,29 @@ namespace {
 			p_
 		);
 	}
+
+	static auto calc_intf(TestConfig config) {
+		init(config);
+
+		// init test array
+		heap_darray<rr_float2> test_indvdt(params.maxn);
+		auto test_indvdt_ = makeBufferCopyHost(test_indvdt);
+
+		// run test
+		clProgramAdapter intf_adapter{ makeProgram("InternalForce.cl"), cl_internal_force };
+		intf_adapter(
+			r_, v_, rho_, p_,
+			neighbours_,
+			test_indvdt_);
+
+		cl::copy(test_indvdt_, std::begin(test_indvdt), std::end(test_indvdt));
+
+		return test_indvdt;
+	}
 }
 
 static void test_intf(TestConfig config, std::string filename) {
-	init(config);
-
-	// init test array
-	heap_darray<rr_float2> test_indvdt(params.maxn);
-	auto test_indvdt_ = makeBufferCopyHost(test_indvdt);
-	
-	// run test
-	clProgramAdapter intf_adapter{ makeProgram("InternalForce.cl"), cl_internal_force };
-	intf_adapter(
-		r_, v_, rho_, p_,
-		neighbours_,
-		test_indvdt_);
-
-	cl::copy(test_indvdt_, std::begin(test_indvdt), std::end(test_indvdt));
-
-	// check result
-	testInternalForceCommon::check_internal_force(filename, test_indvdt);
+	testInternalForceCommon::check_internal_force(filename, calc_intf(config));
 }
 
 TEST_F(TestInternalForceCL, intf1_no_art_pressure_cl) {
@@ -98,3 +101,22 @@ TEST_F(TestInternalForceCL, intf1_art_pressure_cl) {
 TEST_F(TestInternalForceCL, intf2_art_pressure_cl) {
 	test_intf({ INTF_SPH_APPROXIMATION_2, true }, testInternalForceCommon::INTF2_ARTP_FILENAME);
 }
+
+#ifdef GEN_TEST_DATA
+static void prepare_intf(TestConfig config, std::string filename) {
+	testInternalForceCommon::prepare_internal_force(filename, calc_intf(config));
+}
+
+TEST_F(TestInternalForceCL, prepare_intf1_no_art_pressure_cl) {
+	prepare_intf({ INTF_SPH_APPROXIMATION_1, false }, testInternalForceCommon::INTF1_NO_ARTP_FILENAME);
+}
+TEST_F(TestInternalForceCL, prepare_intf2_no_art_pressure_cl) {
+	prepare_intf({ INTF_SPH_APPROXIMATION_2, false }, testInternalForceCommon::INTF2_NO_ARTP_FILENAME);
+}
+TEST_F(TestInternalForceCL, prepare_intf1_art_pressure_cl) {
+	prepare_intf({ INTF_SPH_APPROXIMATION_1, true }, testInternalForceCommon::INTF1_ARTP_FILENAME);
+}
+TEST_F(TestInternalForceCL, prepare_intf2_art_pressure_cl) {
+	prepare_intf({ INTF_SPH_APPROXIMATION_2, true }, testInternalForceCommon::INTF2_ARTP_FILENAME);
+}
+#endif // GEN_TEST_DATA

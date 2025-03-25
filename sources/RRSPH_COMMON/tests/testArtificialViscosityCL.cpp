@@ -46,35 +46,48 @@ namespace {
 			r_, itype_,
 			neighbours_);
 	}
+
+	static auto calc_artificial_viscosity() {
+		init();
+
+		// init test array
+		heap_darray<rr_float> art_visc_mu(params.maxn);
+		heap_darray<rr_float2> art_visc_dvdt(params.maxn);
+		cl::Buffer art_visc_mu_ = makeBufferCopyHost(art_visc_mu);
+		cl::Buffer art_visc_dvdt_ = makeBufferCopyHost(art_visc_dvdt);
+
+		// run test
+		auto art_visc_adapter = clProgramAdapter{ makeProgram("ArtificialViscosity.cl"), cl_artificial_viscosity };
+		art_visc_adapter(
+			r_, v_, rho_,
+			neighbours_,
+			art_visc_dvdt_, art_visc_mu_);
+
+		cl::copy(art_visc_dvdt_, std::begin(art_visc_dvdt), std::end(art_visc_dvdt));
+		cl::copy(art_visc_mu_, std::begin(art_visc_mu), std::end(art_visc_mu));
+
+		return std::make_pair(std::move(art_visc_dvdt), std::move(art_visc_mu));
+	}
 }
 
-static void test_artificial_viscosity(std::string filename) {
-	init();
+TEST_F(TestArtificialViscosityCL, test_artificial_viscosity_cl) {
+	auto [art_visc_dvdt, art_visc_mu] = calc_artificial_viscosity();
 
-	// init test array
-	heap_darray<rr_float> art_visc_mu(params.maxn);
-	heap_darray<rr_float2> art_visc_dvdt(params.maxn);
-	cl::Buffer art_visc_mu_ = makeBufferCopyHost(art_visc_mu);
-	cl::Buffer art_visc_dvdt_ = makeBufferCopyHost(art_visc_dvdt);
-
-	// run test
-	auto art_visc_adapter = clProgramAdapter{ makeProgram("ArtificialViscosity.cl"), cl_artificial_viscosity };
-	art_visc_adapter(
-		r_, v_, rho_,
-		neighbours_,
-		art_visc_dvdt_, art_visc_mu_);
-
-	cl::copy(art_visc_dvdt_, std::begin(art_visc_dvdt), std::end(art_visc_dvdt));
-	cl::copy(art_visc_mu_, std::begin(art_visc_mu), std::end(art_visc_mu));
-
-	// check result
 	testArtificialViscosityCommon::check_artificial_viscosity(
-		filename,
+		testArtificialViscosityCommon::ART_VISC_FILENAME,
 		art_visc_dvdt,
 		art_visc_mu
 	);
 }
 
-TEST_F(TestArtificialViscosityCL, test_artificial_viscosity_cl) {
-	test_artificial_viscosity(testArtificialViscosityCommon::ART_VISC_FILENAME);
+#ifdef GEN_TEST_DATA
+TEST_F(TestArtificialViscosityCL, prepare_artificial_viscosity_cl) {
+	auto [art_visc_dvdt, art_visc_mu] = calc_artificial_viscosity();
+
+	testArtificialViscosityCommon::prepare_artificial_viscosity(
+		testArtificialViscosityCommon::ART_VISC_FILENAME,
+		art_visc_dvdt,
+		art_visc_mu
+	);
 }
+#endif // GEN_TEST_DATA

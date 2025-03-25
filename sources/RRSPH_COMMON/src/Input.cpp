@@ -129,7 +129,7 @@ static void postFillInModelParams(ModelParams& model_params)
 			params.nwm_wave_number = 2. * params.pi / params.nwm_wave_length;
 			rr_float kd = params.nwm_wave_number * params.depth;
 			params.nwm_freq = sqrt(params.nwm_wave_number * params.g * tanh(kd));
-			params.nwm_piston_magnitude = params.nwm_wave_magnitude * 0.5f / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
+			params.nwm_piston_magnitude = params.nwm_wave_magnitude * 0.5 / sqr(sinh(kd)) * (sinh(kd) * cosh(kd) + kd);
 		}	
 		break;
 	default:

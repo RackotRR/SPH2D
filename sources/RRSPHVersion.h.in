@@ -288,7 +288,11 @@
 //        - RRSPH_CL: remove smoothing kernel precomputing
 //        - RRSPH_CL: move smoothing kernel calculations into RRSPH_COMMON
 //        - RRSPH_CL: accelerations computing optimization
+//  3.1.4 - RRSPH: common computing modules between RRSPH_CL and RRSPH_OMP
+//        - RRSPH: enhance accuracy with double-precision calculations
+//        - RRSPH: 3D visualization tool
 // TODO:
+// 3.1.5 - RRSPH: add modules prefix
 // 3.2.0 - RRSPH2D: add RRMetaParams subproject
 //       - SPH2D_COMMON: particles check position with grid find
 //       - SPH2D_FIO: fix experiment open without save field variables params
@@ -300,3 +304,4 @@
 //       - Change logging library
 //       - Add release tag instead of one commit for release
 //       - Add release build on github before switching to new minor or major version
+//       - server and https, gui local or remote

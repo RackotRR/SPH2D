@@ -68,7 +68,7 @@ TEST_F(TestArtificialViscosityOMP, test_artificial_viscosity_omp) {
 	);
 }
 
-#if 0
+#ifdef GEN_TEST_DATA
 TEST_F(TestArtificialViscosityOMP, prepare_artificial_viscosity_omp) {
 	auto [art_visc_dvdt, art_visc_mu] = calc_artificial_viscosity();
 	testArtificialViscosityCommon::prepare_artificial_viscosity(

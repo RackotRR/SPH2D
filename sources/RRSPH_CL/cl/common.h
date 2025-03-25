@@ -1,18 +1,15 @@
 #ifndef CL_SPH_COMMON_H
 #define CL_SPH_COMMON_H
 
-#define DO_ON_GPU 1
-#define DO_ON_CPU 0
-
 #include "clparams.h"
 #include "ParamsEnumeration.h"
 
-#define rr_float float
+#define rr_float double
 #define rr_uint uint
 #define rr_iter uint
 #define rr_int int
-#define rr_float2 float2
-#define rr_float3 float3
+#define rr_float2 double2
+#define rr_float3 double3
 #define rr_uint2 uint2
 #define rr_uint3 uint3
 
@@ -42,5 +39,9 @@ inline rr_float length_sqr(rr_float2 vec) {
 #include "GridUtils.h"
 #include "SmoothingKernel.h"
 
-#define at(n, j) ((n) + params_max_neighbours * (j))
+#define md_at(n, j) ((n) + params_max_neighbours * (j))
+
+#ifndef fp
+#define fp(v) ((rr_float)(v))
+#endif
 #endif

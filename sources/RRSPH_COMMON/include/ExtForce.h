@@ -29,7 +29,7 @@ rr_floatn external_force_part(
 	static constexpr rr_uint ext_force_p2 = 4;
 #else
 #define ext_force_rr0 (2 * params_hsml)
-#define ext_force_D (5.f * params_g * params_depth)
+#define ext_force_D (5 * params_g * params_depth)
 #define ext_force_p1 12
 #define ext_force_p2 4
 #endif

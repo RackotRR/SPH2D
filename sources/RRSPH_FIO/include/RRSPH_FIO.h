@@ -29,12 +29,12 @@ namespace sphfio {
 		}
 
 		inline bool contains2D(const rr_float2& r) const {
-			return origin.x >= r.x && origin.x + size.x >= r.x &&
-				origin.y >= r.y && origin.y + size.y >= r.y;
+			return origin.x <= r.x && origin.x + size.x >= r.x &&
+				origin.y <= r.y && origin.y + size.y >= r.y;
 		}
 		inline bool contains3D(const rr_float3& r) const {
 			return contains2D({r.x, r.y}) && 
-				origin.z >= r.z && origin.z + size.z >= r.z;
+				origin.z <= r.z && origin.z + size.z >= r.z;
 		}
 
 		template<typename rr_floatn>

@@ -19,7 +19,7 @@ __kernel void artificial_viscosity(
 
 	rr_uint i;
 	for (rr_iter n = 0;
-		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		i = neighbours[md_at(n, j)], i != params_ntotal; // particle near
 		++n)
 	{
 		rr_floatn diff_ij = r[i] - r[j];
@@ -35,7 +35,7 @@ __kernel void artificial_viscosity(
 
 	a[j] = a_temp;
 
-#ifdef art_visc_dynamic_dt
+#if params_dt_correction_method == DT_CORRECTION_DYNAMIC
 	arvmu[j] = max_arvmu;
 #endif
 }

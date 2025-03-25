@@ -66,6 +66,10 @@
 //       - add 3D smoothing kernel calculation
 //       - add 3D grid utils
 // 1.3.3 - support all smoothing kernel calculations 
+// 1.3.4 - enhance accuracy with double-precision calculations
+//       - split test cases for both solvers
+//       - add RRSPH_CL test data generation
+//       - add test data generation by cmake flag
 // TODO:
 // 1.3 - add confirmation for deletion (suffix 'f' to skip confirmation)
 //     - add experiment copy at dump (suffix 'c' to copy dump and params into another directory)

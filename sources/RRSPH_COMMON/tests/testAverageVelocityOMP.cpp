@@ -70,7 +70,7 @@ TEST_F(TestAverageVelocityOMP, test_average_velocity_omp)
 	scalar_array_check<2>(AV_VEL_FILENAME, "av", av_vel);
 }
 
-#if 0
+#ifdef GEN_TEST_DATA
 TEST_F(TestAverageVelocityOMP, prepare_average_velocity_omp)
 {
 	auto av_vel = calc_average_velocity();

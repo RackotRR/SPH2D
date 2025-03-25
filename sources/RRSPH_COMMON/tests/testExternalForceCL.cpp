@@ -48,30 +48,51 @@ namespace {
 			r_, itype_,
 			neighbours_);
 	}
-}
 
-static void check_external_forces(TestConfig config, std::string filename) {
-	init(config);
+	static auto calc_external_forces(TestConfig config) {
+		init(config);
 
-	// init test array
-	heap_darray<rr_float2> test_exdvdt(params.maxn);
-	cl::Buffer test_exdvdt_ = makeBufferCopyHost(test_exdvdt);
+		// init test array
+		heap_darray<rr_float2> test_exdvdt(params.maxn);
+		cl::Buffer test_exdvdt_ = makeBufferCopyHost(test_exdvdt);
 
-	// run test
-	clProgramAdapter external_force_adapter{ makeProgram("ExternalForce.cl"), cl_external_force };
-	external_force_adapter(
-		r_, neighbours_, itype_,
-		test_exdvdt_);
+		// run test
+		clProgramAdapter external_force_adapter{ makeProgram("ExternalForce.cl"), cl_external_force };
+		external_force_adapter(
+			r_, neighbours_, itype_,
+			test_exdvdt_);
 
-	cl::copy(test_exdvdt_, std::begin(test_exdvdt), std::end(test_exdvdt));
+		cl::copy(test_exdvdt_, std::begin(test_exdvdt), std::end(test_exdvdt));
 
-	// check result
-	testExternalForceCommon::check_external_forces(filename, test_exdvdt);
+		return test_exdvdt;
+	}
 }
 
 TEST_F(TestExternalForceCL, test_sbt_dynamic_cl) {
-	check_external_forces({ SBT_DYNAMIC }, testExternalForceCommon::FILENAME_DYNAMIC);
+	testExternalForceCommon::check_external_forces(
+		testExternalForceCommon::FILENAME_DYNAMIC,
+		calc_external_forces({ SBT_DYNAMIC })
+	);
 }
 TEST_F(TestExternalForceCL, test_sbt_repulsive_cl) {
-	check_external_forces({ SBT_REPULSIVE }, testExternalForceCommon::FILENAME_REPULSIVE);
+	testExternalForceCommon::check_external_forces(
+		testExternalForceCommon::FILENAME_REPULSIVE,
+		calc_external_forces({ SBT_REPULSIVE })
+	);
 }
+
+
+#ifdef GEN_TEST_DATA
+TEST_F(TestExternalForceCL, prepare_sbt_dynamic_cl) {
+	testExternalForceCommon::prepare_external_forces(
+		testExternalForceCommon::FILENAME_DYNAMIC,
+		calc_external_forces({ SBT_DYNAMIC })
+	);
+}
+TEST_F(TestExternalForceCL, prepare_sbt_repulsive_cl) {
+	testExternalForceCommon::prepare_external_forces(
+		testExternalForceCommon::FILENAME_REPULSIVE,
+		calc_external_forces({ SBT_REPULSIVE })
+	);
+}
+#endif // GEN_TEST_DATA

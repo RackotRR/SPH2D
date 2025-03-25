@@ -24,17 +24,17 @@ struct ModelParams {
     opt_float eos_sound_vel;
     opt_float eos_sound_vel_coef;
 
-    rr_float intf_hsml_coef{ 1.f };
+    rr_float intf_hsml_coef{ rr_float(1.) };
     rr_uint intf_sph_approximation{ INTF_SPH_APPROXIMATION_2 };
     rr_uint intf_skf{ SKF_CUBIC };
 
     bool artificial_pressure{ false };
     opt_uint artificial_pressure_skf{ SKF_CUBIC };
-    opt_float artificial_pressure_index{ 4.f };
-    opt_float artificial_pressure_coef{ 0.2f };
+    opt_float artificial_pressure_index{ rr_float(4.) };
+    opt_float artificial_pressure_coef{ rr_float(0.2) };
 
     bool visc{ true };
-    rr_float visc_coef{ 0.001f };
+    rr_float visc_coef{ rr_float(0.001) };
 
     bool artificial_viscosity{ false };
     opt_float artificial_shear_visc;

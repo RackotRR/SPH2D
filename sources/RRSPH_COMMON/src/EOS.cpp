@@ -2,7 +2,7 @@
 
 static rr_float get_sound_velocity_sqr() {
     if (params.eos_sound_vel_method == 0) {
-        return 200.f * params.g * params.depth * params.eos_sound_vel_coef; // dam break problem
+        return 200 * params.g * params.depth * params.eos_sound_vel_coef; // dam break problem
     }
     else {
         return params.eos_sound_vel;
@@ -30,13 +30,13 @@ static rr_float B() {
 // artificial equation of state for the artificial compressibility
 rr_float eos_art_p(const rr_float rho) {
     // artificial EOS, Form (Monaghan, 1994)
-    return B() * (powun(rho / params.rho0, gamma_eos) - 1.f);
+    return B() * (powun(rho / params.rho0, gamma_eos) - 1);
 }
 
 rr_float eos_art_rho(rr_float p) {
-    rr_float val = p / B() + 1.f;
+    rr_float val = p / B() + 1;
     if (val >= 0) {
-        return params.rho0 * pow(val, 1.f / gamma_eos);
+        return params.rho0 * pow(val, rr_float(1.) / gamma_eos);
     }
     else {
         return NAN;

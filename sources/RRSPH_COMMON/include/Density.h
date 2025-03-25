@@ -18,7 +18,7 @@
 #define params_density_skf params.density_skf
 #define params_density_treatment params.density_treatment
 #define params_density_delta_sph_coef params.density_delta_sph_coef
-#define at(n, j) ((n) + params.max_neighbours * (j))
+#define md_at(n, j) ((n) + params.max_neighbours * (j))
 #endif
 
 
@@ -48,7 +48,7 @@ __kernel void density_sum(
 
 		rr_uint i;
 		for (rr_iter n = 0;
-			i = neighbours[at(n, j)], i != params_ntotal; // particle near
+			i = neighbours[md_at(n, j)], i != params_ntotal; // particle near
 			++n)
 		{
 			rr_float w = smoothing_kernel_w_by_coord(r[j], r[i], params_density_skf);
@@ -90,7 +90,7 @@ __kernel void density_con(
 
 		rr_uint i;
 		for (rr_iter n = 0;
-			i = neighbours[at(n, j)], i != params_ntotal; // particle near
+			i = neighbours[md_at(n, j)], i != params_ntotal; // particle near
 			++n)
 		{
 			rr_floatn r_ab = r[j] - r[i];
@@ -126,7 +126,16 @@ inline bool density_is_using_continuity() {
 		return true;
 	}
 }
+#else
+#if params_density_treatment == DENSITY_CONTINUITY
+#define density_is_using_continuity
+#elif params_density_treatment == DENSITY_CONTINUITY_DELTA
+#define density_is_using_continuity
+#endif
+#endif
 
+
+#if DO_ON_CPU
 // density integration over a kernel
 inline void density_sum(
 	const vheap_darray_floatn& r_var,// coordinates of all particles 

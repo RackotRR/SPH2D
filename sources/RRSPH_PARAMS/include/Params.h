@@ -79,7 +79,7 @@ struct ExperimentParams {
 	// eos_sound_vel_method = 0: c_art_water = sqrt(200.f * g * depth * eos_sound_vel_coef) [dam break problem]
 	//						= 1: c_art_water = eos_sound_vel
 	rr_uint eos_sound_vel_method{};
-	rr_float eos_sound_vel_coef{ 1.f };
+	rr_float eos_sound_vel_coef{ rr_float(1.) };
 	rr_float eos_sound_vel{};
 
 	// SPH algorithm for particle approximation
@@ -91,8 +91,8 @@ struct ExperimentParams {
 	// dvdt = -sum(sph_approximation + artificial_pressure)dwdr
     bool artificial_pressure{ false };
 	rr_uint artificial_pressure_skf{ SKF_CUBIC };
-    rr_float artificial_pressure_index{ 4.f };
-    rr_float artificial_pressure_coef{ 0.2f };
+    rr_float artificial_pressure_index{ rr_float(4.) };
+    rr_float artificial_pressure_coef{ rr_float(0.2) };
 
 	// smoothing kernel function
 	// skf = 1 : cubic spline W4 - Spline (Monaghan 1985)
@@ -103,7 +103,7 @@ struct ExperimentParams {
 	rr_uint intf_skf{ SKF_DESBRUN }; // skf=4 enable separate non-clustering smoothing kernel for internal forces calculation
 	rr_uint artificial_viscosity_skf{ SKF_CUBIC };
 	rr_uint average_velocity_skf{ SKF_CUBIC };
-	rr_float cell_scale_k{ 2.f }; // cell size in hsml
+	rr_float cell_scale_k{ rr_float(2.) }; // cell size in hsml
 
 	// numerical waves maker
 	// nmw = 0 : no waves
@@ -139,20 +139,20 @@ struct ExperimentParams {
 	rr_uint density_normalization{ DENSITY_NORMALIZATION_NONE };
 
 	// delta sph coef (is used with DENSITY_CONTINUITY_DELTA)
-	rr_float density_delta_sph_coef{ 0.1 };
+	rr_float density_delta_sph_coef{ rr_float(0.1) };
 
 	// true : Monaghan treatment on average velocity
 	// false : no average treatment
 	bool average_velocity{ true }; // Liu G.R. (eq 4.92)
-	rr_float average_velocity_coef{ 0.3f };
+	rr_float average_velocity_coef{ rr_float(0.3) };
 
 	// viscosity on?
 	bool visc{ true };
-	rr_float visc_coef = 1.e-3f;
+	rr_float visc_coef = rr_float(1.e-3);
 
 	bool artificial_viscosity{ true };
-	rr_float artificial_shear_visc = 1.f;
-	rr_float artificial_bulk_visc = 0.f;
+	rr_float artificial_shear_visc = 1.;
+	rr_float artificial_bulk_visc = 0.;
 
 	enum {
 		TYPE_BOUNDARY = -2,
@@ -170,7 +170,7 @@ struct ExperimentParams {
 	bool consistency_check{ true };
 
 	/// control parameters for output
-	rr_float start_simulation_time{ 0.f };
+	rr_float start_simulation_time{ 0 };
 
 	rr_float save_time{};
 	bool save_every_step{ false };
@@ -185,8 +185,8 @@ struct ExperimentParams {
 	bool use_custom_time_estimate_step{ false };
 	rr_uint step_time_estimate{}; // time estimations every N steps
 
-	static constexpr rr_float pi{ 3.14159265358979323846f };
-	static constexpr rr_float g{ 9.81f };
+	static constexpr rr_float pi{ rr_float(3.14159265358979323846) };
+	static constexpr rr_float g{ rr_float(9.81) };
 
 	std::string experiment_name;
 };

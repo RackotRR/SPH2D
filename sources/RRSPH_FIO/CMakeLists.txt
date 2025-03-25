@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RRSPH_FIO VERSION 2.4.2)
+project(RRSPH_FIO VERSION 2.4.3)
 configure_file(RRSPHFIOVersion.h.in "${PROJECT_SOURCE_DIR}/include/RRSPHFIOVersion.h")
 
 add_library(RRSPH_FIO 
@@ -18,7 +18,7 @@ target_include_directories(RRSPH_FIO PUBLIC include)
 
 target_link_libraries(RRSPH_FIO PRIVATE
     csv
-    fmt::fmt-header-only
+    fmt::fmt
 )
 target_link_libraries(RRSPH_FIO PUBLIC 
     RRSPH_PARAMS

@@ -140,7 +140,7 @@ __kernel void find_neighbours(
                     if (neighbour_id == params_max_neighbours) {
                         --neighbour_id;
                     }
-                    neighbours[at(neighbour_id, j)] = i;
+                    neighbours[md_at(neighbour_id, j)] = i;
                     ++neighbour_id;
                 }
             } // grid_i
@@ -148,5 +148,5 @@ __kernel void find_neighbours(
     } // existing particle
 
     rr_uint n = minu(neighbour_id, params_max_neighbours - 1);
-    neighbours[at(n, j)] = params_ntotal;
+    neighbours[md_at(n, j)] = params_ntotal;
 }

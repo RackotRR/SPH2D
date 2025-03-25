@@ -133,7 +133,9 @@ namespace ParamsGeneration {
 			buffer << fmt::format("#define params_{} {}\n", param_name, value);
 		}
 		void set_param(const char* param_name, rr_float value) override {
-			buffer << fmt::format("#define params_{} {:.10f}f\n", param_name, value);
+			std::string postfix = "";
+			if (std::is_same_v<rr_float, float>) postfix = "f";
+			buffer << fmt::format("#define params_{} {:.15f}{}\n", param_name, value, postfix);
 		}
 		void set_param(const char* param_name, bool value) override {
 			if (value) {

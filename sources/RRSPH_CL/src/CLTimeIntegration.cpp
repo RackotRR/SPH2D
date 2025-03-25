@@ -23,10 +23,6 @@ namespace {
     clProgramAdapter<decltype(&cl_grid_find)> grid_find_adapter;
     clProgramAdapter<decltype(&cl_sum_density)> sum_density_adapter;
     clProgramAdapter<decltype(&cl_con_density)> con_density_adapter;
-    clProgramAdapter<decltype(&cl_internal_force)> intf_adapter;
-    clProgramAdapter<decltype(&cl_external_force)> external_force_adapter;
-    clProgramAdapter<decltype(&cl_artificial_viscosity)> art_visc_adapter;
-    clProgramAdapter<decltype(&cl_average_velocity)> average_velocity_adapter;
 
     constexpr cl_mem_flags DEVICE_ONLY = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
 }
@@ -37,10 +33,6 @@ void makePrograms() {
     grid_find_adapter = clProgramAdapter{ makeProgram("GridFind.cl"), cl_grid_find };
     sum_density_adapter = clProgramAdapter{ makeProgram("Density.cl"), cl_sum_density };
     con_density_adapter = clProgramAdapter{ makeProgram("Density.cl"), cl_con_density };
-    intf_adapter = clProgramAdapter{ makeProgram("InternalForce.cl"), cl_internal_force };
-    external_force_adapter = clProgramAdapter{ makeProgram("ExternalForce.cl"), cl_external_force };
-    art_visc_adapter = clProgramAdapter{ makeProgram("ArtificialViscosity.cl"), cl_artificial_viscosity };
-    average_velocity_adapter = clProgramAdapter{ makeProgram("AverageVelocity.cl"), cl_average_velocity };
 
     cl::Program time_integration_program = makeProgram("TimeIntegration.cl");
 

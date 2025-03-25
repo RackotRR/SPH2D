@@ -1,4 +1,4 @@
-#include "ExternalForce.h"
+#include "ExtForce.h"
 
 // separate function for use outside main calculation flow
 __kernel void external_force(
@@ -17,7 +17,7 @@ __kernel void external_force(
 
 	rr_uint i;
 	for (rr_iter n = 0;
-		i = neighbours[at(n, j)], i != params_ntotal; // particle near
+		i = neighbours[md_at(n, j)], i != params_ntotal; // particle near
 		++n)
 	{
 		rr_floatn diff_ij = r[i] - r[j];

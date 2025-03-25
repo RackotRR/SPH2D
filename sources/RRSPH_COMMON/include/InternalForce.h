@@ -64,7 +64,12 @@ inline rr_floatn find_internal_changes_pij_d_rhoij_part(
     rr_float rho_ij = rho_j * rho_i;
     rr_float pressure_factor = p_ij / rho_ij;
 
-    if (params_artificial_pressure) {
+#if DO_ON_CPU
+    if (params_artificial_pressure) 
+#elif !defined(params_artificial_pressure)
+    if (false)
+#endif
+    {
         pressure_factor += calc_art_pressure(
             smoothing_kernel_w(dist_ij, params_artificial_pressure_skf),
             p_i, p_j,
@@ -93,7 +98,12 @@ inline rr_floatn find_internal_changes_pidrho2i_pjdrho2j_part(
     rr_float rho2_j = sqr(rho_j);
     rr_float pressure_factor = (p_i / rho2_i + p_j / rho2_j);
 
-    if (params_artificial_pressure) {
+#if DO_ON_CPU
+    if (params_artificial_pressure)
+#elif !defined(params_artificial_pressure)
+    if (false)
+#endif
+    {
         pressure_factor += calc_art_pressure(
             smoothing_kernel_w(dist_ij, params_artificial_pressure_skf),
             p_i, p_j,

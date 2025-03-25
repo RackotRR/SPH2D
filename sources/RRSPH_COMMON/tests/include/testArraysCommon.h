@@ -77,7 +77,7 @@ void scalar_array_check(
 )
 {
 	std::filesystem::path experiment_path = params.experiment_name;
-	auto path = experiment_path / "test" / filename;
+	auto path = experiment_path / "test" / filesPrefix() / filename;
 	auto reader = csv::CSVReader(path.string());
 
 	size_t count_found = 0;

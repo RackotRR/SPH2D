@@ -106,3 +106,13 @@ bool checkDouble3(rr_float3 v1, rr_float3 v2) {
         && checkDouble<N>(v1.y, v2.y)
         && checkDouble<N>(v1.z, v2.z);
 }
+
+inline std::string filesPrefix() {
+#ifdef RRSPH_CL
+    return "CL";
+#elif defined(RRSPH_OMP)
+    return "OMP";
+#else
+    return "TEST";
+#endif
+}
