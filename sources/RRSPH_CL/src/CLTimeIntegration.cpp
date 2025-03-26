@@ -99,6 +99,43 @@ static shared_vheap_darray_floatn load_floatn_array(const cl::Buffer& buffer) {
     return arr_ptr;
 }
 
+static void check_too_many_neighbours(const cl::Buffer& neighbours_) {
+    cl_int error_code = CL_SUCCESS;
+    auto neighbours_host_ptr = static_cast<rr_uint*>(
+        cl::enqueueMapBuffer(
+            neighbours_,
+            true,
+            CL_MAP_READ,
+            0,
+            params.max_neighbours * params.maxn * sizeof(rr_uint),
+            nullptr,
+            nullptr,
+            &error_code
+        )
+    );
+
+    if (error_code == CL_SUCCESS && neighbours_host_ptr) {
+        rr_int too_many_count = 0;
+
+#pragma omp parallel for reduction(+: too_many_count) num_threads(8)
+        for (rr_iter j = 0; j < params.ntotal; ++j) {
+            size_t idx = j * params.max_neighbours + (params.max_neighbours - 1);
+            if (neighbours_host_ptr[idx] == params.ntotal) {
+                too_many_count++;
+            }
+        }
+
+        if (too_many_count > 0) {
+            throw std::runtime_error{ "Hit the maximum number of neighbours." };
+        }
+    }
+    else {
+        printlog("can't check too many neighbours due to enqueueMapBuffer error: ")(error_code)();
+    }
+
+    cl::enqueueUnmapMemObject(neighbours_, neighbours_host_ptr);
+}
+
 void cl_grid_find(
     const KernelsTable& kernels,
     cl::Buffer& r_,
@@ -161,6 +198,10 @@ void cl_grid_find(
     ).execute(params.maxn, params.local_threads);
     cl::finish();
     find.finish();
+
+    if (params.consistency_check) {
+        check_too_many_neighbours(neighbours_);
+    }
 
     printlog_debug("grid_fill: ")(fill.average<std::chrono::microseconds>())();
     printlog_debug("grid_sort: ")(sort.average<std::chrono::microseconds>())();
@@ -405,7 +446,7 @@ void cl_time_integration(
     auto a_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
 
     // grid find
-    auto neighbours_ = makeBuffer<rr_uint>(DEVICE_ONLY, params.max_neighbours * params.maxn);
+    auto neighbours_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, params.max_neighbours * params.maxn);
 
     // average velocity
     cl::Buffer av_;
