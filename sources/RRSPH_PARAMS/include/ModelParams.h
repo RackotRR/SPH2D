@@ -62,6 +62,8 @@ struct ModelParams {
     rr_float nwm_time_start{ 0 };
     opt_float nwm_wave_length;
     opt_float nwm_wave_magnitude;
+    opt_uint nwm_direction;
+    rr_float nwm_phase{ 0 };
 
     rr_float simulation_time;
     rr_uint dt_correction_method{ DT_CORRECTION_DYNAMIC };

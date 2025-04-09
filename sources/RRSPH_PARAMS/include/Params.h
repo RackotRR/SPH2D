@@ -60,6 +60,8 @@ struct ExperimentParams {
 	rr_float nwm_piston_magnitude{};
 	rr_float nwm_wave_magnitude{};
 	rr_float nwm_wave_number{};
+	rr_uint nwm_direction{ NWM_DIRECTION_UNDEFINED };
+	rr_float nwm_phase{};
 
 	rr_uint nwm_particles_start{};
 	rr_uint nwm_particles_end{};

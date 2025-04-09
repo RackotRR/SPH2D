@@ -203,10 +203,10 @@ void cl_grid_find(
         check_too_many_neighbours(neighbours_);
     }
 
-    printlog_debug("grid_fill: ")(fill.average<std::chrono::microseconds>())();
-    printlog_debug("grid_sort: ")(sort.average<std::chrono::microseconds>())();
-    printlog_debug("grid_search: ")(search.average<std::chrono::microseconds>())();
-    printlog_debug("grid_find: ")(find.average<std::chrono::microseconds>())();
+    printlog("grid_fill: ")(fill.average<std::chrono::microseconds>())();
+    printlog("grid_sort: ")(sort.average<std::chrono::microseconds>())();
+    printlog("grid_search: ")(search.average<std::chrono::microseconds>())();
+    printlog("grid_find: ")(find.average<std::chrono::microseconds>())();
 }
 
 void cl_sum_density(
@@ -356,7 +356,6 @@ static void cl_update_dt(
     rr_float max_mu = *arvmu_iter;
 
 	rr_float min_dt_a = sqrt(params.hsml / fabs(max_a));
-
 	rr_float min_dt_mu = params.hsml / (c0 + max_mu);
 
 	params.dt = params.CFL_coef * std::min(min_dt_a, min_dt_mu);
@@ -371,6 +370,7 @@ static void cl_update_nwm(
     rr_float time,
     cl::Buffer& r_,
     cl::Buffer& v_,
+    cl::Buffer& a_,
     cl::Buffer& itype_)
 {
     if (params.nwm && time >= params.nwm_time_start) {
@@ -446,7 +446,7 @@ void cl_time_integration(
     auto a_ = makeBufferFloatN(DEVICE_ONLY, params.maxn);
 
     // grid find
-    auto neighbours_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, params.max_neighbours * params.maxn);
+    auto neighbours_ = makeBuffer<rr_uint>(CL_MEM_READ_WRITE, size_t(params.max_neighbours) * params.maxn);
 
     // average velocity
     cl::Buffer av_;
@@ -505,6 +505,7 @@ void cl_time_integration(
         half_step_timer.finish();
 
         static RR::Timer grid_timer;
+        grid_timer.start();
         grid_find_adapter(
             r_, itype_,
             neighbours_);
@@ -551,12 +552,11 @@ void cl_time_integration(
         cl::finish();
         acceleration_timer.finish();
         
+        cl_update_nwm(time,
+            r_, v_, a_,
+            itype_);
 
         cl_update_dt(arvmu_, amagnitudes_);
-
-        cl_update_nwm(time,
-            r_, v_, 
-            itype_);
 
         static RR::Timer step_timer;
         step_timer.start();

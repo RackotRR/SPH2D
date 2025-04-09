@@ -52,7 +52,7 @@ void dynamic_boundaries(
 		return;
 	}
 
-	rr_float generator_phase = -params.nwm_freq * params.nwm_time_start;
+	rr_float generator_phase = params.nwm_phase - params.nwm_freq * params.nwm_time_start;
 
 	rr_float delta = generator_phase;
 	rr_float omega = params.nwm_freq;

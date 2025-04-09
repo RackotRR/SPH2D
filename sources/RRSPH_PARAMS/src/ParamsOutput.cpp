@@ -57,6 +57,8 @@ namespace ParamsGeneration {
 			set(nwm_piston_magnitude);
 			set(nwm_wave_magnitude);
 			set(nwm_wave_number);
+			set(nwm_direction);
+			set(nwm_phase);
 			set(beach_x);
 			set(nwm_particles_start);
 			set(nwm_particles_end);

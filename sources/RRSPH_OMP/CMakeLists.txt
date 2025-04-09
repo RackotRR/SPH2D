@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RRSPH_OMP VERSION 1.4.0)
+project(RRSPH_OMP VERSION 1.4.1)
 configure_file(RRSPHOMPVersion.h.in "${PROJECT_SOURCE_DIR}/include/RRSPHOMPVersion.h")
 
 add_library(RRSPH_OMP_SHARED     

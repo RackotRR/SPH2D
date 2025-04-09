@@ -56,6 +56,9 @@
 // 1.4.3 - move most calculations into RRSPH_COMMON
 //       - add testing kernels for each module
 // 1.4.4 - add check for too many neighbour particles
+// 1.4.5 - add nwm_direction param support
+//       - add nwm_phase param support
+//       - fix grid find time consumption log
 // TODO:
 // 1.4   - passing arguments through vectors of buffers
 // 1.4   - use mapping instead of copying for dynamic dt correction

@@ -45,3 +45,4 @@
 // 1.4.0 - rename SPH2D_OMP -> RRSPH_OMP
 //       - update install directory
 //       - add artificial pressure support
+// 1.4.1 - add nwm_phase param support

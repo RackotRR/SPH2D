@@ -188,6 +188,9 @@ __kernel void whole_step(
 #endif
 
 	}
+	else {
+		r[i] += v[i] * r_dt;
+}
 }
 
 __kernel void nwm_dynamic_boundaries(
@@ -200,7 +203,7 @@ __kernel void nwm_dynamic_boundaries(
 	if (i >= params_nwm_particles_end) return;
 	if (i >= params_ntotal || i < params_nfluid) return;
 
-#define generator_phase (-params_nwm_freq * params_nwm_time_start)
+#define generator_phase (params_nwm_phase - params_nwm_freq * params_nwm_time_start)
 
 #define nwm_delta generator_phase
 #define nwm_omega params_nwm_freq
@@ -225,8 +228,20 @@ __kernel void nwm_dynamic_boundaries(
 	rr_float vx = 0;
 #endif
 
-	r[i].x = r[i].x + vx * dt;
-	v[i].x = vx;
+	rr_floatn dir = 0;
+#if params_nwm_direction == NWM_DIRECTION_AXIS_X
+	dir.x = 1;
+#elif params_nwm_direction == NWM_DIRECTION_AXIS_Y
+	dir.y = 1;
+#elif params_nwm_direction == NWM_DIRECTION_AXIS_Z
+	dir.z = 1;
+#elif params_nwm_direction == NWM_DIRECTION_RADIAL_Y
+	dir.xz = normalize(r[i].xz);
+#else
+	vx = 0;
+#endif
+
+	v[i] = vx * dir;
 }
 
 __kernel void nwm_disappear_wall(
@@ -273,6 +288,6 @@ __kernel void nwm_solitary_rayleigh(
 	rr_float dtaudt = k * c;
 
 	rr_float dxdt = dxdu * dudtau * dtaudt;
-	r[i].x = r[i].x + dxdt * dt;
+	v[i] = 0;
 	v[i].x = dxdt;
 }

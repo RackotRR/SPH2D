@@ -291,8 +291,13 @@
 //  3.1.4 - RRSPH: common computing modules between RRSPH_CL and RRSPH_OMP
 //        - RRSPH: enhance accuracy with double-precision calculations
 //        - RRSPH: 3D visualization tool
+//  3.1.5 - RRSPH: radial waves generator script
+//        - RRSPH: add nwm_direction param (RRSPH_CL)
+//        - RRSPH: add nwm_phase param (RRSPH_CL, RRSPH_OMP)
+//        - RRSPH_CL: fix grid find time consumption log
 // TODO:
 // 3.1.5 - RRSPH: add modules prefix
+//       - RRSPH: compute velocity once for all particles for dynamic waves generation
 // 3.2.0 - RRSPH2D: add RRMetaParams subproject
 //       - SPH2D_COMMON: particles check position with grid find
 //       - SPH2D_FIO: fix experiment open without save field variables params

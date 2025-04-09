@@ -9,7 +9,7 @@
 #include "ModelParams.h"
 #include "Version.h"
 
-void check_optional_params(const ModelParams& model_params) {
+static void check_optional_params(const ModelParams& model_params) {
     RR::Logger::printlog(__func__)();
 #define need_param(param) \
     do { \
@@ -72,6 +72,7 @@ void check_optional_params(const ModelParams& model_params) {
     case NWM_METHOD_DYNAMIC_2:
         need_param(nwm_wave_length);
         need_param(nwm_wave_magnitude);
+        need_param(nwm_direction);
         break;
     case NWM_METHOD_SOLITARY_RAYLEIGH:
         need_param(nwm_wave_magnitude);
@@ -157,6 +158,8 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(nwm_time_start);
     move_param(nwm_wave_length);
     move_param(nwm_wave_magnitude);
+    move_param(nwm_direction);
+    move_param(nwm_phase);
 
     move_param(simulation_time);
 
@@ -172,7 +175,10 @@ void apply_model_params(ExperimentParams& experiment_params, const ModelParams& 
     move_param(save_density);
 }
 
-static nlohmann::json backward_compatibility_model_params(nlohmann::json json) {
+static nlohmann::json backward_compatibility_model_params(nlohmann::json json, ParamsVersion target_version) {
+    if (target_version < ParamsVersion{ 3, 1, 4 }) {
+        json["nwm_direction"] = NWM_DIRECTION_AXIS_X;
+    }
     return json;
 }
 
@@ -230,8 +236,12 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     };
 
     if (target_version < current_version) {
-        json = backward_compatibility_model_params(json);
+        json = backward_compatibility_model_params(json, target_version);
     }
+
+    model_params.params_target_version_major = RRSPH_PARAMS_VERSION_MAJOR;
+    model_params.params_target_version_minor = RRSPH_PARAMS_VERSION_MINOR;
+    model_params.params_target_version_patch = RRSPH_PARAMS_VERSION_PATCH;
 
     load_default(density_treatment);
     load_default(density_normalization);
@@ -280,6 +290,8 @@ ModelParams load_model_params(const std::filesystem::path& experiment_directory)
     load_default(nwm_time_start);
     load_optional(nwm_wave_length);
     load_optional(nwm_wave_magnitude);
+    load_optional(nwm_direction);
+    load_default(nwm_phase);
 
     load(simulation_time);
 
@@ -365,6 +377,8 @@ void params_make_model_json(const std::filesystem::path& experiment_directory, c
 
     print_not_null(nwm_wave_length);
     print_not_null(nwm_wave_magnitude);
+    print_not_null(nwm_direction);
+    print_param(nwm_phase);
 
     print_param(simulation_time);
     print_param(dt_correction_method);

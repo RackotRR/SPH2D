@@ -80,10 +80,10 @@ template<typename T>
 cl::Buffer makeBuffer(cl_mem_flags flags, size_t elements) {
     cl_int error = 0;
     cl::Buffer buffer = cl::Buffer(flags, sizeof(T) * elements, nullptr, &error);
+    printlog("allocate buffer for ")(elements)(" elements, element size = ")(sizeof(T))(", total: ")(sizeof(T) * elements)();
     if (error != CL_SUCCESS) {
         throw std::runtime_error{ "makeBuffer error: " + std::to_string(error) };
     }
-    printlog("allocate buffer for ")(elements)(" elements, element size = ")(sizeof(T))(", total: ")(sizeof(T) * elements)();
     return buffer;
 }
 template<typename T>
