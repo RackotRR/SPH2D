@@ -1,5 +1,5 @@
 # RRSPH
-Implementation for 2D SPH simulation of water
+Implementation for 2D and 3D SPH simulation of water
 
 ![video_vx_0](https://user-images.githubusercontent.com/60754292/225715442-05b63d00-a091-4c36-adef-35da8d234468.gif)
 
@@ -25,7 +25,7 @@ Configure, build and install project with cmake:
 ```
 git clone https://github.com/RackotRR/SPH2D.git
 git submodule update --init
-cd SPH2D
+cd RRSPH
 cmake -S . -B {binary_path} -DCMAKE_INSTALL_PREFIX={install_path}
 cmake --build {binary_path}
 cmake --install {binary_path}
